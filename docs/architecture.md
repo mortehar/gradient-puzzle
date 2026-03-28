@@ -8,9 +8,9 @@ This document explains what the game does at runtime and how the current codebas
 2. [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx) mounts the puzzle feature only.
 3. [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx) composes:
    - board rendering
-   - footer/status actions
-   - settings sidebar
-   - perceptual research panel
+   - footer/status actions plus the primary difficulty slider that immediately loads a new puzzle
+   - an advanced settings panel that appears on demand
+   - the perceptual research panel inside that advanced panel
 4. [`src/features/puzzle/hooks/usePuzzleSession.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePuzzleSession.ts) owns the puzzle session state:
    - preview -> scrambling -> playing -> solved transitions
    - setup mode and difficulty state
@@ -18,6 +18,11 @@ This document explains what the game does at runtime and how the current codebas
    - aid application
    - derived research and presentation values
 5. UI components render the session state and call back into the hook actions.
+
+Two current UX constraints are intentional:
+
+- both catalog-generated and custom-edited boards stay portrait-oriented (`width <= height`)
+- the rendered board sits inside a fixed portrait frame so surrounding controls do not reflow wildly as difficulty changes
 
 ## Domain Model
 
@@ -78,6 +83,7 @@ Locks are defined by unions of:
 - diagonal cross lines
 
 The config is normalized so only valid counts and spacings are used for a given board size.
+Custom editing also clamps width and height so the board stays portrait-safe while sliders are being moved.
 
 ## Aid Strategy
 
@@ -87,6 +93,16 @@ The `Aid` action chooses a swap that improves the board as efficiently as possib
 - otherwise place the primary tile correctly and minimize the remaining secondary distance
 
 That logic stays in the pure domain layer, so UI animation only visualizes the chosen move.
+
+## Completion Ceremony
+
+When the board is solved:
+
+- locked frames fade away
+- a centered animated checkmark appears
+- the `New` button stays visually highlighted until the next puzzle loads
+
+This ceremony state is tracked in the puzzle session hook and exposed to the board and footer as presentation state.
 
 ## Research Panel
 

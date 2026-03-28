@@ -1,5 +1,5 @@
-import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from "react";
-import type { AidAnimationState, PointerPosition, ScrambleFlipTile, TransitionMode } from "./boardPresentation";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import type { AidAnimationState, CompletionCeremonyPhase, PointerPosition, ScrambleFlipTile, TransitionMode } from "./boardPresentation";
 import { getBoardStyle, getTileLayoutStyle } from "./boardPresentation";
 import type { GameConfig, GameState, Tile } from "../domain";
 
@@ -10,8 +10,7 @@ type PuzzleBoardProps = {
   transitionMode: TransitionMode;
   activeAidAnimation: AidAnimationState | null;
   activeScrambleFlip: ScrambleFlipTile[] | null;
-  showCompletionBurst: boolean;
-  completionCanvasRef: RefObject<HTMLCanvasElement | null>;
+  completionCeremonyPhase: CompletionCeremonyPhase;
   dragTileId: string | null;
   isInteractive: boolean;
   onTilePointerDown: (tile: Tile, event: ReactPointerEvent<HTMLButtonElement>) => void;
@@ -24,8 +23,7 @@ export function PuzzleBoard({
   transitionMode,
   activeAidAnimation,
   activeScrambleFlip,
-  showCompletionBurst,
-  completionCanvasRef,
+  completionCeremonyPhase,
   dragTileId,
   isInteractive,
   onTilePointerDown
@@ -41,6 +39,7 @@ export function PuzzleBoard({
       aria-label="Gradient puzzle board"
       role="grid"
       data-testid="puzzle-board"
+      data-ceremony-phase={completionCeremonyPhase}
       style={getBoardStyle(game, previewConfig, transitionMode)}
     >
       {orderedTiles.map((tile) => {
@@ -59,6 +58,7 @@ export function PuzzleBoard({
             className={[
               "tile",
               tile.locked ? "tile-locked" : "",
+              tile.locked && game.status === "solved" ? "tile-lock-frame-hidden" : "",
               isDragging ? "tile-dragging" : "",
               isHiddenForScramble ? "tile-hidden-for-scramble" : "",
               isHiddenForAid ? "tile-hidden-for-aid" : "",
@@ -132,9 +132,12 @@ export function PuzzleBoard({
         </div>
       ) : null}
 
-      {showCompletionBurst ? (
-        <div className="completion-burst" data-testid="completion-burst" aria-hidden="true">
-          <canvas ref={completionCanvasRef as RefObject<HTMLCanvasElement>} className="completion-canvas" />
+      {completionCeremonyPhase === "checkmark" ? (
+        <div className="completion-checkmark" data-testid="completion-checkmark" aria-hidden="true">
+          <svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" focusable="false">
+            <circle className="completion-checkmark-ring" cx="60" cy="60" r="34" pathLength={100} />
+            <path className="completion-checkmark-path" d="M 44 61 L 56 73 L 80 49" pathLength={100} />
+          </svg>
         </div>
       ) : null}
     </div>

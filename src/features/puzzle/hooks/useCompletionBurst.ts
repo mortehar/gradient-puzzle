@@ -1,19 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameState } from "../domain";
-import {
-  COMPLETION_BURST_DURATION_MS,
-  buildCompletionParticles,
-  drawCompletionBurst
-} from "../ui/boardPresentation";
+import { COMPLETION_CHECK_DURATION_MS, type CompletionCeremonyPhase } from "../ui/boardPresentation";
 
 export function useCompletionBurst(status: GameState["status"]) {
-  const [showCompletionBurst, setShowCompletionBurst] = useState(false);
+  const [ceremonyPhase, setCeremonyPhase] = useState<CompletionCeremonyPhase>("idle");
+  const [highlightNewPuzzle, setHighlightNewPuzzle] = useState(false);
   const previousStatusRef = useRef<GameState["status"]>(status);
-  const completionFrameRef = useRef<number | null>(null);
-  const completionTimeoutRef = useRef<number | null>(null);
-  const completionCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const completionParticlesRef = useRef(buildCompletionParticles());
-  const completionStartTimeRef = useRef<number | null>(null);
+  const settledTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const previousStatus = previousStatusRef.current;
@@ -21,89 +14,30 @@ export function useCompletionBurst(status: GameState["status"]) {
 
     if (status !== "solved" || previousStatus === "solved") {
       if (status !== "solved") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- burst visibility is intentionally driven by status transitions.
-        setShowCompletionBurst(false);
-        completionParticlesRef.current = [];
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- ceremony state should reset immediately when leaving solved mode.
+        setCeremonyPhase("idle");
+        setHighlightNewPuzzle(false);
       }
 
       return undefined;
     }
 
-    completionParticlesRef.current = buildCompletionParticles();
-    completionStartTimeRef.current = null;
-    setShowCompletionBurst(true);
-
-    return undefined;
-  }, [status]);
-
-  useEffect(() => {
-    if (!showCompletionBurst) {
-      if (completionFrameRef.current !== null) {
-        window.cancelAnimationFrame(completionFrameRef.current);
-        completionFrameRef.current = null;
-      }
-
-      if (completionTimeoutRef.current !== null) {
-        window.clearTimeout(completionTimeoutRef.current);
-        completionTimeoutRef.current = null;
-      }
-
-      completionStartTimeRef.current = null;
-
-      const canvas = completionCanvasRef.current;
-      const context = canvas?.getContext("2d");
-
-      if (canvas && context) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-      }
-
-      return undefined;
-    }
-
-    completionTimeoutRef.current = window.setTimeout(() => {
-      setShowCompletionBurst(false);
-    }, COMPLETION_BURST_DURATION_MS);
-
-    const advance = (timestamp: number) => {
-      if (completionStartTimeRef.current === null) {
-        completionStartTimeRef.current = timestamp;
-      }
-
-      const elapsed = timestamp - completionStartTimeRef.current;
-      const canvas = completionCanvasRef.current;
-
-      if (!canvas) {
-        completionFrameRef.current = null;
-        return;
-      }
-
-      drawCompletionBurst(canvas, completionParticlesRef.current, elapsed);
-
-      if (elapsed >= COMPLETION_BURST_DURATION_MS) {
-        completionFrameRef.current = null;
-        return;
-      }
-
-      completionFrameRef.current = window.requestAnimationFrame(advance);
-    };
-
-    completionFrameRef.current = window.requestAnimationFrame(advance);
+    setCeremonyPhase("checkmark");
+    setHighlightNewPuzzle(true);
+    settledTimeoutRef.current = window.setTimeout(() => {
+      setCeremonyPhase("settled");
+    }, COMPLETION_CHECK_DURATION_MS);
 
     return () => {
-      if (completionFrameRef.current !== null) {
-        window.cancelAnimationFrame(completionFrameRef.current);
-        completionFrameRef.current = null;
-      }
-
-      if (completionTimeoutRef.current !== null) {
-        window.clearTimeout(completionTimeoutRef.current);
-        completionTimeoutRef.current = null;
+      if (settledTimeoutRef.current !== null) {
+        window.clearTimeout(settledTimeoutRef.current);
+        settledTimeoutRef.current = null;
       }
     };
-  }, [showCompletionBurst]);
+  }, [status]);
 
   return {
-    completionCanvasRef,
-    showCompletionBurst
+    ceremonyPhase,
+    highlightNewPuzzle
   };
 }

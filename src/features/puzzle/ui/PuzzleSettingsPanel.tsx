@@ -9,8 +9,6 @@ type PuzzleSettingsPanelProps = {
   onToggleHelp: (helpId: string) => void;
   setupMode: PuzzleSetupMode;
   setSetupMode: (mode: PuzzleSetupMode) => void;
-  difficultyScore: number;
-  setDifficultyScore: (value: number) => void;
   selectedDifficultyTier: string;
   currentGridLabel: string;
   previewConfig: GameConfig;
@@ -39,8 +37,6 @@ export function PuzzleSettingsPanel({
   onToggleHelp,
   setupMode,
   setSetupMode,
-  difficultyScore,
-  setDifficultyScore,
   selectedDifficultyTier,
   currentGridLabel,
   previewConfig,
@@ -64,9 +60,13 @@ export function PuzzleSettingsPanel({
   onColorConstraintChange
 }: PuzzleSettingsPanelProps) {
   return (
-    <aside className="settings-panel">
+    <aside className="settings-panel" data-testid="advanced-settings-panel">
       <div className="status-card">
         <section className="option-block option-block-first">
+          <p className="status-label option-title">Advanced settings</p>
+        </section>
+
+        <section className="option-block">
           <div className="control-group">
             <ControlLabel
               label="Puzzle setup"
@@ -99,41 +99,10 @@ export function PuzzleSettingsPanel({
                 <span>Custom layout</span>
               </label>
             </div>
+            {setupMode === "difficulty" ? (
+              <p className="control-help">Use the footer difficulty slider to choose the next catalog layout.</p>
+            ) : null}
           </div>
-
-          {setupMode === "difficulty" ? (
-            <div className="control-group" data-testid="difficulty-mode-panel">
-              <ControlLabel
-                htmlFor="difficulty-slider"
-                label="Difficulty"
-                helpId="difficulty-slider"
-                helpText="Moves through the catalog of board shapes and lock layouts. Higher values favor larger boards with fewer or more distant anchors."
-                activeHelpId={activeHelpId}
-                onToggle={onToggleHelp}
-              />
-              <div className="control-row">
-                <input
-                  id="difficulty-slider"
-                  data-testid="difficulty-slider"
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={difficultyScore}
-                  onChange={(event) => setDifficultyScore(Number(event.target.value))}
-                />
-                <strong>{difficultyScore}</strong>
-              </div>
-              <div className="setup-summary">
-                <span className="status-label" data-testid="difficulty-tier-label">
-                  {selectedDifficultyTier}
-                </span>
-                <strong data-testid="difficulty-layout-summary">
-                  {previewConfig.width} x {previewConfig.height} board, {nextLockedCount} locked cells
-                </strong>
-              </div>
-            </div>
-          ) : null}
         </section>
 
         {setupMode === "custom" ? (
@@ -143,7 +112,7 @@ export function PuzzleSettingsPanel({
                 htmlFor="width-slider"
                 label="Width"
                 helpId="width"
-                helpText="Sets how many columns the puzzle has. Wider boards spread the gradient over more cells, so each horizontal step becomes smaller."
+                helpText="Sets how many columns the puzzle has. Custom boards stay portrait, so width can never exceed the current height."
                 activeHelpId={activeHelpId}
                 onToggle={onToggleHelp}
               />
@@ -153,7 +122,7 @@ export function PuzzleSettingsPanel({
                   data-testid="width-slider"
                   type="range"
                   min={MIN_BOARD_SIZE}
-                  max={MAX_BOARD_SIZE}
+                  max={normalizedConfig.height}
                   value={normalizedConfig.width}
                   onChange={(event) => onWidthChange(Number(event.target.value))}
                 />
@@ -166,7 +135,7 @@ export function PuzzleSettingsPanel({
                 htmlFor="height-slider"
                 label="Height"
                 helpId="height"
-                helpText="Sets how many rows the puzzle has. Taller boards create more vertical gradient steps and usually make color ordering easier but longer."
+                helpText="Sets how many rows the puzzle has. Custom boards stay portrait, so height can never drop below the current width."
                 activeHelpId={activeHelpId}
                 onToggle={onToggleHelp}
               />
@@ -175,7 +144,7 @@ export function PuzzleSettingsPanel({
                   id="height-slider"
                   data-testid="height-slider"
                   type="range"
-                  min={MIN_BOARD_SIZE}
+                  min={normalizedConfig.width}
                   max={MAX_BOARD_SIZE}
                   value={normalizedConfig.height}
                   onChange={(event) => onHeightChange(Number(event.target.value))}

@@ -67,29 +67,47 @@ describe("App", () => {
     vi.restoreAllMocks();
   });
 
+  function openAdvancedSettings() {
+    if (!screen.queryByTestId("advanced-settings-panel")) {
+      fireEvent.click(screen.getByTestId("advanced-settings-toggle"));
+    }
+  }
+
   function switchToCustomLayout() {
+    openAdvancedSettings();
     fireEvent.click(screen.getByTestId("setup-mode-custom"));
   }
 
-  it("renders the puzzle first and settings second with no hero copy or bottom help text", () => {
+  it("renders a focused default layout and reveals advanced controls on demand", () => {
     render(<App />);
 
     const layout = document.querySelector(".app-layout");
     const sections = layout ? Array.from(layout.children) : [];
 
     expect(sections[0]).toHaveClass("board-panel");
-    expect(sections[1].tagName).toBe("ASIDE");
+    expect(sections).toHaveLength(1);
     expect(screen.queryByText(/Rebuild the color flow/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId("status-copy")).not.toBeInTheDocument();
+    expect(screen.getByTestId("board-footer")).toBeInTheDocument();
+    expect(screen.getByText("Current score")).toBeInTheDocument();
+    expect(screen.getByTestId("advanced-settings-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("advanced-settings-toggle")).toHaveClass("advanced-settings-button");
+    expect(screen.queryByTestId("hue-distance-slider")).not.toBeInTheDocument();
+    expect(screen.getByTestId("difficulty-slider")).toBeInTheDocument();
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Difficulty: Easy (10)");
+    expect(screen.queryByTestId("advanced-settings-panel")).not.toBeInTheDocument();
+    expect(screen.queryByText("Cell Appearance")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("research-panel")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("step-strength-slider")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("width-slider")).not.toBeInTheDocument();
+
+    openAdvancedSettings();
+
+    expect(screen.getByTestId("advanced-settings-panel")).toBeInTheDocument();
     expect(screen.getByText("Cell Appearance")).toBeInTheDocument();
     expect(screen.getByTestId("research-panel")).toBeInTheDocument();
     expect(screen.getByTestId("current-readability-label")).toBeInTheDocument();
-    expect(screen.getByTestId("board-footer")).toBeInTheDocument();
-    expect(screen.getByText("Current score")).toBeInTheDocument();
-    expect(screen.queryByTestId("hue-distance-slider")).not.toBeInTheDocument();
     expect(screen.getByTestId("step-strength-slider")).toBeInTheDocument();
-    expect(screen.getByTestId("difficulty-slider")).toBeInTheDocument();
-    expect(screen.queryByTestId("width-slider")).not.toBeInTheDocument();
   });
 
   it("uses zero-disabled line settings for the next puzzle", () => {
@@ -107,9 +125,10 @@ describe("App", () => {
 
     fireEvent.click(screen.getByText("New"));
 
-    expect(screen.getByText("7 x 5")).toBeInTheDocument();
+    expect(screen.getByText("5 x 5")).toBeInTheDocument();
     expect(screen.getByText("Locked").parentElement?.querySelector("strong")?.textContent).toBe("9");
     expect(screen.getByTestId("puzzle-board")).toHaveClass("board-no-motion");
+    expect(screen.getByTestId("puzzle-board")).toHaveStyle("aspect-ratio: 5 / 7");
 
     act(() => {
       vi.advanceTimersByTime(2000);
@@ -133,9 +152,8 @@ describe("App", () => {
     fireEvent.click(screen.getByTestId("aid-button"));
 
     expect(screen.getByTestId("aid-button")).toBeDisabled();
-    expect(screen.getByTestId("aid-count")).toHaveTextContent("1");
-    expect(screen.getByText("Swaps").parentElement?.querySelector("strong")?.textContent).toBe("1");
     expect(screen.getByText("1 swaps")).toBeInTheDocument();
+    expect(screen.getByText("Aids used: 1")).toBeInTheDocument();
     expect(screen.getByText("Current score")).toBeInTheDocument();
     expect(screen.getByTestId("aid-primary-overlay")).toBeInTheDocument();
     expect(screen.getByTestId("aid-secondary-overlay")).toBeInTheDocument();
@@ -146,6 +164,7 @@ describe("App", () => {
 
     expect(screen.getByTestId("completion-summary")).toBeInTheDocument();
     expect(screen.getByText("Puzzle complete")).toBeInTheDocument();
+    expect(screen.getByText("Final score: 1 swaps")).toBeInTheDocument();
     expect(screen.getByText("Aids used: 1")).toBeInTheDocument();
     expect(screen.queryByText(/^Hint$/i)).not.toBeInTheDocument();
   });
@@ -160,24 +179,60 @@ describe("App", () => {
       vi.advanceTimersByTime(1000);
     });
 
+    openAdvancedSettings();
     fireEvent.change(screen.getByTestId("aid-time-slider"), { target: { value: "0" } });
     fireEvent.click(screen.getByTestId("aid-button"));
 
     expect(screen.getByTestId("completion-summary")).toBeInTheDocument();
-    expect(screen.getByTestId("completion-burst")).toBeInTheDocument();
+    expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "checkmark");
+    expect(screen.getByTestId("completion-checkmark")).toBeInTheDocument();
     expect(screen.queryByTestId("aid-primary-overlay")).not.toBeInTheDocument();
     expect(screen.queryByTestId("aid-secondary-overlay")).not.toBeInTheDocument();
+    expect(screen.getByTestId("tile-0")).toHaveClass("tile-lock-frame-hidden");
+    expect(screen.getByTestId("new-puzzle-button")).toHaveClass("new-button-celebrating");
 
     act(() => {
-      vi.advanceTimersByTime(3800);
+      vi.advanceTimersByTime(4400);
     });
 
-    expect(screen.queryByTestId("completion-burst")).not.toBeInTheDocument();
+    expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "settled");
+    expect(screen.queryByTestId("completion-checkmark")).not.toBeInTheDocument();
+    expect(screen.getByTestId("new-puzzle-button")).toHaveClass("new-button-celebrating");
+  });
+
+  it("cancels the solved ceremony cleanly when a new puzzle starts mid-animation", () => {
+    render(<App />);
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    openAdvancedSettings();
+    fireEvent.change(screen.getByTestId("aid-time-slider"), { target: { value: "0" } });
+    fireEvent.click(screen.getByTestId("aid-button"));
+
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+
+    expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "checkmark");
+    expect(screen.getByTestId("completion-checkmark")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("new-puzzle-button"));
+
+    expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "idle");
+    expect(screen.queryByTestId("completion-checkmark")).not.toBeInTheDocument();
+    expect(screen.getByTestId("tile-0")).not.toHaveClass("tile-lock-frame-hidden");
+    expect(screen.getByTestId("new-puzzle-button")).not.toHaveClass("new-button-celebrating");
   });
 
   it("updates cell appearance immediately from the settings sliders", () => {
     render(<App />);
 
+    openAdvancedSettings();
     fireEvent.change(screen.getByTestId("cell-spacing-slider"), { target: { value: "12" } });
     fireEvent.change(screen.getByTestId("cell-rounding-slider"), { target: { value: "3" } });
     fireEvent.change(screen.getByTestId("lock-rounding-slider"), { target: { value: "5" } });
@@ -237,13 +292,16 @@ describe("App", () => {
   it("starts with zero spacing and rounding and keeps the footer actions below the board", () => {
     render(<App />);
 
-    expect(screen.getByTestId("difficulty-slider")).toHaveValue("50");
-    expect(screen.getByTestId("difficulty-tier-label")).toHaveTextContent("Medium");
+    expect(screen.getByTestId("difficulty-slider")).toHaveValue("10");
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Difficulty: Easy (10)");
 
+    openAdvancedSettings();
     switchToCustomLayout();
 
     expect(screen.getByTestId("width-slider")).toHaveValue("5");
     expect(screen.getByTestId("height-slider")).toHaveValue("5");
+    expect(screen.getByTestId("width-slider")).toHaveAttribute("max", "5");
+    expect(screen.getByTestId("height-slider")).toHaveAttribute("min", "5");
     expect(screen.getByTestId("vertical-count-slider")).toHaveValue("2");
     expect(screen.getByTestId("vertical-density-slider")).toHaveValue("1");
     expect(screen.getByTestId("cell-spacing-slider")).toHaveValue("0");
@@ -261,6 +319,8 @@ describe("App", () => {
     const footerActions = screen.getByTestId("board-footer-actions");
     expect(footerActions.children[0]).toHaveTextContent("Aid");
     expect(footerActions.children[1]).toHaveTextContent("New");
+    expect(footerActions.children).toHaveLength(2);
+    expect(screen.getByTestId("advanced-settings-toggle")).toHaveTextContent("Advanced settings");
 
     const settingsCard = document.querySelector(".status-card");
     expect(settingsCard).not.toHaveTextContent("New Puzzle");
@@ -285,6 +345,7 @@ describe("App", () => {
   it("updates the trajectory controls immediately", () => {
     render(<App />);
 
+    openAdvancedSettings();
     fireEvent.change(screen.getByTestId("step-strength-slider"), { target: { value: "70" } });
     fireEvent.change(screen.getByTestId("axis-balance-slider"), { target: { value: "64" } });
     fireEvent.change(screen.getByTestId("center-preservation-slider"), { target: { value: "90" } });
@@ -297,6 +358,7 @@ describe("App", () => {
   it("shows inline help text when an info icon is clicked", () => {
     render(<App />);
 
+    openAdvancedSettings();
     fireEvent.click(screen.getByLabelText("Explain Step strength"));
 
     expect(
@@ -310,19 +372,64 @@ describe("App", () => {
     render(<App />);
 
     fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "72" } });
-    expect(screen.getByTestId("difficulty-tier-label")).toHaveTextContent("Hard");
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Difficulty: Expert (72)");
     expect(screen.queryByTestId("width-slider")).not.toBeInTheDocument();
 
     switchToCustomLayout();
     fireEvent.change(screen.getByTestId("width-slider"), { target: { value: "7" } });
     fireEvent.change(screen.getByTestId("height-slider"), { target: { value: "6" } });
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Difficulty: Expert (72)");
 
-    fireEvent.click(screen.getByTestId("setup-mode-difficulty"));
-    expect(screen.getByTestId("difficulty-slider")).toHaveValue("72");
+    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "73" } });
+    expect(screen.getByTestId("difficulty-slider")).toHaveValue("73");
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Difficulty: Expert (73)");
     expect(screen.queryByTestId("width-slider")).not.toBeInTheDocument();
 
     switchToCustomLayout();
-    expect(screen.getByTestId("width-slider")).toHaveValue("7");
+    expect(screen.getByTestId("width-slider")).toHaveValue("5");
     expect(screen.getByTestId("height-slider")).toHaveValue("6");
+  });
+
+  it("starts a fresh puzzle immediately when the difficulty slider moves", () => {
+    render(<App />);
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(920);
+    });
+
+    expect(screen.getByTestId("aid-button")).not.toBeDisabled();
+
+    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "12" } });
+
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Difficulty: Easy (12)");
+    expect(screen.getByTestId("aid-button")).toBeDisabled();
+    expect(screen.queryByTestId("scramble-overlay")).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByTestId("scramble-overlay")).toBeInTheDocument();
+  });
+
+  it("keeps custom width and height portrait-safe while editing", () => {
+    render(<App />);
+    switchToCustomLayout();
+
+    expect(screen.getByTestId("width-slider")).toHaveAttribute("max", "5");
+    expect(screen.getByTestId("height-slider")).toHaveAttribute("min", "5");
+
+    fireEvent.change(screen.getByTestId("height-slider"), { target: { value: "7" } });
+    expect(screen.getByTestId("width-slider")).toHaveAttribute("max", "7");
+
+    fireEvent.change(screen.getByTestId("width-slider"), { target: { value: "8" } });
+    expect(screen.getByTestId("width-slider")).toHaveValue("7");
+    expect(screen.getByTestId("height-slider")).toHaveValue("7");
+
+    fireEvent.change(screen.getByTestId("height-slider"), { target: { value: "4" } });
+    expect(screen.getByTestId("height-slider")).toHaveValue("7");
   });
 });

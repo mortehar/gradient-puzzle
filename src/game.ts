@@ -92,7 +92,7 @@ export type GeneratedBoard = {
 
 export type PuzzleSetupMode = "difficulty" | "custom";
 
-export type DifficultyTier = "Very Easy" | "Easy" | "Medium" | "Hard" | "Expert";
+export type DifficultyTier = "Very easy" | "Easy" | "Medium" | "Hard" | "Expert" | "Master";
 
 export type StructuralDifficultyMetrics = {
   boardArea: number;
@@ -300,23 +300,27 @@ export function normalizeConfig(config: GameConfig): GameConfig {
 }
 
 export function getDifficultyTier(score: number): DifficultyTier {
-  if (score < 20) {
-    return "Very Easy";
+  if (score < 10) {
+    return "Very easy";
   }
 
-  if (score < 40) {
+  if (score < 20) {
     return "Easy";
   }
 
-  if (score < 60) {
+  if (score < 40) {
     return "Medium";
   }
 
-  if (score < 80) {
+  if (score < 60) {
     return "Hard";
   }
 
-  return "Expert";
+  if (score < 80) {
+    return "Expert";
+  }
+
+  return "Master";
 }
 
 export function analyzeStructuralDifficulty(config: GameConfig): DifficultyRating {
@@ -1230,6 +1234,10 @@ function createDifficultyCatalog(): DifficultyCatalogEntry[] {
     const horizontalDensityOptions = getValidLineDensities(width);
 
     for (let height = MIN_BOARD_SIZE; height <= MAX_BOARD_SIZE; height += 1) {
+      if (width > height) {
+        continue;
+      }
+
       const verticalDensityOptions = getValidLineDensities(height);
       const horizontalCountOptions = getValidHorizontalLineCounts(height);
       const crossDensityOptions = getValidCrossDensities(width, height);

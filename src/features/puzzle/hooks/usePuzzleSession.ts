@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CONFIG,
   analyzeBoardTiles,
@@ -33,6 +33,7 @@ import {
   buildScrambleFlipTiles,
   getAidDurationMs,
   type AidAnimationState,
+  type CompletionCeremonyPhase,
   type DragState,
   type PointerPosition,
   type ScrambleFlipTile,
@@ -65,8 +66,8 @@ export type PuzzleSession = {
   currentReversalRate: number;
   currentOrderedShare: number;
   selectedDifficultyTier: string;
-  completionCanvasRef: RefObject<HTMLCanvasElement | null>;
-  showCompletionBurst: boolean;
+  completionCeremonyPhase: CompletionCeremonyPhase;
+  highlightNewPuzzle: boolean;
   actions: {
     setSetupMode: (mode: PuzzleSetupMode) => void;
     setDifficultyScore: (value: number) => void;
@@ -332,6 +333,34 @@ export function usePuzzleSession(): PuzzleSession {
     setConfig((currentConfig) => normalizeConfig(updater(currentConfig)));
   }
 
+  function clampPortraitWidth(nextWidth: number, currentHeight: number) {
+    return Math.min(nextWidth, currentHeight);
+  }
+
+  function clampPortraitHeight(currentWidth: number, nextHeight: number) {
+    return Math.max(currentWidth, nextHeight);
+  }
+
+  function commitLoadedGame(nextGame: ReturnType<typeof createNewGameForDifficulty>, nextSetupMode: PuzzleSetupMode) {
+    setGame(nextGame);
+
+    if (nextSetupMode === "difficulty") {
+      difficultyHistoryRef.current = [
+        nextGame.difficulty.layoutSignature,
+        ...difficultyHistoryRef.current.filter((signature) => signature !== nextGame.difficulty.layoutSignature)
+      ].slice(0, 3);
+    }
+
+    setActiveAidAnimation(null);
+    setActiveScrambleFlip(null);
+    setTransitionMode("none");
+    clearDragState();
+
+    window.setTimeout(() => {
+      setTransitionMode("quick");
+    }, 0);
+  }
+
   function handleNewPuzzle() {
     if (!canCreatePuzzle) {
       return;
@@ -342,21 +371,15 @@ export function usePuzzleSession(): PuzzleSession {
         ? createNewGameForDifficulty(difficultyScore, normalizedConfig, difficultyHistoryRef.current)
         : createNewGame(normalizedConfig);
 
-    setGame(nextGame);
-    if (setupMode === "difficulty") {
-      difficultyHistoryRef.current = [
-        nextGame.difficulty.layoutSignature,
-        ...difficultyHistoryRef.current.filter((signature) => signature !== nextGame.difficulty.layoutSignature)
-      ].slice(0, 3);
-    }
-    setActiveAidAnimation(null);
-    setActiveScrambleFlip(null);
-    setTransitionMode("none");
-    clearDragState();
+    commitLoadedGame(nextGame, setupMode);
+  }
 
-    window.setTimeout(() => {
-      setTransitionMode("quick");
-    }, 0);
+  function handleDifficultyScoreChange(nextDifficultyScore: number) {
+    const nextGame = createNewGameForDifficulty(nextDifficultyScore, normalizedConfig, difficultyHistoryRef.current);
+
+    setSetupMode("difficulty");
+    setDifficultyScore(nextDifficultyScore);
+    commitLoadedGame(nextGame, "difficulty");
   }
 
   function handleAid() {
@@ -440,11 +463,11 @@ export function usePuzzleSession(): PuzzleSession {
     currentReversalRate,
     currentOrderedShare,
     selectedDifficultyTier,
-    completionCanvasRef: completionBurst.completionCanvasRef,
-    showCompletionBurst: completionBurst.showCompletionBurst,
+    completionCeremonyPhase: completionBurst.ceremonyPhase,
+    highlightNewPuzzle: completionBurst.highlightNewPuzzle,
     actions: {
       setSetupMode,
-      setDifficultyScore,
+      setDifficultyScore: handleDifficultyScoreChange,
       beginDrag: (tile, pointerId, clientX, clientY) => {
         if (tile.locked || !isInteractive) {
           return;
@@ -460,13 +483,13 @@ export function usePuzzleSession(): PuzzleSession {
       updateWidth: (value) => {
         updateConfig((currentConfig) => ({
           ...currentConfig,
-          width: value
+          width: clampPortraitWidth(value, currentConfig.height)
         }));
       },
       updateHeight: (value) => {
         updateConfig((currentConfig) => ({
           ...currentConfig,
-          height: value
+          height: clampPortraitHeight(currentConfig.width, value)
         }));
       },
       updateLineValue: (lineKey, field, value) => {

@@ -11,20 +11,22 @@ Gradient is a browser-based color reconstruction puzzle built with React, TypeSc
 - A puzzle is solved when every tile returns to its original index.
 
 The central design idea is that the board generator does not just choose random colors. It searches for gradients that remain readable as a puzzle by scoring neighbor smoothness, midpoint clarity, axis balance, lightness ordering, and center muddiness in `Oklab`.
+The board now sits inside a fixed portrait frame so the footer controls and advanced panel stay visually stable while puzzle dimensions change.
 
 ## Play Loop
 
-1. Start a new puzzle from either the difficulty slider or custom layout controls.
+1. Move the footer difficulty slider to immediately generate a fresh puzzle, or open `Advanced settings` to reveal custom layout controls.
+   Custom layouts stay portrait-only, so width never exceeds height.
 2. Study the solved board during the preview phase.
 3. Watch the scramble animation reveal the shuffled board.
 4. Drag tiles to reconstruct the gradient.
 5. Use `Aid` if needed.
-6. Reach the solved state and review your swap count and aid count.
+6. Reach the solved state, watch the centered glowing checkmark animate in while the lock frames disappear, and use the warm emphasized `New` button to start again.
 
 ## Architecture Snapshot
 
 - [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx): composition root only.
-- [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx): feature entrypoint that composes board, footer, settings, and research UI.
+- [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx): feature entrypoint that composes the board, live difficulty footer controls, and the on-demand advanced settings panel.
 - [`src/features/puzzle/hooks/usePuzzleSession.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePuzzleSession.ts): puzzle session orchestration, transitions, drag state, aid flow, and derived view state.
 - [`src/game.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/game.ts): pure puzzle-domain rules, generation, lock calculation, scrambling, difficulty catalog, and aid logic.
 - [`src/colorAnalysis.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/colorAnalysis.ts): perceptual metrics and readability heuristics in `Oklab`.

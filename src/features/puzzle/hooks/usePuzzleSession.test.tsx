@@ -11,6 +11,21 @@ function SessionHarness() {
       <p data-testid="session-grid">
         {session.game.config.width} x {session.game.config.height}
       </p>
+      <p data-testid="preview-grid">
+        {session.previewConfig.width} x {session.previewConfig.height}
+      </p>
+      <button type="button" onClick={() => session.actions.setSetupMode("custom")}>
+        Custom Mode
+      </button>
+      <button type="button" onClick={() => session.actions.updateWidth(7)}>
+        Width 7
+      </button>
+      <button type="button" onClick={() => session.actions.updateHeight(4)}>
+        Height 4
+      </button>
+      <button type="button" onClick={() => session.actions.updateHeight(7)}>
+        Height 7
+      </button>
       <button type="button" onClick={session.actions.startNewPuzzle}>
         New Puzzle
       </button>
@@ -59,5 +74,23 @@ describe("usePuzzleSession", () => {
     fireEvent.click(screen.getByText("New Puzzle"));
 
     expect(screen.getByTestId("session-status")).toHaveTextContent("preview");
+  });
+
+  it("keeps custom preview dimensions portrait-safe through session actions", () => {
+    render(<SessionHarness />);
+
+    fireEvent.click(screen.getByText("Custom Mode"));
+    fireEvent.click(screen.getByText("Width 7"));
+
+    expect(screen.getByTestId("preview-grid")).toHaveTextContent("5 x 5");
+
+    fireEvent.click(screen.getByText("Height 7"));
+    fireEvent.click(screen.getByText("Width 7"));
+
+    expect(screen.getByTestId("preview-grid")).toHaveTextContent("7 x 7");
+
+    fireEvent.click(screen.getByText("Height 4"));
+
+    expect(screen.getByTestId("preview-grid")).toHaveTextContent("7 x 7");
   });
 });

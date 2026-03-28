@@ -214,15 +214,24 @@ describe("game utilities", () => {
 
     expect(catalog.length).toBe(signatures.size);
     expect(catalog.length).toBeGreaterThan(0);
+    expect(catalog.every((entry) => entry.config.width <= entry.config.height)).toBe(true);
     expect(catalog[0].rating.score).toBeGreaterThanOrEqual(0);
     expect(catalog[catalog.length - 1].rating.score).toBeLessThanOrEqual(100);
     expect(getDifficultyTier(catalog[0].rating.score)).toBe(catalog[0].rating.tier);
+  });
+
+  it("uses a very easy label below 10 before stepping into easy", () => {
+    expect(getDifficultyTier(0)).toBe("Very easy");
+    expect(getDifficultyTier(9)).toBe("Very easy");
+    expect(getDifficultyTier(10)).toBe("Easy");
   });
 
   it("prefers structurally harder layouts for higher difficulty scores", () => {
     const easy = pickConfigForDifficulty(15);
     const hard = pickConfigForDifficulty(85);
 
+    expect(easy.config.width).toBeLessThanOrEqual(easy.config.height);
+    expect(hard.config.width).toBeLessThanOrEqual(hard.config.height);
     expect(hard.rating.score).toBeGreaterThanOrEqual(easy.rating.score);
     expect(hard.rating.metrics.boardArea).toBeGreaterThanOrEqual(easy.rating.metrics.boardArea);
     expect(hard.rating.metrics.lockedRatio).toBeLessThanOrEqual(easy.rating.metrics.lockedRatio);
@@ -235,6 +244,7 @@ describe("game utilities", () => {
     expect(game.difficulty.score).toBeLessThanOrEqual(100);
     expect(game.config.width).toBeGreaterThanOrEqual(3);
     expect(game.config.height).toBeGreaterThanOrEqual(3);
+    expect(game.config.width).toBeLessThanOrEqual(game.config.height);
     expect(game.tiles).toHaveLength(game.config.width * game.config.height);
   });
 
