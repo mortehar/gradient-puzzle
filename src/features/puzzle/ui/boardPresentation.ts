@@ -22,6 +22,7 @@ export type DragState = {
   tileId: string;
   originIndex: number;
   pointerId: number;
+  pointerType: string;
 };
 
 export type PointerPosition = {

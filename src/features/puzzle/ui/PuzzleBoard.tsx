@@ -12,6 +12,7 @@ type PuzzleBoardProps = {
   activeScrambleFlip: ScrambleFlipTile[] | null;
   completionCeremonyPhase: CompletionCeremonyPhase;
   dragTileId: string | null;
+  dragPointerType: string | null;
   isInteractive: boolean;
   onTilePointerDown: (tile: Tile, event: ReactPointerEvent<HTMLButtonElement>) => void;
 };
@@ -25,6 +26,7 @@ export function PuzzleBoard({
   activeScrambleFlip,
   completionCeremonyPhase,
   dragTileId,
+  dragPointerType,
   isInteractive,
   onTilePointerDown
 }: PuzzleBoardProps) {
@@ -44,6 +46,7 @@ export function PuzzleBoard({
     >
       {orderedTiles.map((tile) => {
         const isDragging = dragTileId === tile.id;
+        const isTouchDragging = isDragging && dragPointerType === "touch";
         const isHiddenForAid =
           activeAidAnimation !== null &&
           (tile.id === activeAidAnimation.primaryTileId || tile.id === activeAidAnimation.secondaryTileId);
@@ -60,6 +63,7 @@ export function PuzzleBoard({
               tile.locked ? "tile-locked" : "",
               tile.locked && completionCeremonyPhase !== "idle" ? "tile-lock-frame-hidden" : "",
               isDragging ? "tile-dragging" : "",
+              isTouchDragging ? "tile-dragging-touch" : "",
               isHiddenForScramble ? "tile-hidden-for-scramble" : "",
               isHiddenForAid ? "tile-hidden-for-aid" : "",
               !isInteractive ? "tile-static" : ""
@@ -147,16 +151,17 @@ export function PuzzleBoard({
 type DragPreviewProps = {
   dragTile: Tile | null;
   pointerPosition: PointerPosition | null;
+  pointerType?: string;
 };
 
-export function PuzzleDragPreview({ dragTile, pointerPosition }: DragPreviewProps) {
+export function PuzzleDragPreview({ dragTile, pointerPosition, pointerType }: DragPreviewProps) {
   if (!dragTile || !pointerPosition) {
     return null;
   }
 
   return (
     <div
-      className="drag-preview"
+      className={["drag-preview", pointerType === "touch" ? "drag-preview-touch" : ""].join(" ")}
       aria-hidden="true"
       style={{
         backgroundColor: dragTile.color,

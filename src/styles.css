@@ -421,11 +421,16 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .tile-dragging {
-  opacity: 0.3;
-  transform: scale(0.96);
+  opacity: 0.22;
+  transform: scale(0.99);
   transition:
     transform 160ms ease,
     opacity 160ms ease;
+}
+
+.tile-dragging-touch {
+  opacity: 0.12;
+  transform: none;
 }
 
 .aid-overlay {
@@ -645,15 +650,25 @@ input[type="range"]::-moz-range-thumb {
 
 .drag-preview {
   position: fixed;
-  width: min(12vw, 80px);
+  width: clamp(64px, 12vw, 88px);
   aspect-ratio: 1;
-  border-radius: var(--tile-radius);
-  transform: translate(-50%, -50%) rotate(4deg);
+  border-radius: 0;
+  transform: translate(-50%, -50%) scale(1.03) rotate(3deg);
   pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 22px 28px rgba(0, 0, 0, 0.24);
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 18px 26px rgba(0, 0, 0, 0.28);
   z-index: 30;
+}
+
+.drag-preview-touch {
+  width: clamp(84px, 24vw, 128px);
+  transform: translate(-50%, calc(-100% - 18px)) scale(1.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 20px 34px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
 .win-modal {

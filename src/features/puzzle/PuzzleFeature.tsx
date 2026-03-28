@@ -19,7 +19,7 @@ export function PuzzleFeature() {
 
   function handleTilePointerDown(tile: Tile, event: ReactPointerEvent<HTMLButtonElement>) {
     event.preventDefault();
-    session.actions.beginDrag(tile, event.pointerId, event.clientX, event.clientY);
+    session.actions.beginDrag(tile, event.pointerId, event.pointerType, event.clientX, event.clientY);
   }
 
   return (
@@ -35,6 +35,7 @@ export function PuzzleFeature() {
             activeScrambleFlip={session.activeScrambleFlip}
             completionCeremonyPhase={session.completionCeremonyPhase}
             dragTileId={session.dragTile?.id ?? null}
+            dragPointerType={session.dragPointerType}
             isInteractive={session.isInteractive}
             onTilePointerDown={handleTilePointerDown}
           />
@@ -68,7 +69,11 @@ export function PuzzleFeature() {
         ) : null}
       </section>
 
-      <PuzzleDragPreview dragTile={session.dragTile} pointerPosition={session.pointerPosition} />
+      <PuzzleDragPreview
+        dragTile={session.dragTile}
+        pointerPosition={session.pointerPosition}
+        pointerType={session.dragPointerType ?? undefined}
+      />
     </main>
   );
 }

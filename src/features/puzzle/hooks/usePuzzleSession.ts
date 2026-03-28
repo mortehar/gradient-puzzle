@@ -39,6 +39,7 @@ export type PuzzleSession = {
   activeAidAnimation: AidAnimationState | null;
   activeScrambleFlip: ScrambleFlipTile[] | null;
   dragTile: Tile | null;
+  dragPointerType: string | null;
   pointerPosition: PointerPosition | null;
   orderedTiles: Tile[];
   isInteractive: boolean;
@@ -50,7 +51,7 @@ export type PuzzleSession = {
   highlightNextPuzzle: boolean;
   actions: {
     setSliderIndex: (value: number) => void;
-    beginDrag: (tile: Tile, pointerId: number, clientX: number, clientY: number) => void;
+    beginDrag: (tile: Tile, pointerId: number, pointerType: string, clientX: number, clientY: number) => void;
     updateAppearance: <K extends keyof AppearanceConfig>(key: K, value: AppearanceConfig[K]) => void;
     startNextPuzzle: () => void;
     useAid: () => void;
@@ -352,6 +353,7 @@ export function usePuzzleSession(): PuzzleSession {
     activeAidAnimation,
     activeScrambleFlip,
     dragTile,
+    dragPointerType: dragState?.pointerType ?? null,
     pointerPosition,
     orderedTiles,
     isInteractive,
@@ -363,7 +365,7 @@ export function usePuzzleSession(): PuzzleSession {
     highlightNextPuzzle: completionBurst.highlightNewPuzzle,
     actions: {
       setSliderIndex: commitLoadedGame,
-      beginDrag: (tile, pointerId, clientX, clientY) => {
+      beginDrag: (tile, pointerId, pointerType, clientX, clientY) => {
         if (tile.locked || !isInteractive) {
           return;
         }
@@ -371,7 +373,8 @@ export function usePuzzleSession(): PuzzleSession {
         setDragState({
           tileId: tile.id,
           originIndex: tile.currentIndex,
-          pointerId
+          pointerId,
+          pointerType
         });
         setPointerPosition({ x: clientX, y: clientY });
       },
