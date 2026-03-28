@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameState } from "../domain";
-import { COMPLETION_CHECK_DURATION_MS, type CompletionCeremonyPhase } from "../ui/boardPresentation";
+import { COMPLETION_CHECK_DURATION_MS, LOCK_FADE_DURATION_MS, type CompletionCeremonyPhase } from "../ui/boardPresentation";
 
 export function useCompletionBurst(status: GameState["status"]) {
   const [ceremonyPhase, setCeremonyPhase] = useState<CompletionCeremonyPhase>("idle");
   const [highlightNewPuzzle, setHighlightNewPuzzle] = useState(false);
   const previousStatusRef = useRef<GameState["status"]>(status);
+  const checkmarkTimeoutRef = useRef<number | null>(null);
   const settledTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -22,13 +23,20 @@ export function useCompletionBurst(status: GameState["status"]) {
       return undefined;
     }
 
-    setCeremonyPhase("checkmark");
+    setCeremonyPhase("fading-locks");
     setHighlightNewPuzzle(true);
+    checkmarkTimeoutRef.current = window.setTimeout(() => {
+      setCeremonyPhase("checkmark");
+    }, LOCK_FADE_DURATION_MS);
     settledTimeoutRef.current = window.setTimeout(() => {
       setCeremonyPhase("settled");
-    }, COMPLETION_CHECK_DURATION_MS);
+    }, LOCK_FADE_DURATION_MS + COMPLETION_CHECK_DURATION_MS);
 
     return () => {
+      if (checkmarkTimeoutRef.current !== null) {
+        window.clearTimeout(checkmarkTimeoutRef.current);
+        checkmarkTimeoutRef.current = null;
+      }
       if (settledTimeoutRef.current !== null) {
         window.clearTimeout(settledTimeoutRef.current);
         settledTimeoutRef.current = null;

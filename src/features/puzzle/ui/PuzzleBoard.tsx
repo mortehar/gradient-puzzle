@@ -58,7 +58,7 @@ export function PuzzleBoard({
             className={[
               "tile",
               tile.locked ? "tile-locked" : "",
-              tile.locked && game.status === "solved" ? "tile-lock-frame-hidden" : "",
+              tile.locked && completionCeremonyPhase !== "idle" ? "tile-lock-frame-hidden" : "",
               isDragging ? "tile-dragging" : "",
               isHiddenForScramble ? "tile-hidden-for-scramble" : "",
               isHiddenForAid ? "tile-hidden-for-aid" : "",

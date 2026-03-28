@@ -115,4 +115,38 @@ describe("App", () => {
     expect(screen.getByTestId("aid-primary-overlay")).toBeInTheDocument();
     expect(screen.getByTestId("aid-secondary-overlay")).toBeInTheDocument();
   });
+
+  it("fades the lock squares for one second before showing the completion checkmark", () => {
+    render(<App />);
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    fireEvent.click(screen.getByTestId("aid-button"));
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "fading-locks");
+    expect(screen.queryByTestId("completion-checkmark")).not.toBeInTheDocument();
+    expect(screen.getByTestId("new-puzzle-button")).toHaveClass("new-button-celebrating");
+
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+
+    expect(screen.queryByTestId("completion-checkmark")).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "checkmark");
+    expect(screen.getByTestId("completion-checkmark")).toBeInTheDocument();
+  });
 });

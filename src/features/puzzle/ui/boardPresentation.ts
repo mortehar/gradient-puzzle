@@ -5,6 +5,7 @@ export const PREVIEW_DURATION_MS = 2000;
 export const SCRAMBLE_DURATION_MS = 1000;
 export const MANUAL_MOVE_DURATION_MS = 180;
 export const AID_ANIMATION_START_DELAY_MS = 20;
+export const LOCK_FADE_DURATION_MS = 1000;
 export const COMPLETION_CHECK_DURATION_MS = 4400;
 export const SCRAMBLE_FLIP_CARD_DURATION_MS = 700;
 export const SCRAMBLE_STAGGER_SPREAD_MS = 220;
@@ -43,7 +44,7 @@ export type ScrambleFlipTile = {
   delayMs: number;
 };
 
-export type CompletionCeremonyPhase = "idle" | "checkmark" | "settled";
+export type CompletionCeremonyPhase = "idle" | "fading-locks" | "checkmark" | "settled";
 
 export function getAidDurationMs(aidTimeSeconds: number): number {
   return Math.round(aidTimeSeconds * 1000);
