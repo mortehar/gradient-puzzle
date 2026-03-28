@@ -348,6 +348,7 @@ input[type="range"]::-moz-range-thumb {
   position: relative;
   width: min(100%, 760px);
   margin: 0 auto;
+  overflow: hidden;
   touch-action: none;
   isolation: isolate;
   --tile-motion-duration: 180ms;

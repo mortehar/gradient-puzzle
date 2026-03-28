@@ -6,22 +6,11 @@ import { usePuzzleSession } from "./hooks/usePuzzleSession";
 import type { Tile } from "./domain";
 
 export function PuzzleFeature() {
-  const [activeHelpId, setActiveHelpId] = useState<string | null>(null);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const session = usePuzzleSession();
 
-  function toggleHelp(helpId: string) {
-    setActiveHelpId((currentHelpId) => (currentHelpId === helpId ? null : helpId));
-  }
-
   function toggleAdvancedSettings() {
-    setShowAdvancedSettings((isOpen) => {
-      if (isOpen) {
-        setActiveHelpId(null);
-      }
-
-      return !isOpen;
-    });
+    setShowAdvancedSettings((isOpen) => !isOpen);
   }
 
   function handleSliderIndexChange(value: number) {
@@ -69,16 +58,12 @@ export function PuzzleFeature() {
 
         {showAdvancedSettings ? (
           <PuzzleSettingsPanel
-            activeHelpId={activeHelpId}
-            onToggleHelp={toggleHelp}
             currentPuzzleLabel={session.currentPuzzleLabel}
             catalogVersion={session.activePuzzle.catalogVersion}
             currentGridLabel={`${session.game.config.width} x ${session.game.config.height}`}
             lockedCount={session.lockedCount}
             swapCount={session.game.swapCount}
             hintCount={session.game.hintCount}
-            appearance={session.previewConfig.appearance}
-            onAppearanceChange={session.actions.updateAppearance}
           />
         ) : null}
       </section>

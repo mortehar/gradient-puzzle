@@ -13,6 +13,7 @@ export const QUICK_EASING = "ease";
 export const RESEARCH_SAMPLE_COUNT = 24;
 export const DEFAULT_DIFFICULTY_TARGET = 10;
 export const FIXED_BOARD_FRAME_ASPECT_RATIO = "5 / 7";
+export const TILE_OVERDRAW_PX = 1;
 
 export type TransitionMode = "none" | "quick" | "cinematic";
 
@@ -84,10 +85,10 @@ export function getTileLayoutStyle(index: number, config: GameConfig): CSSProper
   const column = index % config.width;
 
   return {
-    width: `calc(100% / ${config.width})`,
-    height: `calc(100% / ${config.height})`,
-    left: `calc(${column} * 100% / ${config.width})`,
-    top: `calc(${row} * 100% / ${config.height})`
+    width: `calc(100% / ${config.width} + ${TILE_OVERDRAW_PX}px)`,
+    height: `calc(100% / ${config.height} + ${TILE_OVERDRAW_PX}px)`,
+    left: `calc(${column} * 100% / ${config.width} - ${TILE_OVERDRAW_PX / 2}px)`,
+    top: `calc(${row} * 100% / ${config.height} - ${TILE_OVERDRAW_PX / 2}px)`
   };
 }
 

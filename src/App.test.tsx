@@ -31,11 +31,11 @@ describe("App", () => {
     openAdvancedSettings();
 
     expect(screen.getByTestId("advanced-settings-panel")).toBeInTheDocument();
-    expect(screen.getByText("Aid", { selector: "p" })).toBeInTheDocument();
     expect(screen.queryByTestId("cell-spacing-slider")).not.toBeInTheDocument();
     expect(screen.queryByTestId("cell-rounding-slider")).not.toBeInTheDocument();
     expect(screen.queryByTestId("lock-rounding-slider")).not.toBeInTheDocument();
     expect(screen.queryByTestId("lock-thickness-slider")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("aid-time-slider")).not.toBeInTheDocument();
     expect(screen.getByText("Catalog")).toBeInTheDocument();
     expect(screen.getByText("V1")).toBeInTheDocument();
     expect(screen.queryByTestId("setup-mode-custom")).not.toBeInTheDocument();
@@ -72,11 +72,10 @@ describe("App", () => {
     expect(screen.getByTestId("puzzle-board")).toHaveClass("board-no-motion");
   });
 
-  it("keeps the board flush while allowing aid timing changes from advanced settings", () => {
+  it("keeps the board flush and removes all cell appearance controls from advanced settings", () => {
     render(<App />);
 
     openAdvancedSettings();
-    fireEvent.change(screen.getByTestId("aid-time-slider"), { target: { value: "2.3" } });
 
     const board = screen.getByTestId("puzzle-board");
 
@@ -84,7 +83,7 @@ describe("App", () => {
     expect(board).not.toHaveStyle("--tile-radius: 3px");
     expect(board).not.toHaveStyle("--tile-inner-radius: 5px");
     expect(board).not.toHaveStyle("--tile-lock-width: 6px");
-    expect(screen.getByText("2.3")).toBeInTheDocument();
+    expect(screen.queryByTestId("aid-time-slider")).not.toBeInTheDocument();
   });
 
   it("disables Next on the final published puzzle", () => {
