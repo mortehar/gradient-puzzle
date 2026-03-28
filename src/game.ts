@@ -5,6 +5,7 @@ import {
   type BoardColorMetrics,
   type OklabColor
 } from "./colorAnalysis";
+import { GENERATED_PUBLISHED_CATALOG } from "./publishedCatalog.generated";
 
 export const MIN_BOARD_SIZE = 3;
 export const MAX_BOARD_SIZE = 10;
@@ -19,6 +20,13 @@ export type LineLockConfig = {
 };
 
 export type CrossLockConfig = {
+  density: number;
+};
+
+export type IslandLockConfig = {
+  count: number;
+  width: number;
+  height: number;
   density: number;
 };
 
@@ -45,6 +53,7 @@ export type GameConfig = {
   verticalLines: LineLockConfig;
   horizontalLines: LineLockConfig;
   crossLines: CrossLockConfig;
+  islands: IslandLockConfig;
   colorConstraints: TrajectoryColorConfig;
   appearance: AppearanceConfig;
 };
@@ -117,6 +126,48 @@ export type DifficultyCatalogEntry = {
   areaBucket: string;
 };
 
+export type CatalogVersion = "v1";
+
+export type PuzzleId = string;
+
+export type PublishedPuzzle = {
+  id: PuzzleId;
+  catalogVersion: CatalogVersion;
+  sliderIndex: number;
+  tier: DifficultyTier;
+  tierIndex: number;
+  score: number;
+  areaBucket: string;
+  layoutSignature: string;
+  boardSeed: number;
+  scrambleSeed: number;
+  config: GameConfig;
+  lockedIndexes: readonly number[];
+  solvedColors: readonly string[];
+  scrambledCurrentIndexes: readonly number[];
+};
+
+export type PublishedPuzzleCatalog = {
+  version: CatalogVersion;
+  puzzles: readonly PublishedPuzzle[];
+};
+
+export type PublishedPuzzlePlanEntry = {
+  id: PuzzleId;
+  catalogVersion: CatalogVersion;
+  sliderIndex: number;
+  tier: DifficultyTier;
+  tierIndex: number;
+  boardSeed: number;
+  scrambleSeed: number;
+  entry: DifficultyCatalogEntry;
+};
+
+export type StructuralCatalogManifest = {
+  catalog: DifficultyCatalogEntry[];
+  bounds: StructuralDifficultyBounds;
+};
+
 type AidCandidate = AidMove & {
   secondaryExact: boolean;
   secondaryDistance: number;
@@ -160,12 +211,14 @@ type StructuralCandidate = {
   layoutSignature: string;
 };
 
+type RandomSource = () => number;
+
 export const DEFAULT_COLOR_CONSTRAINTS: TrajectoryColorConfig = {
-  targetStepStrength: 62,
-  axisBalance: 78,
-  lightnessRange: 58,
-  chromaRange: 52,
-  centerPreservation: 82,
+  targetStepStrength: 72,
+  axisBalance: 88,
+  lightnessRange: 48,
+  chromaRange: 62,
+  centerPreservation: 92,
   edgeSmoothnessBias: 76
 };
 
@@ -182,6 +235,12 @@ export const DEFAULT_CONFIG: GameConfig = {
   },
   crossLines: {
     density: 0
+  },
+  islands: {
+    count: 0,
+    width: 1,
+    height: 1,
+    density: 1
   },
   colorConstraints: DEFAULT_COLOR_CONSTRAINTS,
   appearance: {
@@ -200,6 +259,16 @@ const DIFFICULTY_SCORE_WEIGHTS = {
   nearestLockDistanceP90: 0.15,
   largestUnlockedRegionRatio: 0.1
 } as const;
+
+const PUBLISHED_PUZZLES_PER_TIER = 10;
+const PUBLISHED_CATALOG_VERSION: CatalogVersion = "v1";
+const STRUCTURAL_DIFFICULTY_BOUNDS: StructuralDifficultyBounds = {
+  boardArea: { min: 9, max: 100 },
+  lockedRatio: { min: 0.04, max: 0.9777777777777777 },
+  nearestLockDistanceMean: { min: 1, max: 4.166666666666667 },
+  nearestLockDistanceP90: { min: 1, max: 7 },
+  largestUnlockedRegionRatio: { min: 0.01, max: 0.96 }
+};
 
 const AREA_BUCKETS = [
   { maxArea: 12, label: "9-12" },
@@ -261,12 +330,45 @@ export function getValidCrossDensities(width: number, height: number): number[] 
   return [0, ...getValidLineDensities(diagonalLength)];
 }
 
+function getValidIslandDensities(width: number, height: number): number[] {
+  const verticalDensities = new Set(getValidLineDensities(height));
+
+  return getValidLineDensities(width).filter((density) => verticalDensities.has(density));
+}
+
+function getValidIslandCounts(width: number, height: number, islandWidth: number, islandHeight: number): number[] {
+  const maxCount = Math.floor(width / islandWidth) * Math.floor(height / islandHeight);
+  const counts = [0];
+
+  for (let count = 1; count <= maxCount; count += 1) {
+    if (buildIslandPlacements(width, height, { count, width: islandWidth, height: islandHeight, density: 1 })) {
+      counts.push(count);
+    }
+  }
+
+  return counts;
+}
+
 export function normalizeConfig(config: GameConfig): GameConfig {
   const verticalCounts = getValidVerticalLineCounts(config.width);
   const horizontalCounts = getValidHorizontalLineCounts(config.height);
   const verticalDensities = getValidLineDensities(config.height);
   const horizontalDensities = getValidLineDensities(config.width);
   const crossDensities = getValidCrossDensities(config.width, config.height);
+  const normalizedIslandDimensions = normalizeIslandDimensions(
+    config.width,
+    config.height,
+    config.islands.width,
+    config.islands.height
+  );
+  const islandCountOptions = getValidIslandCounts(
+    config.width,
+    config.height,
+    normalizedIslandDimensions.width,
+    normalizedIslandDimensions.height
+  );
+  const normalizedIslandCount = pickNearestValidValue(islandCountOptions, Math.max(0, Math.round(config.islands.count)));
+  const islandDensityOptions = getValidIslandDensities(normalizedIslandDimensions.width, normalizedIslandDimensions.height);
 
   return {
     ...config,
@@ -281,6 +383,20 @@ export function normalizeConfig(config: GameConfig): GameConfig {
     crossLines: {
       density: pickNearestValidValue(crossDensities, config.crossLines.density)
     },
+    islands:
+      normalizedIslandCount === 0
+        ? {
+            count: 0,
+            width: 1,
+            height: 1,
+            density: 1
+          }
+        : {
+            count: normalizedIslandCount,
+            width: normalizedIslandDimensions.width,
+            height: normalizedIslandDimensions.height,
+            density: pickNearestValidValue(islandDensityOptions, Math.round(config.islands.density))
+          },
     colorConstraints: {
       targetStepStrength: clamp(config.colorConstraints.targetStepStrength, 0, 100),
       axisBalance: clamp(config.colorConstraints.axisBalance, 0, 100),
@@ -332,14 +448,15 @@ export function analyzeStructuralDifficulty(config: GameConfig): DifficultyRatin
 }
 
 export function buildDifficultyCatalog(): DifficultyCatalogEntry[] {
-  return DIFFICULTY_CATALOG;
+  return getDifficultyCatalogCache();
 }
 
 export function pickConfigForDifficulty(targetScore: number, recentSignatures: string[] = []): DifficultyCatalogEntry {
   const normalizedTargetScore = clamp(targetScore, 0, 100);
   const recentSignatureSet = new Set(recentSignatures);
-  const preferredEntries = DIFFICULTY_CATALOG.filter((entry) => !recentSignatureSet.has(entry.rating.layoutSignature));
-  const candidates = preferredEntries.length > 0 ? preferredEntries : DIFFICULTY_CATALOG;
+  const difficultyCatalog = buildDifficultyCatalog();
+  const preferredEntries = difficultyCatalog.filter((entry) => !recentSignatureSet.has(entry.rating.layoutSignature));
+  const candidates = preferredEntries.length > 0 ? preferredEntries : difficultyCatalog;
 
   return [...candidates].sort((left, right) => {
     const scoreDistance = Math.abs(left.rating.score - normalizedTargetScore) - Math.abs(right.rating.score - normalizedTargetScore);
@@ -541,6 +658,20 @@ function pickNearestValidValue(values: number[], value: number): number {
   );
 }
 
+function normalizeIslandDimensions(boardWidth: number, boardHeight: number, width: number, height: number) {
+  const snappedWidth = Math.max(1, Math.round(width));
+  const snappedHeight = Math.max(1, Math.round(height));
+  const shorterSide = Math.min(snappedWidth, snappedHeight);
+  const longerSide = Math.max(snappedWidth, snappedHeight);
+  const normalizedHeight = clamp(longerSide, 1, boardHeight);
+  const normalizedWidth = clamp(shorterSide, 1, Math.min(boardWidth, normalizedHeight));
+
+  return {
+    width: normalizedWidth,
+    height: normalizedHeight
+  };
+}
+
 export function getLockedIndexes(config: GameConfig): number[] {
   const normalizedConfig = normalizeConfig(config);
   const indexes = new Set<number>();
@@ -586,6 +717,20 @@ export function getLockedIndexes(config: GameConfig): number[] {
     });
   }
 
+  if (normalizedConfig.islands.count > 0) {
+    const islandPlacements = buildIslandPlacements(normalizedConfig.width, normalizedConfig.height, normalizedConfig.islands);
+    const islandRows = getDensityPositions(normalizedConfig.islands.height, normalizedConfig.islands.density);
+    const islandColumns = getDensityPositions(normalizedConfig.islands.width, normalizedConfig.islands.density);
+
+    islandPlacements?.forEach((placement) => {
+      islandRows.forEach((rowOffset) => {
+        islandColumns.forEach((columnOffset) => {
+          indexes.add((placement.startRow + rowOffset) * normalizedConfig.width + placement.startColumn + columnOffset);
+        });
+      });
+    });
+  }
+
   return [...indexes].sort((left, right) => left - right);
 }
 
@@ -596,7 +741,8 @@ function applyStructureToConfig(baseConfig: GameConfig, structuralConfig: GameCo
     height: structuralConfig.height,
     verticalLines: structuralConfig.verticalLines,
     horizontalLines: structuralConfig.horizontalLines,
-    crossLines: structuralConfig.crossLines
+    crossLines: structuralConfig.crossLines,
+    islands: structuralConfig.islands
   });
 }
 
@@ -617,6 +763,210 @@ function getDensityPositions(length: number, density: number): number[] {
   }
 
   return positions;
+}
+
+function getEvenStartPositions(slack: number, count: number): number[] {
+  if (count <= 0) {
+    return [];
+  }
+
+  if (count === 1) {
+    return [Math.floor(slack / 2)];
+  }
+
+  const step = slack / (count - 1);
+
+  return Array.from({ length: count }, (_, index) => Math.round(index * step));
+}
+
+function getEvenSlotIndexes(length: number, count: number): number[] {
+  if (count <= 0) {
+    return [];
+  }
+
+  if (count === 1) {
+    return [Math.floor((length - 1) / 2)];
+  }
+
+  const step = (length - 1) / (count - 1);
+
+  return Array.from({ length: count }, (_, index) => Math.round(index * step));
+}
+
+type IslandPlacement = {
+  startColumn: number;
+  startRow: number;
+};
+
+function buildIslandPlacements(width: number, height: number, islands: IslandLockConfig): IslandPlacement[] | null {
+  if (islands.count <= 0) {
+    return [];
+  }
+
+  if (islands.width > width || islands.height > height) {
+    return null;
+  }
+
+  const grid = getBalancedIslandGrid(islands.count);
+  const columnStarts = getEvenStartPositions(width - islands.width, grid.columns);
+  const rowStarts = getEvenStartPositions(height - islands.height, grid.rows);
+  const rowCounts = getBalancedIslandRowCounts(islands.count, grid.rows, grid.columns);
+
+  if (!rowCounts) {
+    return null;
+  }
+
+  const placements: IslandPlacement[] = [];
+
+  rowCounts.forEach((rowCount, rowIndex) => {
+    getEvenSlotIndexes(grid.columns, rowCount).forEach((columnIndex) => {
+      placements.push({
+        startColumn: columnStarts[columnIndex],
+        startRow: rowStarts[rowIndex]
+      });
+    });
+  });
+
+  if (placements.length !== islands.count || hasOverlappingIslandPlacements(placements, islands.width, islands.height)) {
+    return null;
+  }
+
+  return placements;
+}
+
+function getBalancedIslandGrid(count: number) {
+  if (count <= 1) {
+    return { columns: 1, rows: 1 };
+  }
+
+  const firstSide = Math.ceil(Math.sqrt(count));
+  const secondSide = Math.ceil(count / firstSide);
+
+  return firstSide <= secondSide ? { columns: firstSide, rows: secondSide } : { columns: secondSide, rows: firstSide };
+}
+
+function getBalancedIslandRowCounts(count: number, rows: number, columns: number): number[] | null {
+  const validRowCounts = Array.from({ length: columns + 1 }, (_, candidate) => candidate).filter((candidate) =>
+    canPlaceSymmetricSlotCount(columns, candidate)
+  );
+  const averageCount = count / rows;
+  const pairCount = Math.floor(rows / 2);
+  const centerRowIndex = Math.floor(rows / 2);
+  const hasCenterRow = rows % 2 === 1;
+  let bestCounts: number[] | null = null;
+  let bestScore: [number, number, number] | null = null;
+
+  function evaluate(pairValues: number[], centerValue: number) {
+    const counts = Array.from({ length: rows }, () => 0);
+
+    pairValues.forEach((value, index) => {
+      counts[index] = value;
+      counts[rows - 1 - index] = value;
+    });
+
+    if (hasCenterRow) {
+      counts[centerRowIndex] = centerValue;
+    }
+
+    const deviationScore = counts.reduce((sum, rowCount) => sum + (rowCount - averageCount) ** 2, 0);
+    const roughnessScore = counts.slice(1).reduce((sum, rowCount, index) => sum + Math.abs(rowCount - counts[index]), 0);
+    const centerDistanceScore = hasCenterRow ? Math.abs(counts[centerRowIndex] - averageCount) : 0;
+    const nextScore: [number, number, number] = [deviationScore, roughnessScore, centerDistanceScore];
+
+    if (!bestScore || compareScoreTriples(nextScore, bestScore) < 0) {
+      bestCounts = counts;
+      bestScore = nextScore;
+    }
+  }
+
+  function getRemainingPairCapacity(remainingPairs: number) {
+    return remainingPairs * 2 * columns;
+  }
+
+  function search(pairIndex: number, usedCount: number, pairValues: number[]) {
+    const remainingPairs = pairCount - pairIndex;
+    const centerCapacity = hasCenterRow ? columns : 0;
+
+    if (usedCount > count || usedCount + getRemainingPairCapacity(remainingPairs) + centerCapacity < count) {
+      return;
+    }
+
+    if (pairIndex === pairCount) {
+      const centerOptions = hasCenterRow ? validRowCounts : [0];
+
+      centerOptions.forEach((centerValue) => {
+        if (usedCount + centerValue === count) {
+          evaluate(pairValues, centerValue);
+        }
+      });
+
+      return;
+    }
+
+    validRowCounts.forEach((rowValue) => {
+      search(pairIndex + 1, usedCount + rowValue * 2, [...pairValues, rowValue]);
+    });
+  }
+
+  search(0, 0, []);
+
+  return bestCounts;
+}
+
+function canPlaceSymmetricSlotCount(length: number, count: number): boolean {
+  return count >= 0 && count <= length && (length % 2 === 1 || count % 2 === 0);
+}
+
+function compareScoreTriples(left: [number, number, number], right: [number, number, number]): number {
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) {
+      return left[index] - right[index];
+    }
+  }
+
+  return 0;
+}
+
+function hasOverlappingIslandPlacements(placements: IslandPlacement[], islandWidth: number, islandHeight: number): boolean {
+  for (let index = 0; index < placements.length; index += 1) {
+    for (let candidateIndex = index + 1; candidateIndex < placements.length; candidateIndex += 1) {
+      if (
+        rangesOverlap(
+          placements[index].startColumn,
+          placements[index].startColumn + islandWidth,
+          placements[candidateIndex].startColumn,
+          placements[candidateIndex].startColumn + islandWidth
+        ) &&
+        rangesOverlap(
+          placements[index].startRow,
+          placements[index].startRow + islandHeight,
+          placements[candidateIndex].startRow,
+          placements[candidateIndex].startRow + islandHeight
+        )
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function rangesOverlap(startA: number, endA: number, startB: number, endB: number): boolean {
+  return startA < endB && startB < endA;
+}
+
+function hasSymmetricLockedLayout(lockedIndexes: number[], width: number, height: number): boolean {
+  const lockedSet = new Set(lockedIndexes);
+
+  return lockedIndexes.every((index) => {
+    const row = Math.floor(index / width);
+    const column = index % width;
+    const verticalMirror = row * width + (width - 1 - column);
+    const horizontalMirror = (height - 1 - row) * width + column;
+
+    return lockedSet.has(verticalMirror) && lockedSet.has(horizontalMirror);
+  });
 }
 
 function getDiagonalPath(
@@ -687,12 +1037,20 @@ export function createNewGameForDifficulty(
 }
 
 export function generateTrajectoryBoard(config: GameConfig): GeneratedBoard {
+  return generateTrajectoryBoardWithRandom(config, Math.random);
+}
+
+export function generateTrajectoryBoardFromSeed(config: GameConfig, seed: number): GeneratedBoard {
+  return generateTrajectoryBoardWithRandom(config, createSeededRandom(seed));
+}
+
+function generateTrajectoryBoardWithRandom(config: GameConfig, random: RandomSource): GeneratedBoard {
   const normalizedConfig = normalizeConfig(config);
   let bestPassingCandidate: RenderableCandidate | null = null;
   let bestRenderableCandidate: RenderableCandidate | null = null;
 
   for (let attempt = 0; attempt < TRAJECTORY_CANDIDATE_COUNT; attempt += 1) {
-    const candidate = buildRenderableTrajectoryCandidate(normalizedConfig, attempt);
+    const candidate = buildRenderableTrajectoryCandidate(normalizedConfig, attempt, random);
 
     if (!candidate) {
       continue;
@@ -710,7 +1068,8 @@ export function generateTrajectoryBoard(config: GameConfig): GeneratedBoard {
     }
   }
 
-  const chosenCandidate = bestPassingCandidate ?? bestRenderableCandidate ?? buildFallbackTrajectoryBoard(normalizedConfig);
+  const chosenCandidate =
+    bestPassingCandidate ?? bestRenderableCandidate ?? buildFallbackTrajectoryBoard(normalizedConfig, random);
 
   return {
     tiles: chosenCandidate.tiles,
@@ -721,15 +1080,19 @@ export function generateTrajectoryBoard(config: GameConfig): GeneratedBoard {
   };
 }
 
-function buildRenderableTrajectoryCandidate(config: GameConfig, attempt: number): RenderableCandidate | null {
+function buildRenderableTrajectoryCandidate(
+  config: GameConfig,
+  attempt: number,
+  random: RandomSource
+): RenderableCandidate | null {
   const tuning = getTrajectoryTuning(config);
-  const xMeanStep = getAxisMeanStep(tuning, config.colorConstraints.axisBalance / 100, attempt % 2 === 0);
-  const yMeanStep = getAxisMeanStep(tuning, config.colorConstraints.axisBalance / 100, attempt % 2 === 1);
-  const xDelta = buildAxisDelta(config.width - 1, xMeanStep, tuning, attempt);
-  const yDelta = buildAxisDelta(config.height - 1, yMeanStep, tuning, attempt + 11, xDelta.angle);
-  const xTrajectory = buildTrajectory(config.width, xDelta, tuning);
-  const yTrajectory = buildTrajectory(config.height, yDelta, tuning);
-  const baseColor = pickBaseColor(xTrajectory, yTrajectory, tuning);
+  const xMeanStep = getAxisMeanStep(tuning, config.colorConstraints.axisBalance / 100, attempt % 2 === 0, random);
+  const yMeanStep = getAxisMeanStep(tuning, config.colorConstraints.axisBalance / 100, attempt % 2 === 1, random);
+  const xDelta = buildAxisDelta(config.width - 1, xMeanStep, tuning, attempt, random);
+  const yDelta = buildAxisDelta(config.height - 1, yMeanStep, tuning, attempt + 11, random, xDelta.angle);
+  const xTrajectory = buildTrajectory(config.width, xDelta, tuning, random);
+  const yTrajectory = buildTrajectory(config.height, yDelta, tuning, random);
+  const baseColor = pickBaseColor(xTrajectory, yTrajectory, tuning, random);
 
   if (!baseColor) {
     return null;
@@ -756,7 +1119,7 @@ function buildRenderableTrajectoryCandidate(config: GameConfig, attempt: number)
   };
 }
 
-function buildFallbackTrajectoryBoard(config: GameConfig): RenderableCandidate {
+function buildFallbackTrajectoryBoard(config: GameConfig, random: RandomSource): RenderableCandidate {
   const tuning = getTrajectoryTuning(config);
   const xTrajectory = buildTrajectory(
     config.width,
@@ -765,7 +1128,8 @@ function buildFallbackTrajectoryBoard(config: GameConfig): RenderableCandidate {
       a: -Math.min(0.06, tuning.maxAxisChromaDelta * 0.55),
       b: 0.07
     },
-    tuning
+    tuning,
+    random
   );
   const yTrajectory = buildTrajectory(
     config.height,
@@ -774,9 +1138,10 @@ function buildFallbackTrajectoryBoard(config: GameConfig): RenderableCandidate {
       a: 0.07,
       b: -Math.min(0.06, tuning.maxAxisChromaDelta * 0.55)
     },
-    tuning
+    tuning,
+    random
   );
-  const baseColor = pickBaseColor(xTrajectory, yTrajectory, tuning) ?? { l: 0.78, a: -0.01, b: 0.04 };
+  const baseColor = pickBaseColor(xTrajectory, yTrajectory, tuning, random) ?? { l: 0.78, a: -0.01, b: 0.04 };
   const colors = composeBoardColors(baseColor, xTrajectory, yTrajectory, config.width, config.height);
 
   if (!colors) {
@@ -826,9 +1191,14 @@ function getTrajectoryTuning(config: GameConfig): TrajectoryTuning {
   };
 }
 
-function getAxisMeanStep(tuning: TrajectoryTuning, balance: number, preferStrongerAxis: boolean): number {
-  const ratioFloor = lerp(tuning.minAxisBalance, 1, Math.random());
-  const strongerStep = tuning.targetNeighborDistance * lerp(0.92, 1.1, Math.random());
+function getAxisMeanStep(
+  tuning: TrajectoryTuning,
+  balance: number,
+  preferStrongerAxis: boolean,
+  random: RandomSource
+): number {
+  const ratioFloor = lerp(tuning.minAxisBalance, 1, random());
+  const strongerStep = tuning.targetNeighborDistance * lerp(0.92, 1.1, random());
   const weakerStep = strongerStep * ratioFloor;
 
   return preferStrongerAxis ? strongerStep : weakerStep;
@@ -839,6 +1209,7 @@ function buildAxisDelta(
   meanStep: number,
   tuning: TrajectoryTuning,
   seed: number,
+  random: RandomSource,
   referenceAngle?: number
 ): { l: number; a: number; b: number; angle: number } {
   if (intervalCount <= 0) {
@@ -847,15 +1218,15 @@ function buildAxisDelta(
 
   const totalDistance = meanStep * intervalCount;
   const lightnessMagnitude = Math.min(
-    totalDistance * lerp(0.3, 0.68, Math.random()),
+    totalDistance * lerp(0.3, 0.68, random()),
     tuning.maxAxisLightnessDelta
   );
   const lightness = (seed % 3 === 0 ? 1 : -1) * lightnessMagnitude;
   const remainingDistance = Math.sqrt(Math.max(totalDistance ** 2 - lightnessMagnitude ** 2, 0));
   const chromaMagnitude = Math.min(remainingDistance, tuning.maxAxisChromaDelta);
   const baseAngle = referenceAngle === undefined
-    ? Math.random() * Math.PI * 2
-    : referenceAngle + (Math.random() < 0.5 ? -1 : 1) * lerp(Math.PI / 6, Math.PI * 0.62, Math.random());
+    ? random() * Math.PI * 2
+    : referenceAngle + (random() < 0.5 ? -1 : 1) * lerp(Math.PI / 6, Math.PI * 0.62, random());
 
   return {
     l: lightness,
@@ -868,18 +1239,19 @@ function buildAxisDelta(
 function buildTrajectory(
   length: number,
   totalDelta: { l: number; a: number; b: number },
-  tuning: TrajectoryTuning
+  tuning: TrajectoryTuning,
+  random: RandomSource
 ): TrajectoryPoint[] {
   if (length <= 1) {
     return [{ l: 0, a: 0, b: 0 }];
   }
 
   const intervalCount = length - 1;
-  const ease = randomSignedFloat(0, tuning.maxEase);
+  const ease = randomSignedFloat(0, tuning.maxEase, random);
   const weights = Array.from({ length: intervalCount }, (_, index) => {
     const progress = intervalCount === 1 ? 0.5 : index / (intervalCount - 1);
     const eased = (progress - 0.5) * 2;
-    const jitter = randomSignedFloat(0, tuning.maxJitter);
+    const jitter = randomSignedFloat(0, tuning.maxJitter, random);
 
     return Math.max(0.24, 1 + ease * eased + jitter);
   });
@@ -903,7 +1275,8 @@ function buildTrajectory(
 function pickBaseColor(
   xTrajectory: TrajectoryPoint[],
   yTrajectory: TrajectoryPoint[],
-  tuning: TrajectoryTuning
+  tuning: TrajectoryTuning,
+  random: RandomSource
 ): OklabColor | null {
   const offsets = buildOffsets(xTrajectory, yTrajectory);
   const lBounds = getBounds(offsets.map((offset) => offset.l));
@@ -921,9 +1294,9 @@ function pickBaseColor(
 
   for (let attempt = 0; attempt < BASE_COLOR_ATTEMPTS; attempt += 1) {
     const candidate: OklabColor = {
-      l: randomInRangeFloat(minL, maxL),
-      a: clamp(centeredA + randomSignedFloat(0, tuning.baseChromaBias), -0.11, 0.11),
-      b: clamp(centeredB + randomSignedFloat(0, tuning.baseChromaBias), -0.11, 0.11)
+      l: randomInRangeFloat(minL, maxL, random),
+      a: clamp(centeredA + randomSignedFloat(0, tuning.baseChromaBias, random), -0.11, 0.11),
+      b: clamp(centeredB + randomSignedFloat(0, tuning.baseChromaBias, random), -0.11, 0.11)
     };
 
     if (canRenderOffsets(candidate, offsets)) {
@@ -1049,6 +1422,14 @@ export function buildTilesFromColors(colors: string[], config: GameConfig): Tile
 }
 
 export function scrambleMovableTiles(solvedTiles: Tile[], lockedIndexes?: number[]): Tile[] {
+  return scrambleMovableTilesWithRandom(solvedTiles, Math.random, lockedIndexes);
+}
+
+export function scrambleMovableTilesFromSeed(solvedTiles: Tile[], seed: number, lockedIndexes?: number[]): Tile[] {
+  return scrambleMovableTilesWithRandom(solvedTiles, createSeededRandom(seed), lockedIndexes);
+}
+
+function scrambleMovableTilesWithRandom(solvedTiles: Tile[], random: RandomSource, lockedIndexes?: number[]): Tile[] {
   const lockedIndexSet = new Set(
     lockedIndexes ?? solvedTiles.filter((tile) => tile.locked).map((tile) => tile.solvedIndex)
   );
@@ -1060,7 +1441,7 @@ export function scrambleMovableTiles(solvedTiles: Tile[], lockedIndexes?: number
     throw new Error("Puzzle requires at least two movable tiles.");
   }
 
-  const derangedIndexes = createDerangement(movableIndexes);
+  const derangedIndexes = createDerangement(movableIndexes, random);
   const tileBySolvedIndex = new Map(solvedTiles.map((tile) => [tile.solvedIndex, tile]));
 
   return movableIndexes
@@ -1085,19 +1466,19 @@ export function scrambleMovableTiles(solvedTiles: Tile[], lockedIndexes?: number
     .sort((left, right) => left.currentIndex - right.currentIndex);
 }
 
-function createDerangement(indexes: number[]): number[] {
+function createDerangement(indexes: number[], random: RandomSource): number[] {
   let shuffled = [...indexes];
 
   do {
-    shuffled = shuffle([...indexes]);
+    shuffled = shuffle([...indexes], random);
   } while (shuffled.some((value, position) => value === indexes[position]));
 
   return shuffled;
 }
 
-function shuffle<T>(values: T[]): T[] {
+function shuffle<T>(values: T[], random: RandomSource): T[] {
   for (let index = values.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
+    const randomIndex = Math.floor(random() * (index + 1));
     [values[index], values[randomIndex]] = [values[randomIndex], values[index]];
   }
 
@@ -1228,6 +1609,29 @@ export function isSolved(tiles: Tile[]): boolean {
 
 function createDifficultyCatalog(): DifficultyCatalogEntry[] {
   const uniqueCandidates = new Map<string, StructuralCandidate>();
+  const addCandidate = (config: GameConfig) => {
+    const lockedIndexes = getLockedIndexes(config);
+
+    if (!hasSymmetricLockedLayout(lockedIndexes, config.width, config.height)) {
+      return;
+    }
+
+    const metrics = buildStructuralDifficultyMetrics(config);
+
+    if (metrics.movableCount < 2) {
+      return;
+    }
+
+    const layoutSignature = getLayoutSignature(config);
+
+    if (!uniqueCandidates.has(layoutSignature)) {
+      uniqueCandidates.set(layoutSignature, {
+        config,
+        metrics,
+        layoutSignature
+      });
+    }
+  };
 
   for (let width = MIN_BOARD_SIZE; width <= MAX_BOARD_SIZE; width += 1) {
     const verticalCountOptions = getValidVerticalLineCounts(width);
@@ -1263,22 +1667,44 @@ function createDifficultyCatalog(): DifficultyCatalogEntry[] {
                     density: crossDensity
                   }
                 });
-                const metrics = buildStructuralDifficultyMetrics(config);
-
-                if (metrics.movableCount < 2) {
-                  continue;
-                }
-
-                const layoutSignature = getLayoutSignature(config);
-
-                if (!uniqueCandidates.has(layoutSignature)) {
-                  uniqueCandidates.set(layoutSignature, {
-                    config,
-                    metrics,
-                    layoutSignature
-                  });
-                }
+                addCandidate(config);
               }
+            }
+          }
+        }
+      }
+
+      for (let islandWidth = 1; islandWidth <= width; islandWidth += 1) {
+        for (let islandHeight = islandWidth; islandHeight <= height; islandHeight += 1) {
+          const islandCounts = getValidIslandCounts(width, height, islandWidth, islandHeight).filter((count) => count > 0);
+          const islandDensities = getValidIslandDensities(islandWidth, islandHeight);
+
+          for (const islandCount of islandCounts) {
+            for (const islandDensity of islandDensities) {
+              addCandidate(
+                normalizeConfig({
+                  ...DEFAULT_CONFIG,
+                  width,
+                  height,
+                  verticalLines: {
+                    count: 0,
+                    density: 1
+                  },
+                  horizontalLines: {
+                    count: 0,
+                    density: 1
+                  },
+                  crossLines: {
+                    density: 0
+                  },
+                  islands: {
+                    count: islandCount,
+                    width: islandWidth,
+                    height: islandHeight,
+                    density: islandDensity
+                  }
+                })
+              );
             }
           }
         }
@@ -1358,24 +1784,255 @@ function lerp(start: number, end: number, ratio: number): number {
   return start + (end - start) * ratio;
 }
 
-function randomInRangeFloat(minimum: number, maximum: number): number {
-  return minimum + Math.random() * (maximum - minimum);
+function randomInRangeFloat(minimum: number, maximum: number, random: RandomSource): number {
+  return minimum + random() * (maximum - minimum);
 }
 
-function randomSignedFloat(minimum: number, maximum: number): number {
-  const magnitude = randomInRangeFloat(minimum, maximum);
-  return Math.random() < 0.5 ? magnitude : -magnitude;
+function randomSignedFloat(minimum: number, maximum: number, random: RandomSource): number {
+  const magnitude = randomInRangeFloat(minimum, maximum, random);
+  return random() < 0.5 ? magnitude : -magnitude;
+}
+
+function createSeededRandom(seed: number): RandomSource {
+  let state = (seed >>> 0) || 0x6d2b79f5;
+
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let mixed = Math.imul(state ^ (state >>> 15), 1 | state);
+    mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed);
+
+    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashStringToSeed(value: string): number {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-const DIFFICULTY_CATALOG = createDifficultyCatalog();
-const STRUCTURAL_DIFFICULTY_BOUNDS = buildStructuralDifficultyBounds(
-  DIFFICULTY_CATALOG.map((entry) => ({
-    config: entry.config,
-    metrics: entry.rating.metrics,
-    layoutSignature: entry.rating.layoutSignature
-  }))
-);
+export function buildStructuralCatalogManifest(): StructuralCatalogManifest {
+  const catalog = createDifficultyCatalog();
+
+  return {
+    catalog,
+    bounds: buildStructuralDifficultyBounds(
+      catalog.map((entry) => ({
+        config: entry.config,
+        metrics: entry.rating.metrics,
+        layoutSignature: entry.rating.layoutSignature
+      }))
+    )
+  };
+}
+
+export function buildPublishedCatalogPlan(
+  version: CatalogVersion = PUBLISHED_CATALOG_VERSION,
+  difficultyCatalog: readonly DifficultyCatalogEntry[] = buildDifficultyCatalog()
+): PublishedPuzzlePlanEntry[] {
+  if (version !== PUBLISHED_CATALOG_VERSION) {
+    throw new Error(`Unknown catalog version: ${version}`);
+  }
+
+  const tierOrder: DifficultyTier[] = ["Very easy", "Easy", "Medium", "Hard", "Expert", "Master"];
+  const tierEntries = tierOrder.map((tier) => {
+    const entries = difficultyCatalog.filter((entry) => entry.rating.tier === tier);
+
+    if (entries.length < PUBLISHED_PUZZLES_PER_TIER) {
+      throw new Error(`Tier ${tier} only has ${entries.length} candidates.`);
+    }
+
+    return {
+      tier,
+      entries: selectTierEntries(entries, PUBLISHED_PUZZLES_PER_TIER)
+    };
+  });
+
+  return tierEntries.flatMap(({ tier, entries }, tierOffset) =>
+    entries.map((entry, index) => {
+      const tierIndex = index + 1;
+      const id = `${version}/${slugifyTier(tier)}/${tierIndex}`;
+
+      return {
+        id,
+        catalogVersion: version,
+        sliderIndex: tierOffset * PUBLISHED_PUZZLES_PER_TIER + index,
+        tier,
+        tierIndex,
+        boardSeed: hashStringToSeed(`${id}:board`),
+        scrambleSeed: hashStringToSeed(`${id}:scramble`),
+        entry
+      };
+    })
+  );
+}
+
+export function buildPublishedCatalogManifest(
+  version: CatalogVersion = PUBLISHED_CATALOG_VERSION,
+  difficultyCatalog: readonly DifficultyCatalogEntry[] = buildDifficultyCatalog()
+): PublishedPuzzleCatalog {
+  return {
+    version,
+    puzzles: buildPublishedCatalogPlan(version, difficultyCatalog).map((planEntry) => {
+      const generatedBoard = generateTrajectoryBoardFromSeed(planEntry.entry.config, planEntry.boardSeed);
+      const lockedIndexes = getLockedIndexes(planEntry.entry.config);
+      const scrambledTiles = scrambleMovableTilesFromSeed(generatedBoard.tiles, planEntry.scrambleSeed, lockedIndexes);
+
+      return {
+        id: planEntry.id,
+        catalogVersion: version,
+        sliderIndex: planEntry.sliderIndex,
+        tier: planEntry.tier,
+        tierIndex: planEntry.tierIndex,
+        score: planEntry.entry.rating.score,
+        areaBucket: planEntry.entry.areaBucket,
+        layoutSignature: planEntry.entry.rating.layoutSignature,
+        boardSeed: planEntry.boardSeed,
+        scrambleSeed: planEntry.scrambleSeed,
+        config: planEntry.entry.config,
+        lockedIndexes,
+        solvedColors: generatedBoard.tiles.map((tile) => tile.color),
+        scrambledCurrentIndexes: generatedScrambleIndexes(scrambledTiles)
+      };
+    })
+  };
+}
+
+export function getPublishedCatalog(version: CatalogVersion = PUBLISHED_CATALOG_VERSION): PublishedPuzzleCatalog {
+  const catalog = PUBLISHED_CATALOGS[version];
+
+  if (!catalog) {
+    throw new Error(`Unknown catalog version: ${version}`);
+  }
+
+  return catalog;
+}
+
+export function getPublishedPuzzle(version: CatalogVersion, id: PuzzleId): PublishedPuzzle | undefined {
+  return PUBLISHED_PUZZLE_BY_ID[version].get(id);
+}
+
+export function getPublishedPuzzleBySliderIndex(
+  version: CatalogVersion,
+  sliderIndex: number
+): PublishedPuzzle | undefined {
+  return getPublishedCatalog(version).puzzles[sliderIndex];
+}
+
+export function getPublishedPuzzleCount(version: CatalogVersion = PUBLISHED_CATALOG_VERSION): number {
+  return getPublishedCatalog(version).puzzles.length;
+}
+
+export function createGameFromPublishedPuzzle(
+  puzzle: PublishedPuzzle,
+  appearance: AppearanceConfig = DEFAULT_CONFIG.appearance
+): GameState {
+  const config = normalizeConfig({
+    ...puzzle.config,
+    appearance
+  });
+  const tiles = buildTilesFromPublishedData(puzzle.solvedColors, puzzle.lockedIndexes);
+  const scrambledTiles = buildScrambledTilesFromPublishedData(tiles, puzzle.scrambledCurrentIndexes);
+
+  return {
+    tiles,
+    scrambledTiles,
+    swapCount: 0,
+    hintCount: 0,
+    status: "preview",
+    config,
+    difficulty: {
+      score: puzzle.score,
+      tier: puzzle.tier,
+      metrics: buildStructuralDifficultyMetrics(config),
+      layoutSignature: puzzle.layoutSignature
+    }
+  };
+}
+
+function buildTilesFromPublishedData(colors: readonly string[], lockedIndexes: readonly number[]): Tile[] {
+  const lockedSet = new Set(lockedIndexes);
+
+  return colors.map((color, solvedIndex) => ({
+    id: `tile-${solvedIndex}`,
+    solvedIndex,
+    currentIndex: solvedIndex,
+    locked: lockedSet.has(solvedIndex),
+    color
+  }));
+}
+
+function buildScrambledTilesFromPublishedData(
+  solvedTiles: Tile[],
+  scrambledCurrentIndexes: readonly number[]
+): Tile[] {
+  if (scrambledCurrentIndexes.length !== solvedTiles.length) {
+    throw new Error("Published scramble length does not match tile count.");
+  }
+
+  const usedIndexes = new Set<number>();
+
+  const scrambledTiles = solvedTiles.map((tile, solvedIndex) => {
+    const currentIndex = scrambledCurrentIndexes[solvedIndex];
+
+    if (currentIndex === undefined || currentIndex < 0 || currentIndex >= solvedTiles.length || usedIndexes.has(currentIndex)) {
+      throw new Error(`Invalid published scramble index at tile ${solvedIndex}.`);
+    }
+
+    usedIndexes.add(currentIndex);
+
+    return {
+      ...tile,
+      currentIndex
+    };
+  });
+
+  return scrambledTiles.sort((left, right) => left.currentIndex - right.currentIndex);
+}
+
+function generatedScrambleIndexes(scrambledTiles: Tile[]): number[] {
+  return [...scrambledTiles]
+    .sort((left, right) => left.solvedIndex - right.solvedIndex)
+    .map((tile) => tile.currentIndex);
+}
+
+function selectTierEntries(entries: DifficultyCatalogEntry[], selectionCount: number): DifficultyCatalogEntry[] {
+  const selectedIndexes = Array.from({ length: selectionCount }, (_, selectionIndex) => {
+    const start = Math.floor((selectionIndex * entries.length) / selectionCount);
+    const nextStart = Math.floor(((selectionIndex + 1) * entries.length) / selectionCount);
+    const end = Math.max(start, nextStart - 1);
+
+    return Math.round((start + end) / 2);
+  });
+
+  return selectedIndexes.map((index) => entries[index]);
+}
+
+function slugifyTier(tier: DifficultyTier): string {
+  return tier.toLowerCase().replace(/\s+/g, "-");
+}
+
+const PUBLISHED_CATALOGS: Record<CatalogVersion, PublishedPuzzleCatalog> = {
+  v1: GENERATED_PUBLISHED_CATALOG as PublishedPuzzleCatalog
+};
+const PUBLISHED_PUZZLE_BY_ID: Record<CatalogVersion, Map<PuzzleId, PublishedPuzzle>> = {
+  v1: new Map(PUBLISHED_CATALOGS.v1.puzzles.map((puzzle) => [puzzle.id, puzzle]))
+};
+let difficultyCatalogCache: DifficultyCatalogEntry[] | null = null;
+
+function getDifficultyCatalogCache(): DifficultyCatalogEntry[] {
+  if (!difficultyCatalogCache) {
+    difficultyCatalogCache = createDifficultyCatalog();
+  }
+
+  return difficultyCatalogCache;
+}

@@ -1,6 +1,6 @@
 # Color Research Notes
 
-This note documents the working hypotheses behind the in-app perceptual research panel and the internal board analysis helpers.
+This note documents the working hypotheses behind the offline perceptual research workflow and the internal board analysis helpers.
 
 ## Screenshot Audit
 
@@ -66,7 +66,16 @@ It penalizes boards that read as:
 
 ## How To Use This
 
-- Use the settings sidebar research panel while adjusting corner color rules.
-- Watch the current board score and the sample average together; a single board can look good by luck, but the sample average reveals whether the settings are robust.
+- Use the offline sweep and catalog-generation tooling to sanity-check the current generator against the structural layouts you plan to publish.
+- Watch both the single-board score and the sample averages; a single board can look good by luck, but the sample average reveals whether the baked generator defaults are robust.
 - Treat the sweet-spot ranges as guide rails for the current configuration family, not as universal constants.
-- The generator now searches for corner sets that maximize these perceptual metrics automatically, so the panel is mainly there as an explanation and a verification surface.
+- The generator now searches for strong solved boards during catalog authoring, so these metrics are primarily an authoring and verification surface rather than a player-facing UI.
+
+## Offline Sweep Tool
+
+- Run `npm run research:trajectory` under Node 20 to sample the current baked trajectory-default neighborhood from the terminal.
+- Run `npm run catalog:generate` under Node 20 to rebuild the published catalog artifact after changing structural curation or generator heuristics.
+- The script reports both quality metrics and variety metrics.
+- Quality focuses on readability score, promising-or-better rate, muddiness/harshness rate, and the same center/edge guardrails used by the generator.
+- Variety focuses on how much solved boards differ from each other in Oklab across the whole grid and at the four corners, so we can tell when stricter settings start collapsing the board family into the same few looks.
+- Use `--samples`, `--delta`, `--neighborhood-samples`, `--neighborhood-delta`, and `--top` to trade off runtime against confidence when exploring a wider or narrower neighborhood.

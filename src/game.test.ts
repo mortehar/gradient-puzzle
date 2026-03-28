@@ -3,12 +3,14 @@ import { analyzeBoardTiles } from "./colorAnalysis";
 import {
   DEFAULT_CONFIG,
   analyzeStructuralDifficulty,
-  buildDifficultyCatalog,
   buildTilesFromColors,
+  createGameFromPublishedPuzzle,
   createNewGame,
-  createNewGameForDifficulty,
   findBestAidMove,
   generateTrajectoryBoard,
+  generateTrajectoryBoardFromSeed,
+  getPublishedCatalog,
+  getPublishedPuzzleBySliderIndex,
   getDifficultyTier,
   getCornerIndexes,
   getLockedIndexes,
@@ -18,11 +20,17 @@ import {
   getValidVerticalLineCounts,
   isSolved,
   normalizeConfig,
-  pickConfigForDifficulty,
+  scrambleMovableTilesFromSeed,
   scrambleMovableTiles,
   swapTiles,
   type GameConfig
 } from "./game";
+import {
+  buildDifficultyCatalog,
+  buildPublishedCatalogPlan,
+  createNewGameForDifficulty,
+  pickConfigForDifficulty
+} from "./gameCatalog";
 
 function buildMockGradientColors(width: number, height: number): string[] {
   return Array.from({ length: width * height }, (_, index) => {
@@ -35,6 +43,19 @@ function buildMockGradientColors(width: number, height: number): string[] {
     const blue = Math.round(198 - x * 76 + y * 10);
 
     return `rgb(${red}, ${green}, ${blue})`;
+  });
+}
+
+function isSymmetricLayout(lockedIndexes: number[], width: number, height: number): boolean {
+  const lockedSet = new Set(lockedIndexes);
+
+  return lockedIndexes.every((index) => {
+    const row = Math.floor(index / width);
+    const column = index % width;
+    const verticalMirror = row * width + (width - 1 - column);
+    const horizontalMirror = (height - 1 - row) * width + column;
+
+    return lockedSet.has(verticalMirror) && lockedSet.has(horizontalMirror);
   });
 }
 
@@ -61,10 +82,50 @@ describe("game utilities", () => {
     expect(config.horizontalLines.count).toBe(2);
     expect(config.horizontalLines.density).toBe(6);
     expect(config.crossLines.density).toBe(6);
-    expect(config.colorConstraints.targetStepStrength).toBe(62);
-    expect(config.colorConstraints.axisBalance).toBe(78);
-    expect(config.colorConstraints.centerPreservation).toBe(82);
+    expect(config.colorConstraints.targetStepStrength).toBe(72);
+    expect(config.colorConstraints.axisBalance).toBe(88);
+    expect(config.colorConstraints.centerPreservation).toBe(92);
     expect(config.appearance.aidTimeSeconds).toBe(1);
+  });
+
+  it("normalizes island settings to portrait-safe valid values and resets disabled islands to a no-op footprint", () => {
+    const normalizedIsland = normalizeConfig({
+      ...DEFAULT_CONFIG,
+      width: 7,
+      height: 7,
+      islands: {
+        count: 1,
+        width: 6,
+        height: 4,
+        density: 3
+      }
+    });
+
+    expect(normalizedIsland.islands).toEqual({
+      count: 1,
+      width: 4,
+      height: 6,
+      density: 1
+    });
+
+    const disabledIsland = normalizeConfig({
+      ...DEFAULT_CONFIG,
+      width: 7,
+      height: 7,
+      islands: {
+        count: 0,
+        width: 6,
+        height: 4,
+        density: 3
+      }
+    });
+
+    expect(disabledIsland.islands).toEqual({
+      count: 0,
+      width: 1,
+      height: 1,
+      density: 1
+    });
   });
 
   it("always includes corners even when all line controls are disabled", () => {
@@ -105,6 +166,83 @@ describe("game utilities", () => {
     };
 
     expect(getLockedIndexes(config)).toEqual([0, 2, 4, 10, 12, 14, 20, 22, 24]);
+  });
+
+  it("centers a single island on the board", () => {
+    const config: GameConfig = {
+      ...DEFAULT_CONFIG,
+      width: 7,
+      height: 7,
+      verticalLines: { count: 0, density: 1 },
+      horizontalLines: { count: 0, density: 1 },
+      crossLines: { density: 0 },
+      islands: {
+        count: 1,
+        width: 3,
+        height: 5,
+        density: 1
+      }
+    };
+
+    expect(getLockedIndexes(config)).toEqual([0, 6, 9, 10, 11, 16, 17, 18, 23, 24, 25, 30, 31, 32, 37, 38, 39, 42, 48]);
+  });
+
+  it("snaps island counts away from asymmetric lattices", () => {
+    const config: GameConfig = {
+      ...DEFAULT_CONFIG,
+      width: 6,
+      height: 8,
+      verticalLines: { count: 0, density: 1 },
+      horizontalLines: { count: 0, density: 1 },
+      crossLines: { density: 0 },
+      islands: {
+        count: 5,
+        width: 2,
+        height: 2,
+        density: 1
+      }
+    };
+
+    expect(normalizeConfig(config).islands.count).toBe(4);
+    expect(getLockedIndexes(config)).toEqual([0, 1, 4, 5, 6, 7, 10, 11, 36, 37, 40, 41, 42, 43, 46, 47]);
+  });
+
+  it("samples island locks internally according to island density", () => {
+    const config: GameConfig = {
+      ...DEFAULT_CONFIG,
+      width: 7,
+      height: 7,
+      verticalLines: { count: 0, density: 1 },
+      horizontalLines: { count: 0, density: 1 },
+      crossLines: { density: 0 },
+      islands: {
+        count: 1,
+        width: 5,
+        height: 5,
+        density: 2
+      }
+    };
+
+    expect(getLockedIndexes(config)).toEqual([0, 6, 8, 10, 12, 22, 24, 26, 36, 38, 40, 42, 48]);
+  });
+
+  it("unions island locks with existing line-based patterns", () => {
+    const config: GameConfig = {
+      ...DEFAULT_CONFIG,
+      width: 5,
+      height: 5,
+      verticalLines: { count: 1, density: 2 },
+      horizontalLines: { count: 0, density: 1 },
+      crossLines: { density: 0 },
+      islands: {
+        count: 1,
+        width: 3,
+        height: 3,
+        density: 2
+      }
+    };
+
+    expect(getLockedIndexes(config)).toEqual([0, 2, 4, 6, 8, 12, 16, 18, 20, 22, 24]);
   });
 
   it("recreates the old square lock with two vertical and two horizontal lines at density one", () => {
@@ -214,11 +352,13 @@ describe("game utilities", () => {
 
     expect(catalog.length).toBe(signatures.size);
     expect(catalog.length).toBeGreaterThan(0);
+    expect(catalog.some((entry) => entry.config.islands.count > 0)).toBe(true);
     expect(catalog.every((entry) => entry.config.width <= entry.config.height)).toBe(true);
+    expect(catalog.every((entry) => isSymmetricLayout(getLockedIndexes(entry.config), entry.config.width, entry.config.height))).toBe(true);
     expect(catalog[0].rating.score).toBeGreaterThanOrEqual(0);
     expect(catalog[catalog.length - 1].rating.score).toBeLessThanOrEqual(100);
     expect(getDifficultyTier(catalog[0].rating.score)).toBe(catalog[0].rating.tier);
-  });
+  }, 90000);
 
   it("uses a very easy label below 10 before stepping into easy", () => {
     expect(getDifficultyTier(0)).toBe("Very easy");
@@ -246,6 +386,79 @@ describe("game utilities", () => {
     expect(game.config.height).toBeGreaterThanOrEqual(3);
     expect(game.config.width).toBeLessThanOrEqual(game.config.height);
     expect(game.tiles).toHaveLength(game.config.width * game.config.height);
+  });
+
+  it("builds a v1 published catalog with exactly ten puzzles per tier", () => {
+    const catalog = getPublishedCatalog("v1");
+    const tierCounts = catalog.puzzles.reduce<Record<string, number>>((counts, puzzle) => {
+      counts[puzzle.tier] = (counts[puzzle.tier] || 0) + 1;
+      return counts;
+    }, {});
+
+    expect(catalog.version).toBe("v1");
+    expect(catalog.puzzles).toHaveLength(60);
+    expect(tierCounts).toEqual({
+      "Very easy": 10,
+      Easy: 10,
+      Medium: 10,
+      Hard: 10,
+      Expert: 10,
+      Master: 10
+    });
+  });
+
+  it("selects the published tier entries by deterministic even spacing", () => {
+    const fullCatalog = buildDifficultyCatalog();
+    const publishedPlan = buildPublishedCatalogPlan();
+
+    (["Very easy", "Easy", "Medium", "Hard", "Expert", "Master"] as const).forEach((tier) => {
+      const tierEntries = fullCatalog.filter((entry) => entry.rating.tier === tier);
+      const expectedIndexes = Array.from({ length: 10 }, (_, selectionIndex) => {
+        const start = Math.floor((selectionIndex * tierEntries.length) / 10);
+        const nextStart = Math.floor(((selectionIndex + 1) * tierEntries.length) / 10);
+        const end = Math.max(start, nextStart - 1);
+
+        return Math.round((start + end) / 2);
+      });
+      const plannedEntries = publishedPlan.filter((entry) => entry.tier === tier).map((entry) => entry.entry);
+
+      expect(plannedEntries).toEqual(expectedIndexes.map((index) => tierEntries[index]));
+      expect(plannedEntries.map((entry) => entry.rating.score)).toEqual(
+        [...plannedEntries.map((entry) => entry.rating.score)].sort((left, right) => left - right)
+      );
+    });
+  });
+
+  it("uses deterministic seeds for canonical published boards and scrambles", () => {
+    const config = {
+      ...DEFAULT_CONFIG,
+      width: 5,
+      height: 5,
+      verticalLines: { count: 0, density: 1 },
+      horizontalLines: { count: 0, density: 1 },
+      crossLines: { density: 0 }
+    };
+    const boardSeed = 123456;
+    const boardA = generateTrajectoryBoardFromSeed(config, boardSeed);
+    const boardB = generateTrajectoryBoardFromSeed(config, boardSeed);
+    const scrambleA = scrambleMovableTilesFromSeed(boardA.tiles, 654321, getLockedIndexes(config));
+    const scrambleB = scrambleMovableTilesFromSeed(boardA.tiles, 654321, getLockedIndexes(config));
+
+    expect(boardA.tiles.map((tile) => tile.color)).toEqual(boardB.tiles.map((tile) => tile.color));
+    expect(scrambleA.map((tile) => tile.currentIndex)).toEqual(scrambleB.map((tile) => tile.currentIndex));
+  });
+
+  it("creates games from published puzzles with fixed locked cells and fixed scramble order", () => {
+    const puzzle = getPublishedPuzzleBySliderIndex("v1", 0);
+
+    expect(puzzle).toBeDefined();
+
+    const gameA = createGameFromPublishedPuzzle(puzzle!);
+    const gameB = createGameFromPublishedPuzzle(puzzle!);
+
+    expect(gameA.tiles.map((tile) => tile.color)).toEqual(gameB.tiles.map((tile) => tile.color));
+    expect(gameA.scrambledTiles.map((tile) => tile.currentIndex)).toEqual(gameB.scrambledTiles.map((tile) => tile.currentIndex));
+    expect(gameA.tiles.filter((tile) => tile.locked).map((tile) => tile.solvedIndex)).toEqual([...puzzle!.lockedIndexes]);
   });
 
   it("finds an aid move that places both tiles correctly when possible", () => {

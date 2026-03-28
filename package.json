@@ -11,6 +11,8 @@
     "preview": "vite preview",
     "test": "TMPDIR=/tmp vitest run",
     "test:watch": "TMPDIR=/tmp vitest",
+    "catalog:generate": "vite-node scripts/generatePublishedCatalog.ts",
+    "research:trajectory": "vite-node scripts/trajectorySweep.ts",
     "ci": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {

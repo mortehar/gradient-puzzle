@@ -1,6 +1,5 @@
 import { useState, type PointerEvent as ReactPointerEvent } from "react";
 import { PuzzleBoard, PuzzleDragPreview } from "./ui/PuzzleBoard";
-import { PuzzleResearchPanel } from "./ui/PuzzleResearchPanel";
 import { PuzzleSettingsPanel } from "./ui/PuzzleSettingsPanel";
 import { PuzzleStatusFooter } from "./ui/PuzzleStatusFooter";
 import { usePuzzleSession } from "./hooks/usePuzzleSession";
@@ -25,8 +24,8 @@ export function PuzzleFeature() {
     });
   }
 
-  function handleDifficultyScoreChange(value: number) {
-    session.actions.setDifficultyScore(value);
+  function handleSliderIndexChange(value: number) {
+    session.actions.setSliderIndex(value);
   }
 
   function handleTilePointerDown(tile: Tile, event: ReactPointerEvent<HTMLButtonElement>) {
@@ -54,16 +53,17 @@ export function PuzzleFeature() {
           <PuzzleStatusFooter
             swapCount={session.game.swapCount}
             hintCount={session.game.hintCount}
-            difficultyScore={session.difficultyScore}
-            selectedDifficultyTier={session.selectedDifficultyTier}
+            sliderIndex={session.sliderIndex}
+            sliderCount={session.sliderCount}
+            currentPuzzleLabel={session.currentPuzzleLabel}
             canUseAid={session.isInteractive}
-            canCreatePuzzle={session.canCreatePuzzle}
-            highlightNewPuzzle={session.highlightNewPuzzle}
+            canAdvancePuzzle={session.canAdvancePuzzle}
+            highlightNextPuzzle={session.highlightNextPuzzle}
             isAdvancedOpen={showAdvancedSettings}
-            onSetDifficultyScore={handleDifficultyScoreChange}
+            onSetSliderIndex={handleSliderIndexChange}
             onToggleAdvancedSettings={toggleAdvancedSettings}
             onUseAid={session.actions.useAid}
-            onStartNewPuzzle={session.actions.startNewPuzzle}
+            onStartNextPuzzle={session.actions.startNextPuzzle}
           />
         </section>
 
@@ -71,36 +71,14 @@ export function PuzzleFeature() {
           <PuzzleSettingsPanel
             activeHelpId={activeHelpId}
             onToggleHelp={toggleHelp}
-            setupMode={session.setupMode}
-            setSetupMode={session.actions.setSetupMode}
-            selectedDifficultyTier={session.selectedDifficultyTier}
+            currentPuzzleLabel={session.currentPuzzleLabel}
+            catalogVersion={session.activePuzzle.catalogVersion}
             currentGridLabel={`${session.game.config.width} x ${session.game.config.height}`}
-            previewConfig={session.previewConfig}
-            normalizedConfig={session.normalizedConfig}
-            nextLockedCount={session.nextLockedCount}
             lockedCount={session.lockedCount}
             swapCount={session.game.swapCount}
             hintCount={session.game.hintCount}
-            canCreatePuzzle={session.canCreatePuzzle}
-            verticalCountOptions={session.verticalCountOptions}
-            horizontalCountOptions={session.horizontalCountOptions}
-            verticalDensityOptions={session.verticalDensityOptions}
-            horizontalDensityOptions={session.horizontalDensityOptions}
-            crossDensityOptions={session.crossDensityOptions}
-            researchPanel={
-              <PuzzleResearchPanel
-                researchSweep={session.researchSweep}
-                currentBoardMetrics={session.currentBoardMetrics}
-                currentReversalRate={session.currentReversalRate}
-                currentOrderedShare={session.currentOrderedShare}
-              />
-            }
-            onWidthChange={session.actions.updateWidth}
-            onHeightChange={session.actions.updateHeight}
-            onLineValueChange={session.actions.updateLineValue}
-            onCrossDensityChange={session.actions.updateCrossDensity}
+            appearance={session.previewConfig.appearance}
             onAppearanceChange={session.actions.updateAppearance}
-            onColorConstraintChange={session.actions.updateColorConstraint}
           />
         ) : null}
       </section>

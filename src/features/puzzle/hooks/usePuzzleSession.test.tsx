@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getPublishedCatalog } from "../domain";
 import { usePuzzleSession } from "./usePuzzleSession";
 
 function SessionHarness() {
@@ -8,26 +9,23 @@ function SessionHarness() {
   return (
     <>
       <p data-testid="session-status">{session.game.status}</p>
+      <p data-testid="session-puzzle-label">{session.currentPuzzleLabel}</p>
+      <p data-testid="session-slider-index">{session.sliderIndex}</p>
       <p data-testid="session-grid">
         {session.game.config.width} x {session.game.config.height}
       </p>
-      <p data-testid="preview-grid">
-        {session.previewConfig.width} x {session.previewConfig.height}
-      </p>
-      <button type="button" onClick={() => session.actions.setSetupMode("custom")}>
-        Custom Mode
+      <p data-testid="session-can-advance">{String(session.canAdvancePuzzle)}</p>
+      <button type="button" onClick={() => session.actions.setSliderIndex(1)}>
+        Puzzle 2
       </button>
-      <button type="button" onClick={() => session.actions.updateWidth(7)}>
-        Width 7
+      <button type="button" onClick={() => session.actions.setSliderIndex(session.sliderCount - 1)}>
+        Last Puzzle
       </button>
-      <button type="button" onClick={() => session.actions.updateHeight(4)}>
-        Height 4
+      <button type="button" onClick={session.actions.startNextPuzzle}>
+        Next Puzzle
       </button>
-      <button type="button" onClick={() => session.actions.updateHeight(7)}>
-        Height 7
-      </button>
-      <button type="button" onClick={session.actions.startNewPuzzle}>
-        New Puzzle
+      <button type="button" onClick={() => session.actions.updateAppearance("aidTimeSeconds", 0)}>
+        Aid Time Zero
       </button>
     </>
   );
@@ -62,35 +60,32 @@ describe("usePuzzleSession", () => {
     expect(screen.getByTestId("session-status")).toHaveTextContent("playing");
   });
 
-  it("restarts back into preview when a new puzzle is requested", () => {
+  it("loads a deterministic published puzzle when the slider index changes", () => {
+    const catalog = getPublishedCatalog("v1");
     render(<SessionHarness />);
 
-    act(() => {
-      vi.advanceTimersByTime(4000);
-    });
+    fireEvent.click(screen.getByText("Puzzle 2"));
 
-    expect(screen.getByTestId("session-status")).not.toHaveTextContent("preview");
-
-    fireEvent.click(screen.getByText("New Puzzle"));
-
+    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("1");
+    expect(screen.getByTestId("session-puzzle-label")).toHaveTextContent(
+      `#${catalog.puzzles[1].tierIndex} (${catalog.puzzles[1].tier})`
+    );
+    expect(screen.getByTestId("session-grid")).toHaveTextContent(
+      `${catalog.puzzles[1].config.width} x ${catalog.puzzles[1].config.height}`
+    );
     expect(screen.getByTestId("session-status")).toHaveTextContent("preview");
   });
 
-  it("keeps custom preview dimensions portrait-safe through session actions", () => {
+  it("advances to the next published puzzle and disables progression on the last puzzle", () => {
     render(<SessionHarness />);
 
-    fireEvent.click(screen.getByText("Custom Mode"));
-    fireEvent.click(screen.getByText("Width 7"));
+    fireEvent.click(screen.getByText("Next Puzzle"));
+    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("1");
 
-    expect(screen.getByTestId("preview-grid")).toHaveTextContent("5 x 5");
+    fireEvent.click(screen.getByText("Last Puzzle"));
+    expect(screen.getByTestId("session-can-advance")).toHaveTextContent("false");
 
-    fireEvent.click(screen.getByText("Height 7"));
-    fireEvent.click(screen.getByText("Width 7"));
-
-    expect(screen.getByTestId("preview-grid")).toHaveTextContent("7 x 7");
-
-    fireEvent.click(screen.getByText("Height 4"));
-
-    expect(screen.getByTestId("preview-grid")).toHaveTextContent("7 x 7");
+    fireEvent.click(screen.getByText("Next Puzzle"));
+    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("59");
   });
 });

@@ -1,33 +1,22 @@
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_CONFIG,
   analyzeBoardTiles,
-  createNewGame,
-  createNewGameForDifficulty,
+  createGameFromPublishedPuzzle,
   findBestAidMove,
-  getDifficultyTier,
-  getLockedIndexes,
-  getValidCrossDensities,
-  getValidHorizontalLineCounts,
-  getValidLineDensities,
-  getValidVerticalLineCounts,
+  getPublishedCatalog,
+  getPublishedPuzzleBySliderIndex,
   isSolved,
   normalizeConfig,
-  pickConfigForDifficulty,
   swapTiles,
-  type BoardResearchSweep,
-  type GameConfig,
-  type PuzzleSetupMode,
-  type Tile,
-  type TrajectoryColorConfig
+  type AppearanceConfig,
+  type PublishedPuzzle,
+  type Tile
 } from "../domain";
-import { buildResearchSweep, mergeStructuralConfig } from "../domain/research";
 import { useCompletionBurst } from "./useCompletionBurst";
 import {
   AID_ANIMATION_START_DELAY_MS,
-  DEFAULT_DIFFICULTY_TARGET,
   PREVIEW_DURATION_MS,
-  RESEARCH_SAMPLE_COUNT,
   SCRAMBLE_FLIP_CARD_DURATION_MS,
   SCRAMBLE_STAGGER_SPREAD_MS,
   buildScrambleFlipTiles,
@@ -41,82 +30,64 @@ import {
 } from "../ui/boardPresentation";
 
 export type PuzzleSession = {
-  game: ReturnType<typeof createNewGameForDifficulty>;
-  setupMode: PuzzleSetupMode;
-  difficultyScore: number;
-  normalizedConfig: GameConfig;
-  previewConfig: GameConfig;
-  researchSweep: BoardResearchSweep;
+  game: ReturnType<typeof createGameFromPublishedPuzzle>;
+  activePuzzle: PublishedPuzzle;
+  sliderIndex: number;
+  sliderCount: number;
+  previewConfig: ReturnType<typeof normalizeConfig>;
   transitionMode: TransitionMode;
   activeAidAnimation: AidAnimationState | null;
   activeScrambleFlip: ScrambleFlipTile[] | null;
   dragTile: Tile | null;
   pointerPosition: PointerPosition | null;
   orderedTiles: Tile[];
-  nextLockedCount: number;
-  canCreatePuzzle: boolean;
   isInteractive: boolean;
   lockedCount: number;
-  verticalCountOptions: number[];
-  horizontalCountOptions: number[];
-  verticalDensityOptions: number[];
-  horizontalDensityOptions: number[];
-  crossDensityOptions: number[];
   currentBoardMetrics: ReturnType<typeof analyzeBoardTiles>;
-  currentReversalRate: number;
-  currentOrderedShare: number;
-  selectedDifficultyTier: string;
+  currentPuzzleLabel: string;
+  canAdvancePuzzle: boolean;
   completionCeremonyPhase: CompletionCeremonyPhase;
-  highlightNewPuzzle: boolean;
+  highlightNextPuzzle: boolean;
   actions: {
-    setSetupMode: (mode: PuzzleSetupMode) => void;
-    setDifficultyScore: (value: number) => void;
+    setSliderIndex: (value: number) => void;
     beginDrag: (tile: Tile, pointerId: number, clientX: number, clientY: number) => void;
-    updateWidth: (value: number) => void;
-    updateHeight: (value: number) => void;
-    updateLineValue: (lineKey: "verticalLines" | "horizontalLines", field: "count" | "density", value: number) => void;
-    updateCrossDensity: (value: number) => void;
-    updateAppearance: <K extends keyof GameConfig["appearance"]>(key: K, value: GameConfig["appearance"][K]) => void;
-    updateColorConstraint: <K extends keyof TrajectoryColorConfig>(key: K, value: TrajectoryColorConfig[K]) => void;
-    startNewPuzzle: () => void;
+    updateAppearance: <K extends keyof AppearanceConfig>(key: K, value: AppearanceConfig[K]) => void;
+    startNextPuzzle: () => void;
     useAid: () => void;
   };
 };
 
+const PUBLISHED_CATALOG = getPublishedCatalog("v1");
+
 export function usePuzzleSession(): PuzzleSession {
-  const defaultDifficultyEntry = pickConfigForDifficulty(DEFAULT_DIFFICULTY_TARGET);
-  const [config, setConfig] = useState<GameConfig>(DEFAULT_CONFIG);
-  const [setupMode, setSetupMode] = useState<PuzzleSetupMode>("difficulty");
-  const [difficultyScore, setDifficultyScore] = useState(DEFAULT_DIFFICULTY_TARGET);
-  const [game, setGame] = useState(() => createNewGameForDifficulty(DEFAULT_DIFFICULTY_TARGET, DEFAULT_CONFIG));
-  const [researchSweep, setResearchSweep] = useState<BoardResearchSweep>(() =>
-    buildResearchSweep(mergeStructuralConfig(DEFAULT_CONFIG, defaultDifficultyEntry), RESEARCH_SAMPLE_COUNT)
-  );
+  const [appearance, setAppearance] = useState<AppearanceConfig>(DEFAULT_CONFIG.appearance);
+  const [sliderIndex, setSliderIndex] = useState(0);
+  const [game, setGame] = useState(() => createGameFromPublishedPuzzle(PUBLISHED_CATALOG.puzzles[0], DEFAULT_CONFIG.appearance));
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [pointerPosition, setPointerPosition] = useState<PointerPosition | null>(null);
   const [transitionMode, setTransitionMode] = useState<TransitionMode>("none");
   const [activeAidAnimation, setActiveAidAnimation] = useState<AidAnimationState | null>(null);
   const [activeScrambleFlip, setActiveScrambleFlip] = useState<ScrambleFlipTile[] | null>(null);
-  const difficultyHistoryRef = useRef<string[]>([defaultDifficultyEntry.rating.layoutSignature]);
-  const normalizedConfig = useMemo(() => normalizeConfig(config), [config]);
-  const selectedDifficultyEntry = useMemo(() => pickConfigForDifficulty(difficultyScore), [difficultyScore]);
-  const previewConfig = useMemo(
-    () => (setupMode === "difficulty" ? mergeStructuralConfig(normalizedConfig, selectedDifficultyEntry) : normalizedConfig),
-    [normalizedConfig, selectedDifficultyEntry, setupMode]
-  );
-  const researchConfigKey = useMemo(
-    () =>
-      JSON.stringify({
-        width: previewConfig.width,
-        height: previewConfig.height,
-        verticalLines: previewConfig.verticalLines,
-        horizontalLines: previewConfig.horizontalLines,
-        crossLines: previewConfig.crossLines,
-        colorConstraints: previewConfig.colorConstraints
-      }),
-    [previewConfig]
-  );
   const completionBurst = useCompletionBurst(game.status);
+  const activePuzzle = useMemo(() => PUBLISHED_CATALOG.puzzles[sliderIndex], [sliderIndex]);
+  const previewConfig = useMemo(
+    () =>
+      normalizeConfig({
+        ...activePuzzle.config,
+        appearance
+      }),
+    [activePuzzle, appearance]
+  );
+  const currentBoardMetrics = useMemo(
+    () => analyzeBoardTiles(game.tiles, game.config.width, game.config.height),
+    [game.config.height, game.config.width, game.tiles]
+  );
+  const orderedTiles = useMemo(() => [...game.tiles].sort((left, right) => left.currentIndex - right.currentIndex), [game.tiles]);
+  const dragTile = dragState ? game.tiles.find((tile) => tile.id === dragState.tileId) ?? null : null;
+  const isInteractive = game.status === "playing";
+  const lockedCount = game.tiles.filter((tile) => tile.locked).length;
+  const currentPuzzleLabel = `#${activePuzzle.tierIndex} (${activePuzzle.tier})`;
+  const canAdvancePuzzle = sliderIndex < PUBLISHED_CATALOG.puzzles.length - 1;
 
   function getDropIndex(clientX: number, clientY: number): number | null {
     const element = document.elementFromPoint(clientX, clientY);
@@ -133,6 +104,25 @@ export function usePuzzleSession(): PuzzleSession {
   function clearDragState() {
     setDragState(null);
     setPointerPosition(null);
+  }
+
+  function commitLoadedGame(nextSliderIndex: number) {
+    const nextPuzzle = getPublishedPuzzleBySliderIndex("v1", nextSliderIndex);
+
+    if (!nextPuzzle) {
+      return;
+    }
+
+    setSliderIndex(nextSliderIndex);
+    setGame(createGameFromPublishedPuzzle(nextPuzzle, appearance));
+    setActiveAidAnimation(null);
+    setActiveScrambleFlip(null);
+    setTransitionMode("none");
+    clearDragState();
+
+    window.setTimeout(() => {
+      setTransitionMode("quick");
+    }, 0);
   }
 
   function commitSwap(fromIndex: number, toIndex: number | null) {
@@ -297,91 +287,6 @@ export function usePuzzleSession(): PuzzleSession {
     clearDragState();
   }, [game.status]);
 
-  useEffect(() => {
-    startTransition(() => {
-      setResearchSweep(buildResearchSweep(previewConfig, RESEARCH_SAMPLE_COUNT));
-    });
-  }, [previewConfig, researchConfigKey]);
-
-  const orderedTiles = useMemo(() => [...game.tiles].sort((left, right) => left.currentIndex - right.currentIndex), [game.tiles]);
-  const nextLockedCount = getLockedIndexes(previewConfig).length;
-  const nextMovableCount = previewConfig.width * previewConfig.height - nextLockedCount;
-  const canCreatePuzzle = setupMode === "difficulty" ? true : nextMovableCount >= 2;
-  const isInteractive = game.status === "playing";
-  const lockedCount = getLockedIndexes(game.config).length;
-  const verticalCountOptions = getValidVerticalLineCounts(normalizedConfig.width);
-  const horizontalCountOptions = getValidHorizontalLineCounts(normalizedConfig.height);
-  const verticalDensityOptions = getValidLineDensities(normalizedConfig.height);
-  const horizontalDensityOptions = getValidLineDensities(normalizedConfig.width);
-  const crossDensityOptions = getValidCrossDensities(normalizedConfig.width, normalizedConfig.height);
-  const currentBoardMetrics = useMemo(
-    () => analyzeBoardTiles(game.tiles, game.config.width, game.config.height),
-    [game.config.height, game.config.width, game.tiles]
-  );
-  const currentReversalRate =
-    (currentBoardMetrics.rowLightnessMonotonicity.reversalRate +
-      currentBoardMetrics.columnLightnessMonotonicity.reversalRate) /
-    2;
-  const currentOrderedShare =
-    (currentBoardMetrics.rowLightnessMonotonicity.consistency +
-      currentBoardMetrics.columnLightnessMonotonicity.consistency) /
-    2;
-  const selectedDifficultyTier = getDifficultyTier(difficultyScore);
-  const dragTile = dragState ? game.tiles.find((tile) => tile.id === dragState.tileId) ?? null : null;
-
-  function updateConfig(updater: (currentConfig: GameConfig) => GameConfig) {
-    setConfig((currentConfig) => normalizeConfig(updater(currentConfig)));
-  }
-
-  function clampPortraitWidth(nextWidth: number, currentHeight: number) {
-    return Math.min(nextWidth, currentHeight);
-  }
-
-  function clampPortraitHeight(currentWidth: number, nextHeight: number) {
-    return Math.max(currentWidth, nextHeight);
-  }
-
-  function commitLoadedGame(nextGame: ReturnType<typeof createNewGameForDifficulty>, nextSetupMode: PuzzleSetupMode) {
-    setGame(nextGame);
-
-    if (nextSetupMode === "difficulty") {
-      difficultyHistoryRef.current = [
-        nextGame.difficulty.layoutSignature,
-        ...difficultyHistoryRef.current.filter((signature) => signature !== nextGame.difficulty.layoutSignature)
-      ].slice(0, 3);
-    }
-
-    setActiveAidAnimation(null);
-    setActiveScrambleFlip(null);
-    setTransitionMode("none");
-    clearDragState();
-
-    window.setTimeout(() => {
-      setTransitionMode("quick");
-    }, 0);
-  }
-
-  function handleNewPuzzle() {
-    if (!canCreatePuzzle) {
-      return;
-    }
-
-    const nextGame =
-      setupMode === "difficulty"
-        ? createNewGameForDifficulty(difficultyScore, normalizedConfig, difficultyHistoryRef.current)
-        : createNewGame(normalizedConfig);
-
-    commitLoadedGame(nextGame, setupMode);
-  }
-
-  function handleDifficultyScoreChange(nextDifficultyScore: number) {
-    const nextGame = createNewGameForDifficulty(nextDifficultyScore, normalizedConfig, difficultyHistoryRef.current);
-
-    setSetupMode("difficulty");
-    setDifficultyScore(nextDifficultyScore);
-    commitLoadedGame(nextGame, "difficulty");
-  }
-
   function handleAid() {
     if (!isInteractive) {
       return;
@@ -400,7 +305,7 @@ export function usePuzzleSession(): PuzzleSession {
       return;
     }
 
-    const aidDurationMs = getAidDurationMs(normalizedConfig.appearance.aidTimeSeconds);
+    const aidDurationMs = getAidDurationMs(game.config.appearance.aidTimeSeconds);
     clearDragState();
 
     setTransitionMode("none");
@@ -439,35 +344,25 @@ export function usePuzzleSession(): PuzzleSession {
 
   return {
     game,
-    setupMode,
-    difficultyScore,
-    normalizedConfig,
+    activePuzzle,
+    sliderIndex,
+    sliderCount: PUBLISHED_CATALOG.puzzles.length,
     previewConfig,
-    researchSweep,
     transitionMode,
     activeAidAnimation,
     activeScrambleFlip,
     dragTile,
     pointerPosition,
     orderedTiles,
-    nextLockedCount,
-    canCreatePuzzle,
     isInteractive,
     lockedCount,
-    verticalCountOptions,
-    horizontalCountOptions,
-    verticalDensityOptions,
-    horizontalDensityOptions,
-    crossDensityOptions,
     currentBoardMetrics,
-    currentReversalRate,
-    currentOrderedShare,
-    selectedDifficultyTier,
+    currentPuzzleLabel,
+    canAdvancePuzzle,
     completionCeremonyPhase: completionBurst.ceremonyPhase,
-    highlightNewPuzzle: completionBurst.highlightNewPuzzle,
+    highlightNextPuzzle: completionBurst.highlightNewPuzzle,
     actions: {
-      setSetupMode,
-      setDifficultyScore: handleDifficultyScoreChange,
+      setSliderIndex: commitLoadedGame,
       beginDrag: (tile, pointerId, clientX, clientY) => {
         if (tile.locked || !isInteractive) {
           return;
@@ -480,55 +375,31 @@ export function usePuzzleSession(): PuzzleSession {
         });
         setPointerPosition({ x: clientX, y: clientY });
       },
-      updateWidth: (value) => {
-        updateConfig((currentConfig) => ({
-          ...currentConfig,
-          width: clampPortraitWidth(value, currentConfig.height)
-        }));
-      },
-      updateHeight: (value) => {
-        updateConfig((currentConfig) => ({
-          ...currentConfig,
-          height: clampPortraitHeight(currentConfig.width, value)
-        }));
-      },
-      updateLineValue: (lineKey, field, value) => {
-        updateConfig((currentConfig) => ({
-          ...currentConfig,
-          [lineKey]: {
-            ...currentConfig[lineKey],
-            [field]: value
-          }
-        }));
-      },
-      updateCrossDensity: (value) => {
-        updateConfig((currentConfig) => ({
-          ...currentConfig,
-          crossLines: {
-            ...currentConfig.crossLines,
-            density: value
-          }
-        }));
-      },
       updateAppearance: (key, value) => {
-        updateConfig((currentConfig) => ({
-          ...currentConfig,
-          appearance: {
-            ...currentConfig.appearance,
+        setAppearance((currentAppearance) => {
+          const nextAppearance = {
+            ...currentAppearance,
             [key]: value
-          }
-        }));
+          };
+
+          setGame((currentGame) => ({
+            ...currentGame,
+            config: normalizeConfig({
+              ...currentGame.config,
+              appearance: nextAppearance
+            })
+          }));
+
+          return nextAppearance;
+        });
       },
-      updateColorConstraint: (key, value) => {
-        updateConfig((currentConfig) => ({
-          ...currentConfig,
-          colorConstraints: {
-            ...currentConfig.colorConstraints,
-            [key]: value
-          }
-        }));
+      startNextPuzzle: () => {
+        if (!canAdvancePuzzle) {
+          return;
+        }
+
+        commitLoadedGame(sliderIndex + 1);
       },
-      startNewPuzzle: handleNewPuzzle,
       useAid: handleAid
     }
   };

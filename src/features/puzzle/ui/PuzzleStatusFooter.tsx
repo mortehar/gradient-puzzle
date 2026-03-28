@@ -1,31 +1,33 @@
 type PuzzleStatusFooterProps = {
   swapCount: number;
   hintCount: number;
-  difficultyScore: number;
-  selectedDifficultyTier: string;
+  sliderIndex: number;
+  sliderCount: number;
+  currentPuzzleLabel: string;
   canUseAid: boolean;
-  canCreatePuzzle: boolean;
-  highlightNewPuzzle: boolean;
+  canAdvancePuzzle: boolean;
+  highlightNextPuzzle: boolean;
   isAdvancedOpen: boolean;
-  onSetDifficultyScore: (value: number) => void;
+  onSetSliderIndex: (value: number) => void;
   onToggleAdvancedSettings: () => void;
   onUseAid: () => void;
-  onStartNewPuzzle: () => void;
+  onStartNextPuzzle: () => void;
 };
 
 export function PuzzleStatusFooter({
   swapCount,
   hintCount,
-  difficultyScore,
-  selectedDifficultyTier,
+  sliderIndex,
+  sliderCount,
+  currentPuzzleLabel,
   canUseAid,
-  canCreatePuzzle,
-  highlightNewPuzzle,
+  canAdvancePuzzle,
+  highlightNextPuzzle,
   isAdvancedOpen,
-  onSetDifficultyScore,
+  onSetSliderIndex,
   onToggleAdvancedSettings,
   onUseAid,
-  onStartNewPuzzle
+  onStartNextPuzzle
 }: PuzzleStatusFooterProps) {
   return (
     <div className="board-footer" data-testid="board-footer">
@@ -48,30 +50,30 @@ export function PuzzleStatusFooter({
             Aid
           </button>
           <button
-            className={["action-button", "new-button", highlightNewPuzzle ? "new-button-celebrating" : ""].join(" ")}
+            className={["action-button", "new-button", highlightNextPuzzle ? "new-button-celebrating" : ""].join(" ")}
             type="button"
-            onClick={onStartNewPuzzle}
-            disabled={!canCreatePuzzle}
+            onClick={onStartNextPuzzle}
+            disabled={!canAdvancePuzzle}
             data-testid="new-puzzle-button"
           >
-            New
+            Next
           </button>
         </div>
       </div>
 
       <div className="board-footer-difficulty" data-testid="board-footer-difficulty">
         <label className="board-footer-difficulty-label" htmlFor="difficulty-slider" data-testid="difficulty-slider-label">
-          Difficulty: {selectedDifficultyTier} ({difficultyScore})
+          Puzzle: {currentPuzzleLabel}
         </label>
         <input
           id="difficulty-slider"
           data-testid="difficulty-slider"
           type="range"
           min={0}
-          max={100}
+          max={Math.max(0, sliderCount - 1)}
           step={1}
-          value={difficultyScore}
-          onChange={(event) => onSetDifficultyScore(Number(event.target.value))}
+          value={sliderIndex}
+          onChange={(event) => onSetSliderIndex(Number(event.target.value))}
         />
       </div>
 
