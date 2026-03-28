@@ -52,7 +52,6 @@ export function PuzzleFeature() {
           />
 
           <PuzzleStatusFooter
-            status={session.game.status}
             swapCount={session.game.swapCount}
             hintCount={session.game.hintCount}
             difficultyScore={session.difficultyScore}

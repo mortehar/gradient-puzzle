@@ -89,7 +89,8 @@ describe("App", () => {
     expect(screen.queryByText(/Rebuild the color flow/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId("status-copy")).not.toBeInTheDocument();
     expect(screen.getByTestId("board-footer")).toBeInTheDocument();
-    expect(screen.getByText("Current score")).toBeInTheDocument();
+    expect(screen.getByText("MOVES: 0")).toBeInTheDocument();
+    expect(screen.queryByText(/\(\d+ aids used\)/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("advanced-settings-toggle")).toBeInTheDocument();
     expect(screen.getByTestId("advanced-settings-toggle")).toHaveClass("advanced-settings-button");
     expect(screen.queryByTestId("hue-distance-slider")).not.toBeInTheDocument();
@@ -152,9 +153,8 @@ describe("App", () => {
     fireEvent.click(screen.getByTestId("aid-button"));
 
     expect(screen.getByTestId("aid-button")).toBeDisabled();
-    expect(screen.getByText("1 swaps")).toBeInTheDocument();
-    expect(screen.getByText("Aids used: 1")).toBeInTheDocument();
-    expect(screen.getByText("Current score")).toBeInTheDocument();
+    expect(screen.getByText("MOVES: 1")).toBeInTheDocument();
+    expect(screen.getByText("(1 aids used)")).toBeInTheDocument();
     expect(screen.getByTestId("aid-primary-overlay")).toBeInTheDocument();
     expect(screen.getByTestId("aid-secondary-overlay")).toBeInTheDocument();
 
@@ -163,9 +163,8 @@ describe("App", () => {
     });
 
     expect(screen.getByTestId("completion-summary")).toBeInTheDocument();
-    expect(screen.getByText("Puzzle complete")).toBeInTheDocument();
-    expect(screen.getByText("Final score: 1 swaps")).toBeInTheDocument();
-    expect(screen.getByText("Aids used: 1")).toBeInTheDocument();
+    expect(screen.getByText("MOVES: 1")).toBeInTheDocument();
+    expect(screen.getByText("(1 aids used)")).toBeInTheDocument();
     expect(screen.queryByText(/^Hint$/i)).not.toBeInTheDocument();
   });
 
@@ -285,8 +284,8 @@ describe("App", () => {
     fireEvent.click(screen.getByTestId("tile-1"));
     fireEvent.click(screen.getByTestId("tile-6"));
 
-    expect(screen.getByText("0 swaps")).toBeInTheDocument();
-    expect(screen.getByText("Current score")).toBeInTheDocument();
+    expect(screen.getByText("MOVES: 0")).toBeInTheDocument();
+    expect(screen.queryByText(/\(\d+ aids used\)/i)).not.toBeInTheDocument();
   });
 
   it("starts with zero spacing and rounding and keeps the footer actions below the board", () => {

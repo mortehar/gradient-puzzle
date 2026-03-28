@@ -1,5 +1,4 @@
 type PuzzleStatusFooterProps = {
-  status: "preview" | "scrambling" | "animating-hint" | "playing" | "solved";
   swapCount: number;
   hintCount: number;
   difficultyScore: number;
@@ -15,7 +14,6 @@ type PuzzleStatusFooterProps = {
 };
 
 export function PuzzleStatusFooter({
-  status,
   swapCount,
   hintCount,
   difficultyScore,
@@ -33,19 +31,10 @@ export function PuzzleStatusFooter({
     <div className="board-footer" data-testid="board-footer">
       <div className="board-footer-top">
         <div className="completion-summary" data-testid="completion-summary">
-          {status === "solved" ? (
-            <>
-              <p className="completion-title">Puzzle complete</p>
-              <p className="completion-score">Final score: {swapCount} swaps</p>
-              <p className="completion-score-secondary">Aids used: {hintCount}</p>
-            </>
-          ) : (
-            <>
-              <p className="completion-title">Current score</p>
-              <p className="completion-score">{swapCount} swaps</p>
-              <p className="completion-score-secondary">Aids used: {hintCount}</p>
-            </>
-          )}
+          <p className="completion-title">
+            MOVES: {swapCount}
+            {hintCount > 0 ? <span className="completion-inline-note"> ({hintCount} aids used)</span> : null}
+          </p>
         </div>
 
         <div className="board-footer-actions" data-testid="board-footer-actions">

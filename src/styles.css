@@ -572,7 +572,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .completion-title {
-  margin: 0 0 0.35rem;
+  margin: 0;
   color: #f5c46c;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -580,15 +580,12 @@ input[type="range"]::-moz-range-thumb {
   font-size: 0.85rem;
 }
 
-.completion-score {
-  margin: 0;
-  font-size: 1.1rem;
-  color: rgba(248, 241, 231, 0.92);
-}
-
-.completion-score-secondary {
-  margin: 0.35rem 0 0;
+.completion-inline-note {
   color: rgba(248, 241, 231, 0.72);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.92em;
 }
 
 .settings-note {
