@@ -84,14 +84,14 @@ export function getTileLayoutStyle(index: number, config: GameConfig): CSSProper
   const column = index % config.width;
 
   return {
-    width: `calc((100% - (${config.width - 1} * var(--tile-gap))) / ${config.width})`,
-    height: `calc((100% - (${config.height - 1} * var(--tile-gap))) / ${config.height})`,
-    left: `calc(${column} * ((100% - (${config.width - 1} * var(--tile-gap))) / ${config.width} + var(--tile-gap)))`,
-    top: `calc(${row} * ((100% - (${config.height - 1} * var(--tile-gap))) / ${config.height} + var(--tile-gap)))`
+    width: `calc(100% / ${config.width})`,
+    height: `calc(100% / ${config.height})`,
+    left: `calc(${column} * 100% / ${config.width})`,
+    top: `calc(${row} * 100% / ${config.height})`
   };
 }
 
-export function getBoardStyle(gameState: GameState, previewConfig: GameConfig, transitionMode: TransitionMode): CSSProperties {
+export function getBoardStyle(gameState: GameState, _previewConfig: GameConfig, transitionMode: TransitionMode): CSSProperties {
   return {
     "--board-columns": gameState.config.width,
     "--board-rows": gameState.config.height,
@@ -99,10 +99,6 @@ export function getBoardStyle(gameState: GameState, previewConfig: GameConfig, t
       transitionMode === "cinematic" ? `${SCRAMBLE_DURATION_MS}ms` : `${MANUAL_MOVE_DURATION_MS}ms`,
     "--tile-motion-easing": transitionMode === "cinematic" ? CINEMATIC_EASING : QUICK_EASING,
     "--scramble-flip-duration": `${SCRAMBLE_FLIP_CARD_DURATION_MS}ms`,
-    "--tile-gap": `${previewConfig.appearance.cellSpacing}px`,
-    "--tile-radius": `${previewConfig.appearance.cellRounding}px`,
-    "--tile-inner-radius": `${previewConfig.appearance.lockRounding}px`,
-    "--tile-lock-width": `${previewConfig.appearance.lockThickness}px`,
     aspectRatio: FIXED_BOARD_FRAME_ASPECT_RATIO
   } as CSSProperties;
 }

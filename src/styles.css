@@ -6,10 +6,6 @@
     radial-gradient(circle at bottom left, rgba(233, 129, 112, 0.22), transparent 30%),
     linear-gradient(160deg, #1a2740 0%, #102033 45%, #09131f 100%);
   color-scheme: dark;
-  --tile-gap: 6px;
-  --tile-radius: 8px;
-  --tile-inner-radius: 6px;
-  --tile-lock-width: 3px;
 }
 
 * {
@@ -362,7 +358,7 @@ input[type="range"]::-moz-range-thumb {
 .tile {
   position: absolute;
   border: 0;
-  border-radius: var(--tile-radius);
+  border-radius: 0;
   cursor: grab;
   box-shadow: none;
   transition:
@@ -412,8 +408,8 @@ input[type="range"]::-moz-range-thumb {
   content: "";
   position: absolute;
   inset: 14%;
-  border-radius: var(--tile-inner-radius);
-  border: var(--tile-lock-width) solid rgba(255, 255, 255, 0.72);
+  border-radius: 6px;
+  border: 3px solid rgba(255, 255, 255, 0.72);
 }
 
 .tile-lock-frame-hidden::after {
@@ -430,7 +426,7 @@ input[type="range"]::-moz-range-thumb {
 
 .aid-overlay {
   position: absolute;
-  border-radius: var(--tile-radius);
+  border-radius: 0;
   pointer-events: none;
 }
 
@@ -518,7 +514,7 @@ input[type="range"]::-moz-range-thumb {
 .scramble-face {
   position: absolute;
   inset: 0;
-  border-radius: var(--tile-radius);
+  border-radius: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transition: opacity 120ms ease;

@@ -15,7 +15,8 @@ export function mergeStructuralConfig(baseConfig: GameConfig, entry: DifficultyC
     height: entry.config.height,
     verticalLines: entry.config.verticalLines,
     horizontalLines: entry.config.horizontalLines,
-    crossLines: entry.config.crossLines
+    crossLines: entry.config.crossLines,
+    islands: entry.config.islands
   });
 }
 

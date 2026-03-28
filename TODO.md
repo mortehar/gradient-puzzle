@@ -15,8 +15,11 @@
 - Consider a small design token pass so visual controls and board effects are easier to tune intentionally.
 
 ## Later
-
-- Consider `tsParticles` if the current custom completion burst becomes limiting.
-- Add optional persistence for settings and preferred setup mode.
-- Explore richer difficulty progression or daily challenge style modes without introducing backend complexity.
-- Add server side high scores
+- Add islands as a lock pattern, with number, xy-size, and possibly density?
+- Explore richer difficulty progression:
+ - Ensure stored seeding so that puzzles will remain the same until seed is changed
+ - Possibly store each puzzle as its own seed ID
+ - Bin puzzles into the difficulty categories
+ - Have a home screen where you select difficulty and then swipe to select each puzzle
+- Add server side high scores on no-aid. Either keep a username in cookie, or some oauth? Keep all stats then, so we can score best avg easy etc as well as bet on each single puzzle. When pressing aid, the first time you need to hold it for 5 seconds. a clock spinner will count down and a text popup will warn you that aid will make your score 0.
+- Daily challenge style modes without introducing backend complexity.
