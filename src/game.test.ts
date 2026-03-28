@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { analyzeBoardTiles } from "./colorAnalysis";
 import {
   DEFAULT_CONFIG,
-  buildSolvedTiles,
+  analyzeStructuralDifficulty,
+  buildDifficultyCatalog,
+  buildTilesFromColors,
   createNewGame,
+  createNewGameForDifficulty,
   findBestAidMove,
-  generateCornerColors,
+  generateTrajectoryBoard,
+  getDifficultyTier,
   getCornerIndexes,
   getLockedIndexes,
   getValidCrossDensities,
@@ -13,28 +18,25 @@ import {
   getValidVerticalLineCounts,
   isSolved,
   normalizeConfig,
+  pickConfigForDifficulty,
   scrambleMovableTiles,
   swapTiles,
-  type CornerColor,
   type GameConfig
 } from "./game";
 
-function parseRgb(color: string): [number, number, number] {
-  const matches = color.match(/\d+/g);
+function buildMockGradientColors(width: number, height: number): string[] {
+  return Array.from({ length: width * height }, (_, index) => {
+    const row = Math.floor(index / width);
+    const column = index % width;
+    const x = width === 1 ? 0 : column / (width - 1);
+    const y = height === 1 ? 0 : row / (height - 1);
+    const red = Math.round(245 - y * 90 - x * 24);
+    const green = Math.round(136 + x * 88 - y * 16);
+    const blue = Math.round(198 - x * 76 + y * 10);
 
-  if (!matches || matches.length !== 3) {
-    throw new Error(`Unexpected color format: ${color}`);
-  }
-
-  return matches.map(Number) as [number, number, number];
+    return `rgb(${red}, ${green}, ${blue})`;
+  });
 }
-
-const fixedCorners: CornerColor[] = [
-  { h: 0, s: 100, l: 50 },
-  { h: 90, s: 100, l: 50 },
-  { h: 180, s: 100, l: 50 },
-  { h: 270, s: 100, l: 50 }
-];
 
 describe("game utilities", () => {
   it("derives valid evenly spaced line counts and densities including zero-disabled options", () => {
@@ -59,14 +61,10 @@ describe("game utilities", () => {
     expect(config.horizontalLines.count).toBe(2);
     expect(config.horizontalLines.density).toBe(6);
     expect(config.crossLines.density).toBe(6);
+    expect(config.colorConstraints.targetStepStrength).toBe(62);
+    expect(config.colorConstraints.axisBalance).toBe(78);
+    expect(config.colorConstraints.centerPreservation).toBe(82);
     expect(config.appearance.aidTimeSeconds).toBe(1);
-    expect(config.width).toBe(7);
-    expect(config.height).toBe(6);
-    expect(config.appearance.cellSpacing).toBe(0);
-    expect(config.appearance.cellRounding).toBe(0);
-    expect(config.colorConstraints.minSaturationValue).toBe(25);
-    expect(config.colorConstraints.minLuminosityValue).toBe(10);
-    expect(config.colorConstraints.maxLuminosityValue).toBe(85);
   });
 
   it("always includes corners even when all line controls are disabled", () => {
@@ -80,21 +78,20 @@ describe("game utilities", () => {
     ).toEqual(getCornerIndexes(5, 5));
   });
 
-  it("builds solved tiles for arbitrary sizes and lock unions", () => {
+  it("builds solved tiles from explicit board colors for arbitrary sizes and lock unions", () => {
     const config: GameConfig = {
       ...DEFAULT_CONFIG,
       width: 5,
       height: 7,
       verticalLines: { count: 1, density: 2 }
     };
-    const tiles = buildSolvedTiles(fixedCorners, config);
+    const colors = buildMockGradientColors(config.width, config.height);
+    const tiles = buildTilesFromColors(colors, config);
 
     expect(tiles).toHaveLength(35);
     expect(tiles.filter((tile) => tile.locked).map((tile) => tile.solvedIndex)).toEqual([0, 2, 4, 12, 22, 30, 32, 34]);
-    expect(parseRgb(tiles[0].color)).toEqual([255, 0, 0]);
-    expect(parseRgb(tiles[4].color)).toEqual([128, 255, 0]);
-    expect(parseRgb(tiles[30].color)).toEqual([0, 255, 255]);
-    expect(parseRgb(tiles[34].color)).toEqual([128, 0, 255]);
+    expect(tiles[0].color).toBe(colors[0]);
+    expect(tiles[34].color).toBe(colors[34]);
   });
 
   it("combines lines and diagonals by union", () => {
@@ -130,7 +127,7 @@ describe("game utilities", () => {
       verticalLines: { count: 2, density: 1 },
       horizontalLines: { count: 2, density: 1 }
     };
-    const solvedTiles = buildSolvedTiles(fixedCorners, config);
+    const solvedTiles = buildTilesFromColors(buildMockGradientColors(config.width, config.height), config);
     const lockedIndexes = getLockedIndexes(config);
     const scrambledTiles = scrambleMovableTiles(solvedTiles, lockedIndexes);
 
@@ -144,47 +141,105 @@ describe("game utilities", () => {
     });
   });
 
-  it("generates corner colors that satisfy the configured distances", () => {
-    const colors = generateCornerColors({
-      minHueDistance: 60,
-      minSaturationValue: 75,
-      minLuminosityValue: 40,
-      maxLuminosityValue: 60,
-      minLuminosityDistance: 5
+  it("generates trajectory boards with both axes active across multiple scales", () => {
+    [3, 5, 7, 10].forEach((size) => {
+      const board = generateTrajectoryBoard({
+        ...DEFAULT_CONFIG,
+        width: size,
+        height: size,
+        verticalLines: { count: 0, density: 1 },
+        horizontalLines: { count: 0, density: 1 },
+        crossLines: { density: 0 }
+      });
+
+      expect(board.tiles).toHaveLength(size * size);
+      expect(board.debugCornerColors).toHaveLength(4);
+      expect(board.metrics.horizontalNeighborDistances.p10).toBeGreaterThan(0.012);
+      expect(board.metrics.verticalNeighborDistances.p10).toBeGreaterThan(0.012);
+      expect(board.metrics.axisStrengthBalance).toBeGreaterThan(0.25);
     });
-
-    expect(colors).toHaveLength(4);
-    expect(colors.every((color) => color.s >= 75 && color.l >= 40 && color.l <= 60)).toBe(true);
-
-    for (let left = 0; left < colors.length; left += 1) {
-      for (let right = left + 1; right < colors.length; right += 1) {
-        const hueDistance = Math.min(
-          Math.abs(colors[left].h - colors[right].h),
-          360 - Math.abs(colors[left].h - colors[right].h)
-        );
-
-        expect(hueDistance).toBeGreaterThanOrEqual(60);
-        expect(Math.abs(colors[left].l - colors[right].l)).toBeGreaterThanOrEqual(5);
-      }
-    }
   });
 
-  it("normalizes luminosity bounds so they never invert", () => {
-    const config = normalizeConfig({
+  it("keeps edge midpoint clarity, local jumps, and center chroma within readable bounds", () => {
+    [3, 5, 7, 10].forEach((size) => {
+      const board = generateTrajectoryBoard({
+        ...DEFAULT_CONFIG,
+        width: size,
+        height: size,
+        verticalLines: { count: 0, density: 1 },
+        horizontalLines: { count: 0, density: 1 },
+        crossLines: { density: 0 }
+      });
+      const jumpRatio = board.metrics.worstLocalJump / Math.max(board.metrics.allNeighborDistances.median, 0.0001);
+
+      expect(board.metrics.edgeMidpointClarity).toBeGreaterThan(0.5);
+      expect(board.metrics.centerChroma.normalizedDrop).toBeLessThan(0.5);
+      expect(jumpRatio).toBeLessThan(2.8);
+      expect(board.metrics.readability.label).not.toBe("harsh");
+    });
+  });
+
+  it("creates a preview game with a queued scrambled layout", () => {
+    const game = createNewGame(DEFAULT_CONFIG);
+
+    expect(game.status).toBe("preview");
+    expect(game.tiles.every((tile) => tile.currentIndex === tile.solvedIndex)).toBe(true);
+    expect(game.scrambledTiles.some((tile) => !tile.locked && tile.currentIndex !== tile.solvedIndex)).toBe(true);
+    expect(game.hintCount).toBe(0);
+    expect(game.difficulty.tier).toBe(analyzeStructuralDifficulty(DEFAULT_CONFIG).tier);
+  });
+
+  it("scores identical lock layouts independently of color constraints", () => {
+    const baseline = analyzeStructuralDifficulty(DEFAULT_CONFIG);
+    const alteredColors = analyzeStructuralDifficulty({
       ...DEFAULT_CONFIG,
       colorConstraints: {
         ...DEFAULT_CONFIG.colorConstraints,
-        minLuminosityValue: 80,
-        maxLuminosityValue: 20
+        targetStepStrength: 12,
+        axisBalance: 24,
+        lightnessRange: 91,
+        chromaRange: 14,
+        centerPreservation: 95,
+        edgeSmoothnessBias: 31
       }
     });
 
-    expect(config.colorConstraints.minLuminosityValue).toBe(80);
-    expect(config.colorConstraints.maxLuminosityValue).toBe(80);
+    expect(alteredColors.score).toBe(baseline.score);
+    expect(alteredColors.layoutSignature).toBe(baseline.layoutSignature);
+  });
+
+  it("builds a deduplicated difficulty catalog with valid scores and tiers", () => {
+    const catalog = buildDifficultyCatalog();
+    const signatures = new Set(catalog.map((entry) => entry.rating.layoutSignature));
+
+    expect(catalog.length).toBe(signatures.size);
+    expect(catalog.length).toBeGreaterThan(0);
+    expect(catalog[0].rating.score).toBeGreaterThanOrEqual(0);
+    expect(catalog[catalog.length - 1].rating.score).toBeLessThanOrEqual(100);
+    expect(getDifficultyTier(catalog[0].rating.score)).toBe(catalog[0].rating.tier);
+  });
+
+  it("prefers structurally harder layouts for higher difficulty scores", () => {
+    const easy = pickConfigForDifficulty(15);
+    const hard = pickConfigForDifficulty(85);
+
+    expect(hard.rating.score).toBeGreaterThanOrEqual(easy.rating.score);
+    expect(hard.rating.metrics.boardArea).toBeGreaterThanOrEqual(easy.rating.metrics.boardArea);
+    expect(hard.rating.metrics.lockedRatio).toBeLessThanOrEqual(easy.rating.metrics.lockedRatio);
+  });
+
+  it("creates difficulty-driven games with structural metadata", () => {
+    const game = createNewGameForDifficulty(70, DEFAULT_CONFIG);
+
+    expect(game.difficulty.score).toBeGreaterThanOrEqual(0);
+    expect(game.difficulty.score).toBeLessThanOrEqual(100);
+    expect(game.config.width).toBeGreaterThanOrEqual(3);
+    expect(game.config.height).toBeGreaterThanOrEqual(3);
+    expect(game.tiles).toHaveLength(game.config.width * game.config.height);
   });
 
   it("finds an aid move that places both tiles correctly when possible", () => {
-    const solvedTiles = buildSolvedTiles(fixedCorners, DEFAULT_CONFIG);
+    const solvedTiles = buildTilesFromColors(buildMockGradientColors(5, 5), DEFAULT_CONFIG);
     const puzzleTiles = swapTiles(solvedTiles, 1, 7);
     const aid = findBestAidMove(puzzleTiles, DEFAULT_CONFIG);
 
@@ -199,7 +254,7 @@ describe("game utilities", () => {
   });
 
   it("chooses a secondary that ends as close as possible when a two-tile exact aid is not available", () => {
-    const solvedTiles = buildSolvedTiles(fixedCorners, DEFAULT_CONFIG);
+    const solvedTiles = buildTilesFromColors(buildMockGradientColors(5, 5), DEFAULT_CONFIG);
     const threeCycleTiles = swapTiles(swapTiles(solvedTiles, 1, 7), 7, 8);
     const aid = findBestAidMove(threeCycleTiles, DEFAULT_CONFIG);
 
@@ -219,7 +274,7 @@ describe("game utilities", () => {
   });
 
   it("swaps only movable tiles and leaves locked tiles unchanged", () => {
-    const solvedTiles = buildSolvedTiles(fixedCorners, DEFAULT_CONFIG);
+    const solvedTiles = buildTilesFromColors(buildMockGradientColors(5, 5), DEFAULT_CONFIG);
     const swapped = swapTiles(solvedTiles, 1, 2);
 
     expect(swapped.find((tile) => tile.id === "tile-1")?.currentIndex).toBe(2);
@@ -228,20 +283,26 @@ describe("game utilities", () => {
     expect(swapTiles(solvedTiles, 0, 1)).toBe(solvedTiles);
   });
 
-  it("creates a preview game with a queued scrambled layout", () => {
-    const game = createNewGame(DEFAULT_CONFIG);
-
-    expect(game.status).toBe("preview");
-    expect(game.tiles.every((tile) => tile.currentIndex === tile.solvedIndex)).toBe(true);
-    expect(game.scrambledTiles.some((tile) => !tile.locked && tile.currentIndex !== tile.solvedIndex)).toBe(true);
-    expect(game.hintCount).toBe(0);
-  });
-
   it("detects only the solved arrangement", () => {
-    const solvedTiles = buildSolvedTiles(fixedCorners, DEFAULT_CONFIG);
+    const solvedTiles = buildTilesFromColors(buildMockGradientColors(5, 5), DEFAULT_CONFIG);
     const swapped = swapTiles(solvedTiles, 1, 2);
 
     expect(isSolved(solvedTiles)).toBe(true);
     expect(isSolved(swapped)).toBe(false);
+  });
+
+  it("produces boards whose metrics agree with the analyzer", () => {
+    const board = generateTrajectoryBoard({
+      ...DEFAULT_CONFIG,
+      width: 7,
+      height: 7,
+      verticalLines: { count: 0, density: 1 },
+      horizontalLines: { count: 0, density: 1 },
+      crossLines: { density: 0 }
+    });
+    const analyzed = analyzeBoardTiles(board.tiles, 7, 7);
+
+    expect(analyzed.edgeMidpointClarity).toBeCloseTo(board.metrics.edgeMidpointClarity, 6);
+    expect(analyzed.axisStrengthBalance).toBeCloseTo(board.metrics.axisStrengthBalance, 6);
   });
 });
