@@ -1,16 +1,28 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useSnapCarousel } from "../hooks/useSnapCarousel";
 import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
+import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
 
 type PuzzleHomeScreenProps = {
   tiers: readonly TierSummary[];
   selectedTierIndex: number;
+  isSettingsOpen: boolean;
   onSelectTier: (index: number) => void;
+  onToggleSettings: () => void;
+  onCloseSettings: () => void;
   onOpenTier: (index: number) => void;
 };
 
-export function PuzzleHomeScreen({ tiers, selectedTierIndex, onSelectTier, onOpenTier }: PuzzleHomeScreenProps) {
+export function PuzzleHomeScreen({
+  tiers,
+  selectedTierIndex,
+  isSettingsOpen,
+  onSelectTier,
+  onToggleSettings,
+  onCloseSettings,
+  onOpenTier
+}: PuzzleHomeScreenProps) {
   const titleRowRef = useRef<HTMLDivElement | null>(null);
   const { carouselRef, handleScroll, snapToIndex } = useSnapCarousel({
     selectedIndex: selectedTierIndex,
@@ -48,6 +60,12 @@ export function PuzzleHomeScreen({ tiers, selectedTierIndex, onSelectTier, onOpe
 
   return (
     <section className="browser-screen screen-panel" data-testid="home-screen">
+      <BrowserScreenTopRow
+        isSettingsOpen={isSettingsOpen}
+        onToggleSettings={onToggleSettings}
+        onCloseSettings={onCloseSettings}
+      />
+
       <div className="home-tier-title-row" ref={titleRowRef} data-testid="home-tier-title-row">
         <div className="home-tier-title-track">
           {tiers.map((tier, index) => (

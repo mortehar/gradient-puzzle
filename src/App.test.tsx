@@ -86,9 +86,12 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getByTestId("home-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("browser-top-row")).toBeInTheDocument();
+    expect(screen.getByTestId("browser-settings-button")).toBeInTheDocument();
     expect(screen.getByTestId("home-tier-progress-easy")).toHaveTextContent("0/10");
     expect(screen.queryByTestId("difficulty-slider")).not.toBeInTheDocument();
     expect(screen.queryByTestId("advanced-settings-toggle")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("browser-settings-menu")).not.toBeInTheDocument();
     expect(screen.queryByTestId("aid-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("new-puzzle-button")).not.toBeInTheDocument();
   });
@@ -163,6 +166,31 @@ describe("App", () => {
 
     expect(screen.getByTestId("home-screen")).toBeInTheDocument();
     expect(screen.getByTestId("home-tier-card-medium")).toHaveClass("tier-card-active");
+  });
+
+  it("opens the browser settings menu from the home and tier screens only", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByTestId("browser-settings-button"));
+
+    expect(screen.getByTestId("browser-settings-menu")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Settings" })).toBeInTheDocument();
+
+    openTierFromHome("easy");
+
+    expect(screen.getByTestId("tier-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("browser-settings-button")).toBeInTheDocument();
+    expect(screen.queryByTestId("browser-settings-menu")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("browser-settings-button"));
+
+    expect(screen.getByTestId("browser-settings-menu")).toBeInTheDocument();
+
+    openPuzzleFromTier(1);
+
+    expect(screen.getByTestId("puzzle-screen")).toBeInTheDocument();
+    expect(screen.queryByTestId("browser-settings-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("browser-settings-menu")).not.toBeInTheDocument();
   });
 
   it("opens a puzzle from the tier screen and aborts back to the same puzzle card after a two-second hold", () => {

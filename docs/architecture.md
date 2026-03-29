@@ -9,6 +9,7 @@ This document explains what the game does at runtime and how the current codebas
 3. [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx) composes:
    - the home screen tier carousel
    - the tier screen puzzle carousel
+   - the shared browser-screen top row and settings menu state
    - the puzzle play screen with the hold-to-abort back control
 4. [`src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts) owns the browser state:
    - selected tier and selected puzzle per tier
@@ -69,9 +70,10 @@ The feature-level domain entrypoint at [`src/features/puzzle/domain/index.ts`](/
 Player runtime now loads from a published catalog rather than generating a fresh puzzle on demand:
 
 1. The home screen groups the published `v1` catalog into five difficulty tiers.
-2. The home screen previews the first six puzzles in each tier and shows tier completion progress.
-3. The tier screen previews puzzles in order and opens the selected puzzle into the play flow.
-4. The puzzle screen builds tiles from the stored artifact and runs the normal preview -> scramble -> play flow.
+2. The home and tier screens share a static top row with an icon-only settings button in the upper right.
+3. The home screen previews the first six puzzles in each tier and shows tier completion progress.
+4. The tier screen previews puzzles in order and opens the selected puzzle into the play flow.
+5. The puzzle screen builds tiles from the stored artifact and runs the normal preview -> scramble -> play flow.
 
 Catalog authoring still happens from the pure domain:
 

@@ -2,16 +2,28 @@ import { useCallback, useEffect, useRef } from "react";
 import { useSnapCarousel } from "../hooks/useSnapCarousel";
 import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
 import { BackSymbolButton } from "./BackSymbolButton";
+import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
 
 type PuzzleTierScreenProps = {
   tier: TierSummary;
+  isSettingsOpen: boolean;
   onSelectPuzzle: (index: number) => void;
+  onToggleSettings: () => void;
+  onCloseSettings: () => void;
   onOpenPuzzle: (index: number) => void;
   onBack: () => void;
 };
 
-export function PuzzleTierScreen({ tier, onSelectPuzzle, onOpenPuzzle, onBack }: PuzzleTierScreenProps) {
+export function PuzzleTierScreen({
+  tier,
+  isSettingsOpen,
+  onSelectPuzzle,
+  onToggleSettings,
+  onCloseSettings,
+  onOpenPuzzle,
+  onBack
+}: PuzzleTierScreenProps) {
   const numberRowRef = useRef<HTMLDivElement | null>(null);
   const activePuzzle = tier.puzzles[tier.selectedPuzzleIndex] ?? tier.puzzles[0];
   const { carouselRef, handleScroll, snapToIndex } = useSnapCarousel({
@@ -49,6 +61,12 @@ export function PuzzleTierScreen({ tier, onSelectPuzzle, onOpenPuzzle, onBack }:
 
   return (
     <section className="browser-screen screen-panel" data-testid="tier-screen">
+      <BrowserScreenTopRow
+        isSettingsOpen={isSettingsOpen}
+        onToggleSettings={onToggleSettings}
+        onCloseSettings={onCloseSettings}
+      />
+
       <div className="screen-heading">
         <p className="screen-kicker">{tier.tier}</p>
       </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { PuzzleHomeScreen } from "./ui/PuzzleHomeScreen";
 import { PuzzlePlayScreen } from "./ui/PuzzlePlayScreen";
 import { PuzzleTierScreen } from "./ui/PuzzleTierScreen";
@@ -5,6 +6,7 @@ import { usePublishedPuzzleBrowser } from "./hooks/usePublishedPuzzleBrowser";
 
 export function PuzzleFeature() {
   const browser = usePublishedPuzzleBrowser();
+  const [openSettingsScreen, setOpenSettingsScreen] = useState<"home" | "tier" | null>(null);
 
   return (
     <main className="app-shell">
@@ -12,7 +14,10 @@ export function PuzzleFeature() {
         <PuzzleHomeScreen
           tiers={browser.tiers}
           selectedTierIndex={browser.selectedTierIndex}
+          isSettingsOpen={openSettingsScreen === "home"}
           onSelectTier={browser.actions.setHomeTierIndex}
+          onToggleSettings={() => setOpenSettingsScreen((currentValue) => (currentValue === "home" ? null : "home"))}
+          onCloseSettings={() => setOpenSettingsScreen(null)}
           onOpenTier={browser.actions.openTier}
         />
       ) : null}
@@ -20,7 +25,10 @@ export function PuzzleFeature() {
       {browser.screen === "tier" && browser.activeTier ? (
         <PuzzleTierScreen
           tier={browser.activeTier}
+          isSettingsOpen={openSettingsScreen === "tier"}
           onSelectPuzzle={browser.actions.setTierPuzzleIndex}
+          onToggleSettings={() => setOpenSettingsScreen((currentValue) => (currentValue === "tier" ? null : "tier"))}
+          onCloseSettings={() => setOpenSettingsScreen(null)}
           onOpenPuzzle={browser.actions.openPuzzle}
           onBack={browser.actions.returnToHome}
         />

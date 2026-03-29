@@ -17,13 +17,14 @@ The board now sits inside a fixed portrait frame so the surrounding browser scre
 ## Play Loop
 
 1. Open the home screen and scroll horizontally through the published difficulty tiers.
-2. Choose a tier card to enter the tier screen.
-3. Swipe through the tier's puzzles in order and pick one to start.
-4. Study the solved board during the preview phase.
-5. Watch the scramble animation reveal the shuffled board.
-6. Drag tiles to reconstruct the gradient.
-7. Reach the solved state and watch the centered glowing checkmark animate in while the lock frames disappear.
-8. Use the hold-to-abort back control if you need to leave an active puzzle.
+2. Use the top-right menu button on the home or tier screen whenever you need browser-level settings.
+3. Choose a tier card to enter the tier screen.
+4. Swipe through the tier's puzzles in order and pick one to start.
+5. Study the solved board during the preview phase.
+6. Watch the scramble animation reveal the shuffled board.
+7. Drag tiles to reconstruct the gradient.
+8. Reach the solved state and watch the centered glowing checkmark animate in while the lock frames disappear.
+9. Use the hold-to-abort back control if you need to leave an active puzzle.
 
 ## Local Score History
 
@@ -36,7 +37,7 @@ The board now sits inside a fixed portrait frame so the surrounding browser scre
 ## Architecture Snapshot
 
 - [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx): composition root only.
-- [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx): feature entrypoint that switches between the home, tier, and puzzle screens.
+- [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx): feature entrypoint that switches between the home, tier, and puzzle screens and owns browser-level settings menu visibility.
 - [`src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts): browser state for the selected tier, selected puzzle, and completion-history-backed progress summaries.
 - [`src/features/puzzle/hooks/usePuzzleSession.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePuzzleSession.ts): single-puzzle session orchestration for preview, scramble, play, drag state, and completion recording.
 - [`src/game.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/game.ts): pure puzzle-domain rules, structural catalog authoring, published catalog loading, scrambling, and aid logic.
