@@ -21,5 +21,5 @@
  - Possibly store each puzzle as its own seed ID
  - Bin puzzles into the difficulty categories
  - Have a home screen where you select difficulty and then swipe to select each puzzle
-- Add server side high scores on no-aid. Either keep a username in cookie, or some oauth? Keep all stats then, so we can score best avg easy etc as well as bet on each single puzzle. When pressing aid, the first time you need to hold it for 5 seconds. a clock spinner will count down and a text popup will warn you that aid will make your score 0.
+- Add server-side high scores and stats on no-aid runs. See [`docs/score_persitance.md`](/mnt/c/Users/Morten/Documents/Codex/Gradient/docs/score_persitance.md) for backend, identity, and anti-cheat tradeoffs. When pressing aid, the first time you need to hold it for 5 seconds. A clock spinner will count down and a text popup will warn you that aid will make your score 0.
 - Daily challenge style modes without introducing backend complexity.
