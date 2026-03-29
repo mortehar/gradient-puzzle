@@ -81,7 +81,16 @@ export function PuzzlePlayScreen({
 
   return (
     <>
-      <section className="board-panel play-panel" data-testid="puzzle-screen" data-game-status={session.game.status}>
+      <section
+        className="board-panel play-panel screen-scene screen-scene-night"
+        data-testid="puzzle-screen"
+        data-game-status={session.game.status}
+      >
+        <div className="screen-heading play-screen-heading">
+          <p className="screen-kicker">{puzzle.tier}</p>
+          <h1 className="screen-title screen-title-compact">Puzzle {puzzle.tierIndex}</h1>
+          <p className="screen-copy play-screen-copy">Shape the board back into one calm, continuous gradient.</p>
+        </div>
         <div className="play-board-shell">
           <PuzzleBoard
             game={session.game}

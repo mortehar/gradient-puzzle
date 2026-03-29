@@ -1,0 +1,205 @@
+:root {
+  --font-ui: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-accent: "Avenir Next", "Trebuchet MS", sans-serif;
+
+  --ink-strong: #f3ede3;
+  --ink-soft: rgba(243, 237, 227, 0.82);
+  --ink-muted: rgba(243, 237, 227, 0.62);
+  --ink-faint: rgba(243, 237, 227, 0.38);
+
+  --accent-warm: #d1b583;
+  --accent-soft: rgba(209, 181, 131, 0.2);
+  --accent-line: rgba(209, 181, 131, 0.36);
+  --accent-rose: rgba(201, 137, 117, 0.18);
+  --accent-strong: #efcf9a;
+
+  --shell-base: #120f0d;
+  --shell-sky-top: #3e352f;
+  --shell-sky-mid: #2c3540;
+  --shell-sky-bottom: #13181d;
+
+  --surface-panel: rgba(22, 20, 18, 0.56);
+  --surface-panel-strong: rgba(18, 17, 16, 0.72);
+  --surface-panel-glow: rgba(255, 240, 215, 0.05);
+  --surface-card: rgba(248, 244, 238, 0.045);
+  --surface-card-hover: rgba(248, 244, 238, 0.08);
+  --surface-veil: rgba(248, 244, 238, 0.06);
+  --surface-veil-strong: rgba(248, 244, 238, 0.1);
+  --surface-control: rgba(248, 244, 238, 0.055);
+  --surface-control-hover: rgba(248, 244, 238, 0.095);
+  --surface-control-active: rgba(209, 181, 131, 0.14);
+  --surface-stage: rgba(10, 11, 12, 0.32);
+
+  --border-quiet: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.14);
+  --border-active: rgba(209, 181, 131, 0.3);
+  --border-strong: rgba(255, 244, 228, 0.2);
+
+  --shadow-panel: 0 30px 80px rgba(3, 4, 6, 0.28);
+  --shadow-card: 0 18px 38px rgba(4, 5, 7, 0.18);
+  --shadow-stage: 0 18px 46px rgba(4, 5, 7, 0.3);
+  --shadow-control: 0 10px 24px rgba(4, 5, 7, 0.18);
+
+  --radius-panel: 20px;
+  --radius-card: 18px;
+  --radius-control: 16px;
+  --radius-chip: 12px;
+  --radius-stage: 28px;
+  --radius-board: 22px;
+
+  --space-1: 0.35rem;
+  --space-2: 0.55rem;
+  --space-3: 0.8rem;
+  --space-4: 1.1rem;
+  --space-5: 1.45rem;
+  --space-6: 1.9rem;
+  --space-7: clamp(2.2rem, 4vw, 2.9rem);
+
+  --app-max-width: 1180px;
+  --panel-max-width: 780px;
+  --board-max-width: 760px;
+  --control-size: 3.65rem;
+  --settings-menu-max-width: 28rem;
+
+  --title-size: clamp(2.2rem, 6vw, 3.25rem);
+  --title-size-compact: clamp(1.6rem, 4.2vw, 2.1rem);
+  --copy-size: 0.98rem;
+  --label-size: 0.78rem;
+  --meta-size: 0.82rem;
+  --tracking-wide: 0.22em;
+  --tracking-label: 0.12em;
+  --tracking-tight: 0.05em;
+
+  --motion-quick: 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-soft: 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-glide: 420ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: dark;
+}
+
+html {
+  background: var(--shell-base);
+}
+
+body {
+  position: relative;
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--ink-strong);
+  font-family: var(--font-ui);
+  background:
+    radial-gradient(circle at top, rgba(241, 207, 145, 0.14), transparent 30%),
+    radial-gradient(circle at 12% 18%, rgba(211, 137, 110, 0.14), transparent 24%),
+    linear-gradient(180deg, var(--shell-sky-top) 0%, var(--shell-sky-mid) 38%, var(--shell-sky-bottom) 100%);
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 50% 12%, rgba(248, 228, 173, 0.12), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 42%);
+  z-index: -2;
+}
+
+body::after {
+  inset: auto -8% -12% -8%;
+  height: 38vh;
+  background:
+    radial-gradient(60% 120% at 50% 0%, rgba(193, 134, 109, 0.12), transparent 60%),
+    linear-gradient(
+      180deg,
+      rgba(64, 58, 55, 0.76) 0%,
+      rgba(35, 33, 36, 0.88) 48%,
+      rgba(18, 17, 16, 0.98) 100%
+    );
+  opacity: 0.96;
+  z-index: -1;
+}
+
+#root {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.screen-scene {
+  --scene-top: rgba(214, 180, 148, 0.18);
+  --scene-mid: rgba(104, 108, 124, 0.14);
+  --scene-bottom: rgba(26, 28, 31, 0.18);
+  --scene-glow: rgba(247, 218, 157, 0.18);
+  --scene-band-top: rgba(129, 109, 100, 0.2);
+  --scene-band-bottom: rgba(39, 39, 40, 0.66);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.screen-scene::before,
+.screen-scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.screen-scene::before {
+  background:
+    radial-gradient(circle at 50% 10%, var(--scene-glow), transparent 26%),
+    linear-gradient(180deg, var(--scene-top) 0%, var(--scene-mid) 42%, transparent 100%);
+  opacity: 0.95;
+  z-index: 0;
+}
+
+.screen-scene::after {
+  inset: auto -8% -24% -8%;
+  height: 58%;
+  background:
+    radial-gradient(70% 120% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 56%),
+    linear-gradient(180deg, var(--scene-band-top) 0%, var(--scene-band-bottom) 100%);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.screen-scene > * {
+  position: relative;
+  z-index: 1;
+}
+
+.screen-scene-dawn {
+  --scene-top: rgba(222, 183, 147, 0.26);
+  --scene-mid: rgba(139, 127, 132, 0.18);
+  --scene-glow: rgba(250, 226, 168, 0.22);
+  --scene-band-top: rgba(148, 115, 97, 0.22);
+  --scene-band-bottom: rgba(53, 54, 63, 0.72);
+}
+
+.screen-scene-dusk {
+  --scene-top: rgba(186, 132, 127, 0.24);
+  --scene-mid: rgba(102, 103, 124, 0.18);
+  --scene-glow: rgba(246, 203, 158, 0.18);
+  --scene-band-top: rgba(104, 86, 100, 0.22);
+  --scene-band-bottom: rgba(39, 38, 46, 0.76);
+}
+
+.screen-scene-night {
+  --scene-top: rgba(104, 94, 121, 0.18);
+  --scene-mid: rgba(63, 74, 98, 0.22);
+  --scene-glow: rgba(222, 203, 162, 0.12);
+  --scene-band-top: rgba(54, 58, 77, 0.2);
+  --scene-band-bottom: rgba(20, 20, 24, 0.84);
+}

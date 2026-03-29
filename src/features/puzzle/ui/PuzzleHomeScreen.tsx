@@ -64,7 +64,7 @@ export function PuzzleHomeScreen({
   }, [syncTitleRowScroll]);
 
   return (
-    <section className="browser-screen screen-panel" data-testid="home-screen">
+    <section className="browser-screen screen-panel screen-scene screen-scene-dawn home-screen-panel" data-testid="home-screen">
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
         lockedTileStyle={lockedTileStyle}
@@ -72,6 +72,15 @@ export function PuzzleHomeScreen({
         onLockedTileStyleChange={onLockedTileStyleChange}
         onCloseSettings={onCloseSettings}
       />
+
+      <div className="screen-heading home-screen-heading">
+        <p className="screen-kicker">A quiet color puzzle</p>
+        <h1 className="screen-title">Gradient</h1>
+        <p className="screen-copy">
+          Arrange each board into a smooth color path. Browse by tier, settle into the atmosphere, and solve at your
+          own pace.
+        </p>
+      </div>
 
       <div className="home-tier-title-row" ref={titleRowRef} data-testid="home-tier-title-row">
         <div className="home-tier-title-track">

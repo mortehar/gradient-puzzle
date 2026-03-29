@@ -65,7 +65,7 @@ export function PuzzleTierScreen({
   }, [syncNumberRowScroll]);
 
   return (
-    <section className="browser-screen screen-panel" data-testid="tier-screen">
+    <section className="browser-screen screen-panel screen-scene screen-scene-dusk tier-screen-panel" data-testid="tier-screen">
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
         lockedTileStyle={lockedTileStyle}
@@ -76,6 +76,10 @@ export function PuzzleTierScreen({
 
       <div className="screen-heading">
         <p className="screen-kicker">{tier.tier}</p>
+        <h1 className="screen-title">Choose a puzzle</h1>
+        <p className="screen-copy">
+          {tier.completedCount} of {tier.totalCount} completed
+        </p>
       </div>
 
       <div className="tier-number-row" ref={numberRowRef} data-testid="tier-number-row">
