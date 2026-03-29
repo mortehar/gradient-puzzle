@@ -4,3 +4,6 @@ coverage
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+references/alto_visual_references/**
+!references/alto_visual_references/
+!references/alto_visual_references/README.md
