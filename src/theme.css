@@ -81,6 +81,15 @@
   --tracking-label: 0.12em;
   --tracking-tight: 0.05em;
 
+  --scene-ornament: rgba(255, 244, 228, 0.22);
+  --scene-ornament-soft: rgba(255, 255, 255, 0.05);
+  --preview-idle-saturation: 0.74;
+  --preview-idle-brightness: 0.84;
+  --preview-active-saturation: 0.94;
+  --preview-active-brightness: 0.97;
+  --preview-active-lift: -4px;
+  --panel-reveal-distance: 12px;
+
   --board-line-strong: rgba(248, 241, 227, 0.84);
   --board-line-soft: rgba(248, 241, 227, 0.18);
   --board-drop-shadow: rgba(209, 181, 131, 0.18);
