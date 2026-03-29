@@ -29,6 +29,7 @@ export function PuzzleHomeScreen({
   onOpenTier
 }: PuzzleHomeScreenProps) {
   const titleRowRef = useRef<HTMLDivElement | null>(null);
+  const activeTier = tiers[selectedTierIndex] ?? tiers[0];
   const { carouselRef, handleScroll, snapToIndex, handlePointerDown, handleClickCapture, isPointerDragging } = useSnapCarousel({
     selectedIndex: selectedTierIndex,
     itemCount: tiers.length,
@@ -80,6 +81,20 @@ export function PuzzleHomeScreen({
           Arrange each board into a smooth color path. Browse by tier, settle into the atmosphere, and solve at your
           own pace.
         </p>
+        {activeTier ? (
+          <div className="screen-chip-row" data-testid="home-screen-chips">
+            <div className="screen-chip">
+              <span className="screen-chip-label">Tier</span>
+              <strong className="screen-chip-value">{activeTier.tier}</strong>
+            </div>
+            <div className="screen-chip">
+              <span className="screen-chip-label">Progress</span>
+              <strong className="screen-chip-value">
+                {activeTier.completedCount}/{activeTier.totalCount}
+              </strong>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="home-tier-title-row" ref={titleRowRef} data-testid="home-tier-title-row">

@@ -80,6 +80,20 @@ export function PuzzleTierScreen({
         <p className="screen-copy">
           {tier.completedCount} of {tier.totalCount} completed
         </p>
+        {activePuzzle ? (
+          <div className="screen-chip-row" data-testid="tier-screen-chips">
+            <div className="screen-chip">
+              <span className="screen-chip-label">Selected</span>
+              <strong className="screen-chip-value">Puzzle {activePuzzle.puzzle.tierIndex}</strong>
+            </div>
+            <div className="screen-chip">
+              <span className="screen-chip-label">Best</span>
+              <strong className="screen-chip-value">
+                {activePuzzle.bestCompletion ? `${activePuzzle.bestCompletion.moveCount} moves` : "Unplayed"}
+              </strong>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="tier-number-row" ref={numberRowRef} data-testid="tier-number-row">
@@ -144,7 +158,9 @@ export function PuzzleTierScreen({
         {activePuzzle?.bestCompletion ? `Best: ${activePuzzle.bestCompletion.moveCount}` : "\u00A0"}
       </p>
 
-      <BackSymbolButton onClick={onBack} testId="tier-back-button" />
+      <div className="screen-footer-actions">
+        <BackSymbolButton onClick={onBack} testId="tier-back-button" />
+      </div>
     </section>
   );
 

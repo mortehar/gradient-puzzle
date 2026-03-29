@@ -21,6 +21,15 @@ export function BrowserSettingsMenu({ lockedTileStyle, onLockedTileStyleChange }
       role="dialog"
       aria-label="Locked cell themes"
     >
+      <div className="browser-settings-header">
+        <p className="screen-kicker">Locked cells</p>
+        <p className="browser-label browser-label-large">Board treatment</p>
+        <p className="browser-settings-copy">
+          Pick the material language for fixed cells. The choice is visual only and carries through previews and live
+          play.
+        </p>
+      </div>
+
       <div className="lock-style-grid" role="radiogroup" aria-label="Locked cell themes">
         {LOCKED_TILE_STYLE_OPTIONS.map((option) => {
           const isSelected = option.value === lockedTileStyle;

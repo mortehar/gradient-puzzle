@@ -29,17 +29,27 @@
   --surface-control: rgba(248, 244, 238, 0.055);
   --surface-control-hover: rgba(248, 244, 238, 0.095);
   --surface-control-active: rgba(209, 181, 131, 0.14);
+  --surface-chip: rgba(248, 244, 238, 0.055);
+  --surface-chip-active: rgba(248, 244, 238, 0.085);
+  --surface-chip-warm: rgba(209, 181, 131, 0.1);
   --surface-stage: rgba(10, 11, 12, 0.32);
+  --surface-board: rgba(8, 10, 12, 0.28);
+  --surface-board-shell: rgba(12, 12, 14, 0.3);
+  --surface-overlay: rgba(18, 18, 20, 0.82);
 
   --border-quiet: rgba(255, 255, 255, 0.08);
   --border-soft: rgba(255, 255, 255, 0.14);
   --border-active: rgba(209, 181, 131, 0.3);
   --border-strong: rgba(255, 244, 228, 0.2);
+  --border-chip: rgba(255, 255, 255, 0.1);
 
   --shadow-panel: 0 30px 80px rgba(3, 4, 6, 0.28);
   --shadow-card: 0 18px 38px rgba(4, 5, 7, 0.18);
   --shadow-stage: 0 18px 46px rgba(4, 5, 7, 0.3);
   --shadow-control: 0 10px 24px rgba(4, 5, 7, 0.18);
+  --shadow-board: 0 18px 36px rgba(4, 5, 7, 0.22);
+  --shadow-drag: 0 18px 26px rgba(0, 0, 0, 0.28);
+  --shadow-drag-touch: 0 20px 34px rgba(0, 0, 0, 0.34);
 
   --radius-panel: 20px;
   --radius-card: 18px;
@@ -70,6 +80,23 @@
   --tracking-wide: 0.22em;
   --tracking-label: 0.12em;
   --tracking-tight: 0.05em;
+
+  --board-line-strong: rgba(248, 241, 227, 0.84);
+  --board-line-soft: rgba(248, 241, 227, 0.18);
+  --board-drop-shadow: rgba(209, 181, 131, 0.18);
+  --board-core-highlight: rgba(255, 255, 255, 0.06);
+  --board-drag-border: rgba(248, 241, 227, 0.18);
+  --board-drag-highlight: rgba(255, 255, 255, 0.18);
+
+  --lock-frame-stroke: rgba(255, 255, 255, 0.72);
+  --lock-mounted-highlight: rgba(255, 255, 255, 0.08);
+  --lock-mounted-depth: rgba(6, 10, 18, 0.08);
+  --lock-mounted-shadow: rgba(5, 8, 14, 0.6);
+  --lock-frost-highlight: rgba(255, 255, 255, 0.22);
+  --lock-frost-shadow: rgba(10, 14, 22, 0.6);
+  --lock-texture-highlight: rgba(255, 255, 255, 0.08);
+  --lock-texture-line: rgba(255, 255, 255, 0.14);
+  --lock-texture-sheen: rgba(255, 255, 255, 0.1);
 
   --motion-quick: 180ms cubic-bezier(0.22, 1, 0.36, 1);
   --motion-soft: 260ms cubic-bezier(0.22, 1, 0.36, 1);

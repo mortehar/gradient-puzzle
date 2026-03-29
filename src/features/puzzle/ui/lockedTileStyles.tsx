@@ -41,6 +41,59 @@ export const LOCKED_TILE_STYLE_OPTIONS: readonly LockedTileStyleOption[] = [
   }
 ] as const;
 
+type Rgba = [red: number, green: number, blue: number, alpha: number];
+
+const LOCKED_TILE_DECORATION_RAMPS = {
+  "--tile-lock-ink": {
+    from: [25, 31, 42, 0.48],
+    to: [248, 242, 235, 0.68]
+  },
+  "--tile-lock-soft-ink": {
+    from: [25, 31, 42, 0.2],
+    to: [248, 242, 235, 0.28]
+  },
+  "--tile-lock-fill": {
+    from: [255, 250, 244, 0.42],
+    to: [28, 34, 45, 0.48]
+  },
+  "--tile-lock-icon-stroke": {
+    from: [255, 251, 246, 0.54],
+    to: [20, 26, 36, 0.62]
+  },
+  "--tile-lock-strong-ink": {
+    from: [16, 21, 31, 0.72],
+    to: [255, 250, 244, 0.84]
+  },
+  "--tile-lock-shadow": {
+    from: [6, 10, 18, 0.14],
+    to: [10, 14, 22, 0.22]
+  },
+  "--tile-lock-gloss": {
+    from: [255, 255, 255, 0.2],
+    to: [255, 255, 255, 0.12]
+  },
+  "--tile-lock-frost": {
+    from: [255, 255, 255, 0.14],
+    to: [255, 255, 255, 0.1]
+  },
+  "--tile-lock-frost-edge": {
+    from: [255, 255, 255, 0.34],
+    to: [255, 255, 255, 0.18]
+  }
+} as const satisfies Record<string, { from: Rgba; to: Rgba }>;
+
+const LOCKED_TILE_FALLBACK_VARS = {
+  "--tile-lock-ink": "rgba(255, 255, 255, 0.72)",
+  "--tile-lock-soft-ink": "rgba(255, 255, 255, 0.34)",
+  "--tile-lock-fill": "rgba(255, 255, 255, 0.44)",
+  "--tile-lock-icon-stroke": "rgba(255, 255, 255, 0.58)",
+  "--tile-lock-strong-ink": "rgba(255, 255, 255, 0.92)",
+  "--tile-lock-shadow": "rgba(10, 14, 22, 0.24)",
+  "--tile-lock-gloss": "rgba(255, 255, 255, 0.16)",
+  "--tile-lock-frost": "rgba(255, 255, 255, 0.12)",
+  "--tile-lock-frost-edge": "rgba(255, 255, 255, 0.28)"
+} as const;
+
 export function isLockedTileStyle(value: unknown): value is LockedTileStyle {
   return typeof value === "string" && LOCKED_TILE_STYLES.includes(value as LockedTileStyle);
 }
@@ -50,33 +103,16 @@ export function getLockedTileDecorationStyle(tileColor: string): CSSProperties {
     const lightness = cssRgbToOklab(tileColor).l;
     const toneProgress = smoothstep(clamp((lightness - 0.18) / 0.64, 0, 1));
 
-    return {
-      "--tile-lock-ink": mixRgba([25, 31, 42, 0.48], [248, 242, 235, 0.68], toneProgress),
-      "--tile-lock-soft-ink": mixRgba([25, 31, 42, 0.2], [248, 242, 235, 0.28], toneProgress),
-      "--tile-lock-fill": mixRgba([255, 250, 244, 0.42], [28, 34, 45, 0.48], toneProgress),
-      "--tile-lock-icon-stroke": mixRgba([255, 251, 246, 0.54], [20, 26, 36, 0.62], toneProgress),
-      "--tile-lock-strong-ink": mixRgba([16, 21, 31, 0.72], [255, 250, 244, 0.84], toneProgress),
-      "--tile-lock-shadow": mixRgba([6, 10, 18, 0.14], [10, 14, 22, 0.22], toneProgress),
-      "--tile-lock-gloss": mixRgba([255, 255, 255, 0.2], [255, 255, 255, 0.12], toneProgress),
-      "--tile-lock-frost": mixRgba([255, 255, 255, 0.14], [255, 255, 255, 0.1], toneProgress),
-      "--tile-lock-frost-edge": mixRgba([255, 255, 255, 0.34], [255, 255, 255, 0.18], toneProgress)
-    } as CSSProperties;
+    return Object.fromEntries(
+      Object.entries(LOCKED_TILE_DECORATION_RAMPS).map(([cssVarName, ramp]) => [
+        cssVarName,
+        mixRgba(ramp.from, ramp.to, toneProgress)
+      ])
+    ) as CSSProperties;
   } catch {
-    return {
-      "--tile-lock-ink": "rgba(255, 255, 255, 0.72)",
-      "--tile-lock-soft-ink": "rgba(255, 255, 255, 0.34)",
-      "--tile-lock-fill": "rgba(255, 255, 255, 0.44)",
-      "--tile-lock-icon-stroke": "rgba(255, 255, 255, 0.58)",
-      "--tile-lock-strong-ink": "rgba(255, 255, 255, 0.92)",
-      "--tile-lock-shadow": "rgba(10, 14, 22, 0.24)",
-      "--tile-lock-gloss": "rgba(255, 255, 255, 0.16)",
-      "--tile-lock-frost": "rgba(255, 255, 255, 0.12)",
-      "--tile-lock-frost-edge": "rgba(255, 255, 255, 0.28)"
-    } as CSSProperties;
+    return LOCKED_TILE_FALLBACK_VARS as CSSProperties;
   }
 }
-
-type Rgba = [red: number, green: number, blue: number, alpha: number];
 
 function mixRgba(from: Rgba, to: Rgba, progress: number): string {
   return `rgba(${Math.round(lerp(from[0], to[0], progress))}, ${Math.round(lerp(from[1], to[1], progress))}, ${Math.round(lerp(from[2], to[2], progress))}, ${lerp(from[3], to[3], progress).toFixed(3)})`;
