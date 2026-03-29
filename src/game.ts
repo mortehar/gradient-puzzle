@@ -262,6 +262,7 @@ const DIFFICULTY_SCORE_WEIGHTS = {
 
 const PUBLISHED_PUZZLES_PER_TIER = 10;
 const PUBLISHED_CATALOG_VERSION: CatalogVersion = "v1";
+const PUBLISHED_TIER_ORDER: DifficultyTier[] = ["Easy", "Medium", "Hard", "Expert", "Master"];
 const STRUCTURAL_DIFFICULTY_BOUNDS: StructuralDifficultyBounds = {
   boardArea: { min: 9, max: 100 },
   lockedRatio: { min: 0.04, max: 0.9777777777777777 },
@@ -1843,8 +1844,7 @@ export function buildPublishedCatalogPlan(
     throw new Error(`Unknown catalog version: ${version}`);
   }
 
-  const tierOrder: DifficultyTier[] = ["Very easy", "Easy", "Medium", "Hard", "Expert", "Master"];
-  const tierEntries = tierOrder.map((tier) => {
+  const tierEntries = PUBLISHED_TIER_ORDER.map((tier) => {
     const entries = difficultyCatalog.filter((entry) => entry.rating.tier === tier);
 
     if (entries.length < PUBLISHED_PUZZLES_PER_TIER) {

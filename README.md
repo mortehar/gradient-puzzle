@@ -88,8 +88,8 @@ The root domain modules stay framework-agnostic. The `features/puzzle` folder is
 
 ## Published Catalog
 
-- The current player-facing experience ships a fixed `v1` catalog of 60 puzzles.
-- The catalog is grouped into six difficulty tiers with 10 published puzzles per tier.
+- The current player-facing experience ships a fixed `v1` catalog of 50 puzzles.
+- The catalog is grouped into five published difficulty tiers with 10 published puzzles per tier: `Easy`, `Medium`, `Hard`, `Expert`, and `Master`.
 - User-facing numbering is per tier, while the internal puzzle IDs stay globally unique and versioned.
 - Run `npm run catalog:generate` under Node 20 to rebuild [`src/structuralCatalog.generated.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/structuralCatalog.generated.ts) and [`src/publishedCatalog.generated.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/publishedCatalog.generated.ts) after changing catalog-authoring rules.
 

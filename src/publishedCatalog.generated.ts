@@ -2,1149 +2,9 @@ export const GENERATED_PUBLISHED_CATALOG = {
   "version": "v1",
   "puzzles": [
     {
-      "id": "v1/very-easy/1",
-      "catalogVersion": "v1",
-      "sliderIndex": 0,
-      "tier": "Very easy",
-      "tierIndex": 1,
-      "score": 5,
-      "areaBucket": "9-12",
-      "layoutSignature": "3x4:0,2,3,4,5,6,7,8,9,11",
-      "boardSeed": 78213672,
-      "scrambleSeed": 1849442135,
-      "config": {
-        "width": 3,
-        "height": 4,
-        "verticalLines": {
-          "count": 0,
-          "density": 1
-        },
-        "horizontalLines": {
-          "count": 4,
-          "density": 2
-        },
-        "crossLines": {
-          "density": 1
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        11
-      ],
-      "solvedColors": [
-        "rgb(60, 85, 42)",
-        "rgb(51, 71, 71)",
-        "rgb(45, 56, 92)",
-        "rgb(90, 94, 75)",
-        "rgb(81, 79, 101)",
-        "rgb(74, 61, 121)",
-        "rgb(117, 102, 105)",
-        "rgb(108, 84, 129)",
-        "rgb(100, 63, 150)",
-        "rgb(143, 108, 134)",
-        "rgb(133, 88, 157)",
-        "rgb(126, 64, 178)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        10,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        1,
-        11
-      ]
-    },
-    {
-      "id": "v1/very-easy/2",
-      "catalogVersion": "v1",
-      "sliderIndex": 1,
-      "tier": "Very easy",
-      "tierIndex": 2,
-      "score": 6,
-      "areaBucket": "13-20",
-      "layoutSignature": "3x6:0,1,2,3,4,5,6,8,9,11,12,13,14,15,16,17",
-      "boardSeed": 2670780525,
-      "scrambleSeed": 2286843240,
-      "config": {
-        "width": 3,
-        "height": 6,
-        "verticalLines": {
-          "count": 0,
-          "density": 1
-        },
-        "horizontalLines": {
-          "count": 0,
-          "density": 1
-        },
-        "crossLines": {
-          "density": 0
-        },
-        "islands": {
-          "count": 8,
-          "width": 1,
-          "height": 2,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        8,
-        9,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17
-      ],
-      "solvedColors": [
-        "rgb(114, 105, 133)",
-        "rgb(113, 100, 90)",
-        "rgb(113, 94, 46)",
-        "rgb(114, 123, 139)",
-        "rgb(115, 117, 95)",
-        "rgb(116, 111, 48)",
-        "rgb(113, 140, 146)",
-        "rgb(115, 134, 99)",
-        "rgb(117, 128, 49)",
-        "rgb(111, 158, 152)",
-        "rgb(114, 151, 104)",
-        "rgb(118, 144, 51)",
-        "rgb(107, 174, 158)",
-        "rgb(112, 168, 108)",
-        "rgb(116, 160, 51)",
-        "rgb(101, 191, 163)",
-        "rgb(108, 184, 112)",
-        "rgb(114, 177, 52)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        10,
-        8,
-        9,
-        7,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17
-      ]
-    },
-    {
-      "id": "v1/very-easy/3",
-      "catalogVersion": "v1",
-      "sliderIndex": 2,
-      "tier": "Very easy",
-      "tierIndex": 3,
-      "score": 7,
-      "areaBucket": "21-30",
-      "layoutSignature": "3x8:0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20,21,22,23",
-      "boardSeed": 3468221874,
-      "scrambleSeed": 177765049,
-      "config": {
-        "width": 3,
-        "height": 8,
-        "verticalLines": {
-          "count": 1,
-          "density": 7
-        },
-        "horizontalLines": {
-          "count": 8,
-          "density": 2
-        },
-        "crossLines": {
-          "density": 1
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        1,
-        2,
-        3,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        20,
-        21,
-        22,
-        23
-      ],
-      "solvedColors": [
-        "rgb(115, 54, 86)",
-        "rgb(122, 42, 54)",
-        "rgb(127, 25, 20)",
-        "rgb(118, 67, 91)",
-        "rgb(125, 56, 59)",
-        "rgb(131, 43, 24)",
-        "rgb(120, 80, 97)",
-        "rgb(128, 70, 64)",
-        "rgb(135, 58, 29)",
-        "rgb(121, 92, 103)",
-        "rgb(131, 82, 70)",
-        "rgb(138, 72, 33)",
-        "rgb(122, 105, 110)",
-        "rgb(133, 95, 75)",
-        "rgb(141, 85, 38)",
-        "rgb(122, 118, 116)",
-        "rgb(135, 108, 81)",
-        "rgb(144, 99, 43)",
-        "rgb(122, 131, 123)",
-        "rgb(136, 121, 86)",
-        "rgb(146, 112, 48)",
-        "rgb(120, 144, 129)",
-        "rgb(136, 135, 92)",
-        "rgb(147, 126, 53)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        1,
-        2,
-        3,
-        19,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        4,
-        20,
-        21,
-        22,
-        23
-      ]
-    },
-    {
-      "id": "v1/very-easy/4",
-      "catalogVersion": "v1",
-      "sliderIndex": 3,
-      "tier": "Very easy",
-      "tierIndex": 4,
-      "score": 7,
-      "areaBucket": "21-30",
-      "layoutSignature": "3x9:0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,23,24,25,26",
-      "boardSeed": 3556832919,
-      "scrambleSeed": 575341210,
-      "config": {
-        "width": 3,
-        "height": 9,
-        "verticalLines": {
-          "count": 1,
-          "density": 2
-        },
-        "horizontalLines": {
-          "count": 9,
-          "density": 2
-        },
-        "crossLines": {
-          "density": 1
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        1,
-        2,
-        3,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        23,
-        24,
-        25,
-        26
-      ],
-      "solvedColors": [
-        "rgb(55, 65, 98)",
-        "rgb(76, 51, 82)",
-        "rgb(89, 35, 68)",
-        "rgb(66, 73, 97)",
-        "rgb(87, 58, 80)",
-        "rgb(100, 42, 66)",
-        "rgb(77, 81, 96)",
-        "rgb(98, 65, 78)",
-        "rgb(111, 48, 63)",
-        "rgb(88, 88, 94)",
-        "rgb(109, 71, 76)",
-        "rgb(122, 54, 60)",
-        "rgb(99, 95, 91)",
-        "rgb(120, 78, 72)",
-        "rgb(133, 60, 56)",
-        "rgb(111, 102, 88)",
-        "rgb(131, 84, 69)",
-        "rgb(144, 66, 51)",
-        "rgb(122, 108, 84)",
-        "rgb(142, 90, 64)",
-        "rgb(156, 71, 44)",
-        "rgb(134, 115, 80)",
-        "rgb(153, 96, 58)",
-        "rgb(167, 77, 35)",
-        "rgb(145, 121, 75)",
-        "rgb(165, 102, 50)",
-        "rgb(178, 82, 19)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        1,
-        2,
-        3,
-        22,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        4,
-        23,
-        24,
-        25,
-        26
-      ]
-    },
-    {
-      "id": "v1/very-easy/5",
-      "catalogVersion": "v1",
-      "sliderIndex": 4,
-      "tier": "Very easy",
-      "tierIndex": 5,
-      "score": 8,
-      "areaBucket": "13-20",
-      "layoutSignature": "4x4:0,1,2,3,5,6,9,10,12,13,14,15",
-      "boardSeed": 2230141548,
-      "scrambleSeed": 3901301115,
-      "config": {
-        "width": 4,
-        "height": 4,
-        "verticalLines": {
-          "count": 0,
-          "density": 1
-        },
-        "horizontalLines": {
-          "count": 2,
-          "density": 1
-        },
-        "crossLines": {
-          "density": 1
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        1,
-        2,
-        3,
-        5,
-        6,
-        9,
-        10,
-        12,
-        13,
-        14,
-        15
-      ],
-      "solvedColors": [
-        "rgb(223, 119, 75)",
-        "rgb(195, 121, 90)",
-        "rgb(164, 121, 102)",
-        "rgb(128, 119, 113)",
-        "rgb(224, 134, 119)",
-        "rgb(195, 134, 129)",
-        "rgb(164, 133, 139)",
-        "rgb(126, 130, 148)",
-        "rgb(225, 148, 161)",
-        "rgb(195, 147, 169)",
-        "rgb(162, 145, 177)",
-        "rgb(122, 140, 185)",
-        "rgb(225, 163, 203)",
-        "rgb(194, 160, 211)",
-        "rgb(160, 157, 218)",
-        "rgb(117, 151, 225)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        1,
-        2,
-        3,
-        11,
-        5,
-        6,
-        8,
-        7,
-        9,
-        10,
-        4,
-        12,
-        13,
-        14,
-        15
-      ]
-    },
-    {
-      "id": "v1/very-easy/6",
-      "catalogVersion": "v1",
-      "sliderIndex": 5,
-      "tier": "Very easy",
-      "tierIndex": 6,
-      "score": 8,
-      "areaBucket": "13-20",
-      "layoutSignature": "4x5:0,3,4,5,6,7,8,9,10,11,12,13,14,15,16,19",
-      "boardSeed": 1755893937,
-      "scrambleSeed": 1985109516,
-      "config": {
-        "width": 4,
-        "height": 5,
-        "verticalLines": {
-          "count": 0,
-          "density": 1
-        },
-        "horizontalLines": {
-          "count": 5,
-          "density": 3
-        },
-        "crossLines": {
-          "density": 1
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        19
-      ],
-      "solvedColors": [
-        "rgb(94, 145, 187)",
-        "rgb(111, 123, 177)",
-        "rgb(122, 100, 167)",
-        "rgb(127, 76, 157)",
-        "rgb(99, 132, 156)",
-        "rgb(112, 110, 146)",
-        "rgb(120, 87, 137)",
-        "rgb(123, 63, 128)",
-        "rgb(102, 119, 125)",
-        "rgb(112, 97, 117)",
-        "rgb(117, 74, 108)",
-        "rgb(119, 49, 100)",
-        "rgb(104, 105, 94)",
-        "rgb(111, 83, 87)",
-        "rgb(114, 60, 79)",
-        "rgb(114, 33, 71)",
-        "rgb(104, 90, 60)",
-        "rgb(108, 68, 54)",
-        "rgb(109, 43, 48)",
-        "rgb(108, 5, 42)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        17,
-        1,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        18,
-        2,
-        19
-      ]
-    },
-    {
-      "id": "v1/very-easy/7",
-      "catalogVersion": "v1",
-      "sliderIndex": 6,
-      "tier": "Very easy",
-      "tierIndex": 7,
-      "score": 8,
-      "areaBucket": "21-30",
-      "layoutSignature": "3x7:0,2,3,5,6,7,8,9,10,11,12,13,14,15,17,18,20",
-      "boardSeed": 2255857910,
-      "scrambleSeed": 2365818365,
-      "config": {
-        "width": 3,
-        "height": 7,
-        "verticalLines": {
-          "count": 0,
-          "density": 1
-        },
-        "horizontalLines": {
-          "count": 7,
-          "density": 2
-        },
-        "crossLines": {
-          "density": 1
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        2,
-        3,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        17,
-        18,
-        20
-      ],
-      "solvedColors": [
-        "rgb(62, 218, 243)",
-        "rgb(120, 201, 228)",
-        "rgb(151, 184, 212)",
-        "rgb(76, 204, 216)",
-        "rgb(123, 188, 201)",
-        "rgb(150, 171, 186)",
-        "rgb(85, 192, 191)",
-        "rgb(125, 175, 175)",
-        "rgb(150, 158, 161)",
-        "rgb(91, 180, 166)",
-        "rgb(126, 163, 151)",
-        "rgb(148, 146, 136)",
-        "rgb(96, 168, 142)",
-        "rgb(126, 151, 127)",
-        "rgb(146, 134, 112)",
-        "rgb(99, 156, 118)",
-        "rgb(126, 139, 102)",
-        "rgb(144, 122, 88)",
-        "rgb(101, 145, 95)",
-        "rgb(125, 128, 80)",
-        "rgb(142, 111, 64)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        4,
-        2,
-        3,
-        1,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        19,
-        17,
-        18,
-        16,
-        20
-      ]
-    },
-    {
-      "id": "v1/very-easy/8",
-      "catalogVersion": "v1",
-      "sliderIndex": 7,
-      "tier": "Very easy",
-      "tierIndex": 8,
-      "score": 9,
-      "areaBucket": "21-30",
-      "layoutSignature": "3x7:0,2,3,5,6,7,8,9,11,12,13,14,15,17,18,20",
-      "boardSeed": 4045099995,
-      "scrambleSeed": 3080457518,
-      "config": {
-        "width": 3,
-        "height": 7,
-        "verticalLines": {
-          "count": 0,
-          "density": 1
-        },
-        "horizontalLines": {
-          "count": 7,
-          "density": 2
-        },
-        "crossLines": {
-          "density": 2
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        2,
-        3,
-        5,
-        6,
-        7,
-        8,
-        9,
-        11,
-        12,
-        13,
-        14,
-        15,
-        17,
-        18,
-        20
-      ],
-      "solvedColors": [
-        "rgb(126, 49, 71)",
-        "rgb(135, 63, 58)",
-        "rgb(145, 77, 36)",
-        "rgb(107, 45, 71)",
-        "rgb(116, 59, 60)",
-        "rgb(125, 73, 42)",
-        "rgb(88, 41, 70)",
-        "rgb(96, 54, 61)",
-        "rgb(105, 68, 46)",
-        "rgb(71, 36, 69)",
-        "rgb(78, 50, 61)",
-        "rgb(87, 63, 48)",
-        "rgb(54, 31, 68)",
-        "rgb(60, 44, 60)",
-        "rgb(68, 58, 50)",
-        "rgb(38, 24, 66)",
-        "rgb(43, 39, 60)",
-        "rgb(49, 52, 50)",
-        "rgb(24, 17, 64)",
-        "rgb(26, 33, 58)",
-        "rgb(30, 46, 50)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        19,
-        2,
-        3,
-        16,
-        5,
-        6,
-        7,
-        8,
-        9,
-        4,
-        11,
-        12,
-        13,
-        14,
-        15,
-        10,
-        17,
-        18,
-        1,
-        20
-      ]
-    },
-    {
-      "id": "v1/very-easy/9",
-      "catalogVersion": "v1",
-      "sliderIndex": 8,
-      "tier": "Very easy",
-      "tierIndex": 9,
-      "score": 9,
-      "areaBucket": "21-30",
-      "layoutSignature": "5x5:0,1,2,3,4,6,7,8,10,11,12,13,14,16,17,18,20,21,22,23,24",
-      "boardSeed": 1558382208,
-      "scrambleSeed": 1207823375,
-      "config": {
-        "width": 5,
-        "height": 5,
-        "verticalLines": {
-          "count": 1,
-          "density": 1
-        },
-        "horizontalLines": {
-          "count": 3,
-          "density": 1
-        },
-        "crossLines": {
-          "density": 1
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        6,
-        7,
-        8,
-        10,
-        11,
-        12,
-        13,
-        14,
-        16,
-        17,
-        18,
-        20,
-        21,
-        22,
-        23,
-        24
-      ],
-      "solvedColors": [
-        "rgb(108, 171, 189)",
-        "rgb(115, 150, 183)",
-        "rgb(119, 130, 177)",
-        "rgb(121, 110, 171)",
-        "rgb(121, 91, 165)",
-        "rgb(149, 181, 187)",
-        "rgb(152, 159, 181)",
-        "rgb(152, 138, 175)",
-        "rgb(152, 118, 170)",
-        "rgb(150, 99, 164)",
-        "rgb(185, 189, 184)",
-        "rgb(185, 166, 178)",
-        "rgb(184, 145, 173)",
-        "rgb(181, 124, 168)",
-        "rgb(178, 104, 163)",
-        "rgb(215, 195, 180)",
-        "rgb(214, 172, 175)",
-        "rgb(211, 151, 171)",
-        "rgb(208, 129, 166)",
-        "rgb(204, 109, 161)",
-        "rgb(244, 201, 176)",
-        "rgb(241, 178, 172)",
-        "rgb(238, 155, 168)",
-        "rgb(233, 133, 163)",
-        "rgb(229, 112, 159)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        15,
-        6,
-        7,
-        8,
-        19,
-        10,
-        11,
-        12,
-        13,
-        14,
-        9,
-        16,
-        17,
-        18,
-        5,
-        20,
-        21,
-        22,
-        23,
-        24
-      ]
-    },
-    {
-      "id": "v1/very-easy/10",
-      "catalogVersion": "v1",
-      "sliderIndex": 9,
-      "tier": "Very easy",
-      "tierIndex": 10,
-      "score": 9,
-      "areaBucket": "21-30",
-      "layoutSignature": "3x9:0,1,2,3,5,6,7,8,9,11,12,13,14,15,17,18,19,20,21,23,24,25,26",
-      "boardSeed": 3339929580,
-      "scrambleSeed": 3498393083,
-      "config": {
-        "width": 3,
-        "height": 9,
-        "verticalLines": {
-          "count": 1,
-          "density": 2
-        },
-        "horizontalLines": {
-          "count": 9,
-          "density": 2
-        },
-        "crossLines": {
-          "density": 0
-        },
-        "islands": {
-          "count": 0,
-          "width": 1,
-          "height": 1,
-          "density": 1
-        },
-        "colorConstraints": {
-          "targetStepStrength": 72,
-          "axisBalance": 88,
-          "lightnessRange": 48,
-          "chromaRange": 62,
-          "centerPreservation": 92,
-          "edgeSmoothnessBias": 76
-        },
-        "appearance": {
-          "cellSpacing": 0,
-          "cellRounding": 0,
-          "lockRounding": 12,
-          "lockThickness": 5,
-          "aidTimeSeconds": 1
-        }
-      },
-      "lockedIndexes": [
-        0,
-        1,
-        2,
-        3,
-        5,
-        6,
-        7,
-        8,
-        9,
-        11,
-        12,
-        13,
-        14,
-        15,
-        17,
-        18,
-        19,
-        20,
-        21,
-        23,
-        24,
-        25,
-        26
-      ],
-      "solvedColors": [
-        "rgb(110, 70, 103)",
-        "rgb(86, 72, 97)",
-        "rgb(58, 72, 90)",
-        "rgb(122, 76, 101)",
-        "rgb(98, 78, 95)",
-        "rgb(71, 78, 89)",
-        "rgb(134, 82, 99)",
-        "rgb(110, 84, 93)",
-        "rgb(83, 84, 87)",
-        "rgb(146, 87, 97)",
-        "rgb(122, 90, 91)",
-        "rgb(95, 90, 85)",
-        "rgb(159, 93, 94)",
-        "rgb(134, 95, 88)",
-        "rgb(108, 96, 82)",
-        "rgb(172, 98, 90)",
-        "rgb(147, 101, 84)",
-        "rgb(121, 102, 79)",
-        "rgb(185, 104, 86)",
-        "rgb(160, 107, 80)",
-        "rgb(134, 108, 74)",
-        "rgb(199, 109, 80)",
-        "rgb(174, 113, 74)",
-        "rgb(148, 114, 68)",
-        "rgb(213, 115, 74)",
-        "rgb(188, 118, 67)",
-        "rgb(162, 120, 61)"
-      ],
-      "scrambledCurrentIndexes": [
-        0,
-        1,
-        2,
-        3,
-        16,
-        5,
-        6,
-        7,
-        8,
-        9,
-        22,
-        11,
-        12,
-        13,
-        14,
-        15,
-        10,
-        17,
-        18,
-        19,
-        20,
-        21,
-        4,
-        23,
-        24,
-        25,
-        26
-      ]
-    },
-    {
       "id": "v1/easy/1",
       "catalogVersion": "v1",
-      "sliderIndex": 10,
+      "sliderIndex": 0,
       "tier": "Easy",
       "tierIndex": 1,
       "score": 11,
@@ -1230,7 +90,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/2",
       "catalogVersion": "v1",
-      "sliderIndex": 11,
+      "sliderIndex": 1,
       "tier": "Easy",
       "tierIndex": 2,
       "score": 12,
@@ -1358,7 +218,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/3",
       "catalogVersion": "v1",
-      "sliderIndex": 12,
+      "sliderIndex": 2,
       "tier": "Easy",
       "tierIndex": 3,
       "score": 13,
@@ -1494,7 +354,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/4",
       "catalogVersion": "v1",
-      "sliderIndex": 13,
+      "sliderIndex": 3,
       "tier": "Easy",
       "tierIndex": 4,
       "score": 14,
@@ -1648,7 +508,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/5",
       "catalogVersion": "v1",
-      "sliderIndex": 14,
+      "sliderIndex": 4,
       "tier": "Easy",
       "tierIndex": 5,
       "score": 15,
@@ -1814,7 +674,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/6",
       "catalogVersion": "v1",
-      "sliderIndex": 15,
+      "sliderIndex": 5,
       "tier": "Easy",
       "tierIndex": 6,
       "score": 16,
@@ -1961,7 +821,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/7",
       "catalogVersion": "v1",
-      "sliderIndex": 16,
+      "sliderIndex": 6,
       "tier": "Easy",
       "tierIndex": 7,
       "score": 17,
@@ -2106,7 +966,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/8",
       "catalogVersion": "v1",
-      "sliderIndex": 17,
+      "sliderIndex": 7,
       "tier": "Easy",
       "tierIndex": 8,
       "score": 18,
@@ -2226,7 +1086,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/9",
       "catalogVersion": "v1",
-      "sliderIndex": 18,
+      "sliderIndex": 8,
       "tier": "Easy",
       "tierIndex": 9,
       "score": 18,
@@ -2442,7 +1302,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/easy/10",
       "catalogVersion": "v1",
-      "sliderIndex": 19,
+      "sliderIndex": 9,
       "tier": "Easy",
       "tierIndex": 10,
       "score": 19,
@@ -2606,7 +1466,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/1",
       "catalogVersion": "v1",
-      "sliderIndex": 20,
+      "sliderIndex": 10,
       "tier": "Medium",
       "tierIndex": 1,
       "score": 20,
@@ -2841,7 +1701,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/2",
       "catalogVersion": "v1",
-      "sliderIndex": 21,
+      "sliderIndex": 11,
       "tier": "Medium",
       "tierIndex": 2,
       "score": 23,
@@ -2987,7 +1847,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/3",
       "catalogVersion": "v1",
-      "sliderIndex": 22,
+      "sliderIndex": 12,
       "tier": "Medium",
       "tierIndex": 3,
       "score": 25,
@@ -3101,7 +1961,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/4",
       "catalogVersion": "v1",
-      "sliderIndex": 23,
+      "sliderIndex": 13,
       "tier": "Medium",
       "tierIndex": 4,
       "score": 27,
@@ -3221,7 +2081,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/5",
       "catalogVersion": "v1",
-      "sliderIndex": 24,
+      "sliderIndex": 14,
       "tier": "Medium",
       "tierIndex": 5,
       "score": 29,
@@ -3339,7 +2199,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/6",
       "catalogVersion": "v1",
-      "sliderIndex": 25,
+      "sliderIndex": 15,
       "tier": "Medium",
       "tierIndex": 6,
       "score": 31,
@@ -3485,7 +2345,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/7",
       "catalogVersion": "v1",
-      "sliderIndex": 26,
+      "sliderIndex": 16,
       "tier": "Medium",
       "tierIndex": 7,
       "score": 33,
@@ -3644,7 +2504,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/8",
       "catalogVersion": "v1",
-      "sliderIndex": 27,
+      "sliderIndex": 17,
       "tier": "Medium",
       "tierIndex": 8,
       "score": 35,
@@ -3815,7 +2675,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/9",
       "catalogVersion": "v1",
-      "sliderIndex": 28,
+      "sliderIndex": 18,
       "tier": "Medium",
       "tierIndex": 9,
       "score": 37,
@@ -3967,7 +2827,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/medium/10",
       "catalogVersion": "v1",
-      "sliderIndex": 29,
+      "sliderIndex": 19,
       "tier": "Medium",
       "tierIndex": 10,
       "score": 38,
@@ -4285,7 +3145,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/1",
       "catalogVersion": "v1",
-      "sliderIndex": 30,
+      "sliderIndex": 20,
       "tier": "Hard",
       "tierIndex": 1,
       "score": 40,
@@ -4519,7 +3379,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/2",
       "catalogVersion": "v1",
-      "sliderIndex": 31,
+      "sliderIndex": 21,
       "tier": "Hard",
       "tierIndex": 2,
       "score": 42,
@@ -4665,7 +3525,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/3",
       "catalogVersion": "v1",
-      "sliderIndex": 32,
+      "sliderIndex": 22,
       "tier": "Hard",
       "tierIndex": 3,
       "score": 43,
@@ -4859,7 +3719,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/4",
       "catalogVersion": "v1",
-      "sliderIndex": 33,
+      "sliderIndex": 23,
       "tier": "Hard",
       "tierIndex": 4,
       "score": 45,
@@ -5015,7 +3875,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/5",
       "catalogVersion": "v1",
-      "sliderIndex": 34,
+      "sliderIndex": 24,
       "tier": "Hard",
       "tierIndex": 5,
       "score": 46,
@@ -5285,7 +4145,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/6",
       "catalogVersion": "v1",
-      "sliderIndex": 35,
+      "sliderIndex": 25,
       "tier": "Hard",
       "tierIndex": 6,
       "score": 48,
@@ -5520,7 +4380,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/7",
       "catalogVersion": "v1",
-      "sliderIndex": 36,
+      "sliderIndex": 26,
       "tier": "Hard",
       "tierIndex": 7,
       "score": 51,
@@ -5640,7 +4500,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/8",
       "catalogVersion": "v1",
-      "sliderIndex": 37,
+      "sliderIndex": 27,
       "tier": "Hard",
       "tierIndex": 8,
       "score": 53,
@@ -5826,7 +4686,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/9",
       "catalogVersion": "v1",
-      "sliderIndex": 38,
+      "sliderIndex": 28,
       "tier": "Hard",
       "tierIndex": 9,
       "score": 55,
@@ -6012,7 +4872,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/hard/10",
       "catalogVersion": "v1",
-      "sliderIndex": 39,
+      "sliderIndex": 29,
       "tier": "Hard",
       "tierIndex": 10,
       "score": 58,
@@ -6199,7 +5059,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/1",
       "catalogVersion": "v1",
-      "sliderIndex": 40,
+      "sliderIndex": 30,
       "tier": "Expert",
       "tierIndex": 1,
       "score": 60,
@@ -6428,7 +5288,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/2",
       "catalogVersion": "v1",
-      "sliderIndex": 41,
+      "sliderIndex": 31,
       "tier": "Expert",
       "tierIndex": 2,
       "score": 61,
@@ -6656,7 +5516,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/3",
       "catalogVersion": "v1",
-      "sliderIndex": 42,
+      "sliderIndex": 32,
       "tier": "Expert",
       "tierIndex": 3,
       "score": 62,
@@ -6910,7 +5770,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/4",
       "catalogVersion": "v1",
-      "sliderIndex": 43,
+      "sliderIndex": 33,
       "tier": "Expert",
       "tierIndex": 4,
       "score": 63,
@@ -7138,7 +5998,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/5",
       "catalogVersion": "v1",
-      "sliderIndex": 44,
+      "sliderIndex": 34,
       "tier": "Expert",
       "tierIndex": 5,
       "score": 64,
@@ -7384,7 +6244,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/6",
       "catalogVersion": "v1",
-      "sliderIndex": 45,
+      "sliderIndex": 35,
       "tier": "Expert",
       "tierIndex": 6,
       "score": 66,
@@ -7570,7 +6430,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/7",
       "catalogVersion": "v1",
-      "sliderIndex": 46,
+      "sliderIndex": 36,
       "tier": "Expert",
       "tierIndex": 7,
       "score": 67,
@@ -7848,7 +6708,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/8",
       "catalogVersion": "v1",
-      "sliderIndex": 47,
+      "sliderIndex": 37,
       "tier": "Expert",
       "tierIndex": 8,
       "score": 69,
@@ -8102,7 +6962,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/9",
       "catalogVersion": "v1",
-      "sliderIndex": 48,
+      "sliderIndex": 38,
       "tier": "Expert",
       "tierIndex": 9,
       "score": 72,
@@ -8326,7 +7186,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/expert/10",
       "catalogVersion": "v1",
-      "sliderIndex": 49,
+      "sliderIndex": 39,
       "tier": "Expert",
       "tierIndex": 10,
       "score": 76,
@@ -8568,7 +7428,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/1",
       "catalogVersion": "v1",
-      "sliderIndex": 50,
+      "sliderIndex": 40,
       "tier": "Master",
       "tierIndex": 1,
       "score": 81,
@@ -8838,7 +7698,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/2",
       "catalogVersion": "v1",
-      "sliderIndex": 51,
+      "sliderIndex": 41,
       "tier": "Master",
       "tierIndex": 2,
       "score": 82,
@@ -9036,7 +7896,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/3",
       "catalogVersion": "v1",
-      "sliderIndex": 52,
+      "sliderIndex": 42,
       "tier": "Master",
       "tierIndex": 3,
       "score": 82,
@@ -9276,7 +8136,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/4",
       "catalogVersion": "v1",
-      "sliderIndex": 53,
+      "sliderIndex": 43,
       "tier": "Master",
       "tierIndex": 4,
       "score": 83,
@@ -9518,7 +8378,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/5",
       "catalogVersion": "v1",
-      "sliderIndex": 54,
+      "sliderIndex": 44,
       "tier": "Master",
       "tierIndex": 5,
       "score": 83,
@@ -9780,7 +8640,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/6",
       "catalogVersion": "v1",
-      "sliderIndex": 55,
+      "sliderIndex": 45,
       "tier": "Master",
       "tierIndex": 6,
       "score": 83,
@@ -10042,7 +8902,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/7",
       "catalogVersion": "v1",
-      "sliderIndex": 56,
+      "sliderIndex": 46,
       "tier": "Master",
       "tierIndex": 7,
       "score": 84,
@@ -10304,7 +9164,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/8",
       "catalogVersion": "v1",
-      "sliderIndex": 57,
+      "sliderIndex": 47,
       "tier": "Master",
       "tierIndex": 8,
       "score": 88,
@@ -10524,7 +9384,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/9",
       "catalogVersion": "v1",
-      "sliderIndex": 58,
+      "sliderIndex": 48,
       "tier": "Master",
       "tierIndex": 9,
       "score": 91,
@@ -10786,7 +9646,7 @@ export const GENERATED_PUBLISHED_CATALOG = {
     {
       "id": "v1/master/10",
       "catalogVersion": "v1",
-      "sliderIndex": 59,
+      "sliderIndex": 49,
       "tier": "Master",
       "tierIndex": 10,
       "score": 100,

@@ -1,11 +1,57 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createGameFromPublishedPuzzle, findBestAidMove, getPublishedCatalog } from "../domain";
+import { createGameFromPublishedPuzzle, findBestAidMove, getPublishedCatalog, isSolved, swapTiles } from "../domain";
 import { PuzzleBoard } from "../ui/PuzzleBoard";
 import { usePuzzleSession } from "./usePuzzleSession";
 
-function SessionHarness() {
+function buildAidSolvePlan(puzzle: ReturnType<typeof getPublishedCatalog>["puzzles"][number]) {
+  const game = createGameFromPublishedPuzzle(puzzle);
+  const plan = [];
+  let tiles = game.scrambledTiles;
+
+  while (!isSolved(tiles) && plan.length < tiles.length) {
+    const aidMove = findBestAidMove(tiles, game.config);
+
+    if (!aidMove) {
+      return null;
+    }
+
+    plan.push(aidMove);
+    tiles = swapTiles(tiles, aidMove.primaryFromIndex, aidMove.secondaryFromIndex);
+  }
+
+  return isSolved(tiles) ? plan : null;
+}
+
+function findShortestAidSolvePuzzle() {
+  const catalog = getPublishedCatalog("v1");
+  let bestMatch:
+    | {
+        puzzle: (typeof catalog.puzzles)[number];
+        plan: NonNullable<ReturnType<typeof buildAidSolvePlan>>;
+      }
+    | null = null;
+
+  for (const puzzle of catalog.puzzles) {
+    const plan = buildAidSolvePlan(puzzle);
+
+    if (plan && (!bestMatch || plan.length < bestMatch.plan.length)) {
+      bestMatch = {
+        puzzle,
+        plan
+      };
+    }
+  }
+
+  if (!bestMatch) {
+    throw new Error("Expected at least one published puzzle to be solvable with repeated aid moves.");
+  }
+
+  return bestMatch;
+}
+
+function SessionHarness({ targetSliderIndex }: { targetSliderIndex?: number } = {}) {
   const session = usePuzzleSession();
 
   function handleTilePointerDown(tile: (typeof session.orderedTiles)[number], event: ReactPointerEvent<HTMLButtonElement>) {
@@ -39,6 +85,16 @@ function SessionHarness() {
       <p data-testid="session-best-moves">{session.bestCompletion?.moveCount ?? "none"}</p>
       <button type="button" onClick={() => session.actions.setSliderIndex(1)}>
         Puzzle 2
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          if (targetSliderIndex !== undefined) {
+            session.actions.setSliderIndex(targetSliderIndex);
+          }
+        }}
+      >
+        Target Puzzle
       </button>
       <button type="button" onClick={() => session.actions.setSliderIndex(session.sliderCount - 1)}>
         Last Puzzle
@@ -117,17 +173,15 @@ describe("usePuzzleSession", () => {
     expect(screen.getByTestId("session-can-advance")).toHaveTextContent("false");
 
     fireEvent.click(screen.getByText("Next Puzzle"));
-    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("59");
+    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("49");
   });
 
   it("starts the timer when play begins, records a manual solve, and exposes the new best", () => {
-    const puzzle = getPublishedCatalog("v1").puzzles[0];
-    const initialGame = createGameFromPublishedPuzzle(puzzle);
-    const aidMove = findBestAidMove(initialGame.scrambledTiles, initialGame.config);
+    const { puzzle, plan } = findShortestAidSolvePuzzle();
 
-    expect(aidMove).not.toBeNull();
+    render(<SessionHarness targetSliderIndex={puzzle.sliderIndex} />);
 
-    render(<SessionHarness />);
+    fireEvent.click(screen.getByText("Target Puzzle"));
 
     act(() => {
       vi.advanceTimersByTime(2000);
@@ -139,12 +193,14 @@ describe("usePuzzleSession", () => {
       vi.advanceTimersByTime(5000);
     });
 
-    const fromTile = screen.getByTestId(`tile-${aidMove!.primaryFromIndex}`);
-    const toTile = screen.getByTestId(`tile-${aidMove!.secondaryFromIndex}`);
-    vi.mocked(document.elementFromPoint).mockReturnValue(toTile);
+    plan.forEach((aidMove) => {
+      const fromTile = screen.getByTestId(`tile-${aidMove.primaryFromIndex}`);
+      const toTile = screen.getByTestId(`tile-${aidMove.secondaryFromIndex}`);
+      vi.mocked(document.elementFromPoint).mockReturnValue(toTile);
 
-    fireEvent.pointerDown(fromTile, { pointerId: 1, pointerType: "mouse", clientX: 10, clientY: 10 });
-    fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 20 });
+      fireEvent.pointerDown(fromTile, { pointerId: 1, pointerType: "mouse", clientX: 10, clientY: 10 });
+      fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 20 });
+    });
 
     const stored = JSON.parse(window.localStorage.getItem("gradient:puzzle-history:v1") ?? "{}") as {
       completions?: Array<{ moveCount: number; aidCount: number; solveDurationMs: number }>;
@@ -152,11 +208,11 @@ describe("usePuzzleSession", () => {
 
     expect(stored.completions).toHaveLength(1);
     expect(stored.completions?.[0]).toMatchObject({
-      moveCount: 1,
+      moveCount: plan.length,
       aidCount: 0,
       solveDurationMs: 5000
     });
-    expect(screen.getByTestId("session-best-moves")).toHaveTextContent("1");
+    expect(screen.getByTestId("session-best-moves")).toHaveTextContent(String(plan.length));
   });
 
   it("marks the attempt ineligible after aid and resets that state on the next puzzle", () => {

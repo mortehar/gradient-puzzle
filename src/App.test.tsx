@@ -1,6 +1,53 @@
 import { act, cleanup, createEvent, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createGameFromPublishedPuzzle, findBestAidMove, getPublishedCatalog, isSolved, swapTiles } from "./features/puzzle/domain";
 import App from "./App";
+
+function buildAidSolvePlan(puzzle: ReturnType<typeof getPublishedCatalog>["puzzles"][number]) {
+  const game = createGameFromPublishedPuzzle(puzzle);
+  const plan = [];
+  let tiles = game.scrambledTiles;
+
+  while (!isSolved(tiles) && plan.length < tiles.length) {
+    const aidMove = findBestAidMove(tiles, game.config);
+
+    if (!aidMove) {
+      return null;
+    }
+
+    plan.push(aidMove);
+    tiles = swapTiles(tiles, aidMove.primaryFromIndex, aidMove.secondaryFromIndex);
+  }
+
+  return isSolved(tiles) ? plan : null;
+}
+
+function findShortestAidSolvePuzzle() {
+  const catalog = getPublishedCatalog("v1");
+  let bestMatch:
+    | {
+        puzzle: (typeof catalog.puzzles)[number];
+        plan: NonNullable<ReturnType<typeof buildAidSolvePlan>>;
+      }
+    | null = null;
+
+  for (const puzzle of catalog.puzzles) {
+    const plan = buildAidSolvePlan(puzzle);
+
+    if (plan && (!bestMatch || plan.length < bestMatch.plan.length)) {
+      bestMatch = {
+        puzzle,
+        plan
+      };
+    }
+  }
+
+  if (!bestMatch) {
+    throw new Error("Expected at least one published puzzle to be solvable with repeated aid moves.");
+  }
+
+  return bestMatch;
+}
 
 describe("App", () => {
   beforeEach(() => {
@@ -26,7 +73,7 @@ describe("App", () => {
 
     expect(screen.getByTestId("board-footer")).toBeInTheDocument();
     expect(screen.getByTestId("difficulty-slider")).toHaveValue("0");
-    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #1 (Very easy)");
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #1 (Easy)");
     expect(screen.getByTestId("new-puzzle-button")).toHaveTextContent("Next");
     expect(screen.queryByText(/Best:/)).not.toBeInTheDocument();
     expect(screen.queryByTestId("advanced-settings-panel")).not.toBeInTheDocument();
@@ -52,7 +99,7 @@ describe("App", () => {
     fireEvent.click(screen.getByTestId("new-puzzle-button"));
 
     expect(screen.getByTestId("difficulty-slider")).toHaveValue("1");
-    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #2 (Very easy)");
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #2 (Easy)");
   });
 
   it("loads a new published puzzle immediately when the slider moves", () => {
@@ -69,7 +116,7 @@ describe("App", () => {
 
     fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "10" } });
 
-    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #1 (Easy)");
+    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #1 (Medium)");
     expect(screen.getByTestId("aid-button")).toBeDisabled();
     expect(screen.queryByTestId("scramble-overlay")).not.toBeInTheDocument();
     expect(screen.getByTestId("puzzle-board")).toHaveClass("board-no-motion");
@@ -92,7 +139,7 @@ describe("App", () => {
   it("disables Next on the final published puzzle", () => {
     render(<App />);
 
-    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "59" } });
+    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "49" } });
 
     expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #10 (Master)");
     expect(screen.getByTestId("new-puzzle-button")).toBeDisabled();
@@ -128,10 +175,10 @@ describe("App", () => {
         version: 1,
         completions: [
           {
-            puzzleId: "v1/very-easy/1",
+            puzzleId: "v1/easy/1",
             catalogVersion: "v1",
             sliderIndex: 0,
-            tier: "Very easy",
+            tier: "Easy",
             tierIndex: 1,
             moveCount: 7,
             aidCount: 0,
@@ -149,7 +196,11 @@ describe("App", () => {
   });
 
   it("fades the lock squares for one second before showing the completion checkmark", () => {
+    const { puzzle, plan } = findShortestAidSolvePuzzle();
+
     render(<App />);
+
+    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: String(puzzle.sliderIndex) } });
 
     act(() => {
       vi.advanceTimersByTime(2000);
@@ -158,10 +209,12 @@ describe("App", () => {
       vi.advanceTimersByTime(1000);
     });
 
-    fireEvent.click(screen.getByTestId("aid-button"));
+    plan.forEach(() => {
+      fireEvent.click(screen.getByTestId("aid-button"));
 
-    act(() => {
-      vi.advanceTimersByTime(1000);
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
     });
 
     expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "fading-locks");

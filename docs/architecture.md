@@ -74,7 +74,7 @@ Player runtime now loads from a published catalog rather than generating a fresh
 Catalog authoring still happens from the pure domain:
 
 1. [`src/game.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/game.ts) builds the full structural difficulty catalog.
-2. The authoring pipeline selects 10 evenly spaced structural entries per difficulty tier.
+2. The authoring pipeline selects 10 evenly spaced structural entries per published difficulty tier, skipping `Very easy` for `v1`.
 3. A seeded trajectory search generates one canonical solved board per selected entry.
 4. A seeded derangement produces one canonical scramble per selected entry.
 5. [`scripts/generatePublishedCatalog.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/scripts/generatePublishedCatalog.ts) writes the structural artifact to [`src/structuralCatalog.generated.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/structuralCatalog.generated.ts) and the player-facing artifact to [`src/publishedCatalog.generated.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/publishedCatalog.generated.ts).
@@ -128,8 +128,8 @@ The player feature now keeps a browser-local completion history for published pu
 
 The current player-facing catalog behavior is:
 
-- 60 published puzzles in `v1`
-- 10 puzzles per tier
+- 50 published puzzles in `v1`
+- 10 puzzles per published tier
 - user-facing numbering is bin-local (`#1` to `#10`)
 - `Next` advances through the catalog and disables on `Master #10`
 

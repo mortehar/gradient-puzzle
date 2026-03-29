@@ -388,7 +388,7 @@ describe("game utilities", () => {
     expect(game.tiles).toHaveLength(game.config.width * game.config.height);
   });
 
-  it("builds a v1 published catalog with exactly ten puzzles per tier", () => {
+  it("builds a v1 published catalog with exactly ten puzzles per published tier", () => {
     const catalog = getPublishedCatalog("v1");
     const tierCounts = catalog.puzzles.reduce<Record<string, number>>((counts, puzzle) => {
       counts[puzzle.tier] = (counts[puzzle.tier] || 0) + 1;
@@ -396,9 +396,8 @@ describe("game utilities", () => {
     }, {});
 
     expect(catalog.version).toBe("v1");
-    expect(catalog.puzzles).toHaveLength(60);
+    expect(catalog.puzzles).toHaveLength(50);
     expect(tierCounts).toEqual({
-      "Very easy": 10,
       Easy: 10,
       Medium: 10,
       Hard: 10,
@@ -411,7 +410,7 @@ describe("game utilities", () => {
     const fullCatalog = buildDifficultyCatalog();
     const publishedPlan = buildPublishedCatalogPlan();
 
-    (["Very easy", "Easy", "Medium", "Hard", "Expert", "Master"] as const).forEach((tier) => {
+    (["Easy", "Medium", "Hard", "Expert", "Master"] as const).forEach((tier) => {
       const tierEntries = fullCatalog.filter((entry) => entry.rating.tier === tier);
       const expectedIndexes = Array.from({ length: 10 }, (_, selectionIndex) => {
         const start = Math.floor((selectionIndex * tierEntries.length) / 10);
