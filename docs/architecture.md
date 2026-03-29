@@ -7,17 +7,19 @@ This document explains what the game does at runtime and how the current codebas
 1. [`src/main.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/main.tsx) bootstraps React and renders [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx).
 2. [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx) mounts the puzzle feature only.
 3. [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx) composes:
-   - board rendering
-   - footer/status actions plus the primary published-puzzle slider
-   - an advanced settings panel that appears on demand for appearance controls and catalog metadata
-4. [`src/features/puzzle/hooks/usePuzzleSession.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePuzzleSession.ts) owns the puzzle session state:
+   - the home screen tier carousel
+   - the tier screen puzzle carousel
+   - the puzzle play screen with the hold-to-abort back control
+4. [`src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts) owns the browser state:
+   - selected tier and selected puzzle per tier
+   - completion-history-backed tier progress
+   - tier and puzzle summaries for the screen components
+5. [`src/features/puzzle/hooks/usePuzzleSession.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePuzzleSession.ts) owns the single-puzzle session state:
    - preview -> scrambling -> playing -> solved transitions
-   - published puzzle selection state
    - drag interactions
-   - aid application
    - local completion-history persistence and best-score derivation
-   - derived selection and presentation values
-5. UI components render the session state and call back into the hook actions.
+   - local completion recording
+6. UI components render the browser and session state and call back into the hook actions.
 
 Two current UX constraints are intentional:
 
@@ -46,7 +48,6 @@ Important types:
 - `GameConfig`
 - `GameState`
 - `Tile`
-- `AidMove`
 - `DifficultyCatalogEntry`
 
 ### Perceptual analysis
@@ -67,9 +68,10 @@ The feature-level domain entrypoint at [`src/features/puzzle/domain/index.ts`](/
 
 Player runtime now loads from a published catalog rather than generating a fresh puzzle on demand:
 
-1. The footer slider resolves to one published puzzle in the `v1` catalog.
-2. The catalog record provides the solved colors, fixed locked cells, and fixed scramble for that puzzle.
-3. The session builds tiles from the stored artifact and runs the normal preview -> scramble -> play flow.
+1. The home screen groups the published `v1` catalog into five difficulty tiers.
+2. The home screen previews the first six puzzles in each tier and shows tier completion progress.
+3. The tier screen previews puzzles in order and opens the selected puzzle into the play flow.
+4. The puzzle screen builds tiles from the stored artifact and runs the normal preview -> scramble -> play flow.
 
 Catalog authoring still happens from the pure domain:
 
@@ -95,9 +97,9 @@ Island layouts are part of the internal difficulty catalog only, not the player-
 All generated lock layouts are kept mirror-symmetric across both board axes.
 The config is normalized so only valid counts, footprints, and spacings are used for a given board size.
 
-## Aid Strategy
+## Move Selection
 
-The `Aid` action chooses a swap that improves the board as efficiently as possible:
+The pure domain still contains the swap-selection logic that identifies the best corrective move for a board:
 
 - prefer swaps that place both tiles correctly
 - otherwise place the primary tile correctly and minimize the remaining secondary distance
@@ -110,9 +112,8 @@ When the board is solved:
 
 - locked frames fade away
 - a centered animated checkmark appears
-- the `Next` button stays visually highlighted until the next puzzle loads
 
-This ceremony state is tracked in the puzzle session hook and exposed to the board and footer as presentation state.
+This ceremony state is tracked in the puzzle session hook and exposed to the board as presentation state.
 
 ## Local Score History
 
@@ -122,7 +123,7 @@ The player feature now keeps a browser-local completion history for published pu
 - each stored record includes puzzle identity, move count, aid count, start time, completion time, and solve duration
 - solve timing starts when session state first reaches `playing`
 - solve timing stops on the action that changes the board into `solved`, before the completion ceremony finishes
-- aided runs are still stored for future stats, but only no-aid runs are eligible for footer `Best` scores
+- score-eligible runs are the ones with no aid usage, and those are the runs that count toward `Best`
 
 ## Catalog UX
 
@@ -131,9 +132,7 @@ The current player-facing catalog behavior is:
 - 50 published puzzles in `v1`
 - 10 puzzles per published tier
 - user-facing numbering is bin-local (`#1` to `#10`)
-- `Next` advances through the catalog and disables on `Master #10`
-
-This is an interim browsing model until a later home screen can present the published puzzle set more directly.
+- the home screen uses tier-level progress counts, while the tier screen uses per-puzzle best scores
 
 ## Frontend Structure
 

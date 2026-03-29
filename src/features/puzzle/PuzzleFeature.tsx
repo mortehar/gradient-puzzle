@@ -1,81 +1,40 @@
-import { useState, type PointerEvent as ReactPointerEvent } from "react";
-import { PuzzleBoard, PuzzleDragPreview } from "./ui/PuzzleBoard";
-import { PuzzleSettingsPanel } from "./ui/PuzzleSettingsPanel";
-import { PuzzleStatusFooter } from "./ui/PuzzleStatusFooter";
-import { usePuzzleSession } from "./hooks/usePuzzleSession";
-import type { Tile } from "./domain";
+import { PuzzleHomeScreen } from "./ui/PuzzleHomeScreen";
+import { PuzzlePlayScreen } from "./ui/PuzzlePlayScreen";
+import { PuzzleTierScreen } from "./ui/PuzzleTierScreen";
+import { usePublishedPuzzleBrowser } from "./hooks/usePublishedPuzzleBrowser";
 
 export function PuzzleFeature() {
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const session = usePuzzleSession();
-
-  function toggleAdvancedSettings() {
-    setShowAdvancedSettings((isOpen) => !isOpen);
-  }
-
-  function handleSliderIndexChange(value: number) {
-    session.actions.setSliderIndex(value);
-  }
-
-  function handleTilePointerDown(tile: Tile, event: ReactPointerEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    session.actions.beginDrag(tile, event.pointerId, event.pointerType, event.clientX, event.clientY);
-  }
+  const browser = usePublishedPuzzleBrowser();
 
   return (
     <main className="app-shell">
-      <section className={["app-layout", showAdvancedSettings ? "app-layout-advanced-open" : "app-layout-focused"].join(" ")}>
-        <section className="board-panel">
-          <PuzzleBoard
-            game={session.game}
-            previewConfig={session.previewConfig}
-            orderedTiles={session.orderedTiles}
-            transitionMode={session.transitionMode}
-            activeAidAnimation={session.activeAidAnimation}
-            activeScrambleFlip={session.activeScrambleFlip}
-            completionCeremonyPhase={session.completionCeremonyPhase}
-            dragTileId={session.dragTile?.id ?? null}
-            dragPointerType={session.dragPointerType}
-            isInteractive={session.isInteractive}
-            onTilePointerDown={handleTilePointerDown}
-          />
+      {browser.screen === "home" ? (
+        <PuzzleHomeScreen
+          tiers={browser.tiers}
+          selectedTierIndex={browser.selectedTierIndex}
+          onSelectTier={browser.actions.setHomeTierIndex}
+          onOpenTier={browser.actions.openTier}
+        />
+      ) : null}
 
-          <PuzzleStatusFooter
-            swapCount={session.game.swapCount}
-            hintCount={session.game.hintCount}
-            bestMoveCount={session.bestCompletion?.moveCount ?? null}
-            sliderIndex={session.sliderIndex}
-            sliderCount={session.sliderCount}
-            currentPuzzleLabel={session.currentPuzzleLabel}
-            canUseAid={session.isInteractive}
-            canAdvancePuzzle={session.canAdvancePuzzle}
-            highlightNextPuzzle={session.highlightNextPuzzle}
-            isScoreEligible={session.isScoreEligible}
-            isAdvancedOpen={showAdvancedSettings}
-            onSetSliderIndex={handleSliderIndexChange}
-            onToggleAdvancedSettings={toggleAdvancedSettings}
-            onUseAid={session.actions.useAid}
-            onStartNextPuzzle={session.actions.startNextPuzzle}
-          />
-        </section>
+      {browser.screen === "tier" && browser.activeTier ? (
+        <PuzzleTierScreen
+          tier={browser.activeTier}
+          onSelectPuzzle={browser.actions.setTierPuzzleIndex}
+          onOpenPuzzle={browser.actions.openPuzzle}
+          onBack={browser.actions.returnToHome}
+        />
+      ) : null}
 
-        {showAdvancedSettings ? (
-          <PuzzleSettingsPanel
-            currentPuzzleLabel={session.currentPuzzleLabel}
-            catalogVersion={session.activePuzzle.catalogVersion}
-            currentGridLabel={`${session.game.config.width} x ${session.game.config.height}`}
-            lockedCount={session.lockedCount}
-            swapCount={session.game.swapCount}
-            hintCount={session.game.hintCount}
-          />
-        ) : null}
-      </section>
-
-      <PuzzleDragPreview
-        dragTile={session.dragTile}
-        pointerPosition={session.pointerPosition}
-        pointerType={session.dragPointerType ?? undefined}
-      />
+      {browser.screen === "puzzle" && browser.activePuzzle ? (
+        <PuzzlePlayScreen
+          key={browser.activePuzzle.id}
+          puzzle={browser.activePuzzle}
+          completionHistory={browser.completionHistory}
+          onRecordCompletion={browser.actions.recordCompletion}
+          onAbort={browser.actions.returnToTier}
+        />
+      ) : null}
     </main>
   );
 }

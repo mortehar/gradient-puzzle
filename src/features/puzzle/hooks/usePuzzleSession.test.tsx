@@ -1,11 +1,20 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import { useState, type PointerEvent as ReactPointerEvent } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createGameFromPublishedPuzzle, findBestAidMove, getPublishedCatalog, isSolved, swapTiles } from "../domain";
+import {
+  createGameFromPublishedPuzzle,
+  findBestAidMove,
+  getPublishedCatalog,
+  isSolved,
+  swapTiles,
+  type PublishedPuzzle
+} from "../domain";
 import { PuzzleBoard } from "../ui/PuzzleBoard";
+import { PuzzlePlayScreen } from "../ui/PuzzlePlayScreen";
 import { usePuzzleSession } from "./usePuzzleSession";
+import type { LocalPuzzleCompletionRecord } from "./puzzleCompletionHistory";
 
-function buildAidSolvePlan(puzzle: ReturnType<typeof getPublishedCatalog>["puzzles"][number]) {
+function buildAidSolvePlan(puzzle: PublishedPuzzle) {
   const game = createGameFromPublishedPuzzle(puzzle);
   const plan = [];
   let tiles = game.scrambledTiles;
@@ -51,8 +60,22 @@ function findShortestAidSolvePuzzle() {
   return bestMatch;
 }
 
-function SessionHarness({ targetSliderIndex }: { targetSliderIndex?: number } = {}) {
-  const session = usePuzzleSession();
+type SessionHarnessProps = {
+  puzzle?: PublishedPuzzle;
+  completionHistory?: LocalPuzzleCompletionRecord[];
+  onRecordCompletion?: (record: LocalPuzzleCompletionRecord) => void;
+};
+
+function SessionHarness({
+  puzzle = getPublishedCatalog("v1").puzzles[0]!,
+  completionHistory = [],
+  onRecordCompletion = vi.fn()
+}: SessionHarnessProps) {
+  const session = usePuzzleSession({
+    puzzle,
+    completionHistory,
+    onRecordCompletion
+  });
 
   function handleTilePointerDown(tile: (typeof session.orderedTiles)[number], event: ReactPointerEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -66,7 +89,6 @@ function SessionHarness({ targetSliderIndex }: { targetSliderIndex?: number } = 
         previewConfig={session.previewConfig}
         orderedTiles={session.orderedTiles}
         transitionMode={session.transitionMode}
-        activeAidAnimation={session.activeAidAnimation}
         activeScrambleFlip={session.activeScrambleFlip}
         completionCeremonyPhase={session.completionCeremonyPhase}
         dragTileId={session.dragTile?.id ?? null}
@@ -76,39 +98,22 @@ function SessionHarness({ targetSliderIndex }: { targetSliderIndex?: number } = 
       />
       <p data-testid="session-status">{session.game.status}</p>
       <p data-testid="session-puzzle-label">{session.currentPuzzleLabel}</p>
-      <p data-testid="session-slider-index">{session.sliderIndex}</p>
-      <p data-testid="session-grid">
-        {session.game.config.width} x {session.game.config.height}
-      </p>
-      <p data-testid="session-can-advance">{String(session.canAdvancePuzzle)}</p>
-      <p data-testid="session-score-eligible">{String(session.isScoreEligible)}</p>
       <p data-testid="session-best-moves">{session.bestCompletion?.moveCount ?? "none"}</p>
-      <button type="button" onClick={() => session.actions.setSliderIndex(1)}>
-        Puzzle 2
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          if (targetSliderIndex !== undefined) {
-            session.actions.setSliderIndex(targetSliderIndex);
-          }
-        }}
-      >
-        Target Puzzle
-      </button>
-      <button type="button" onClick={() => session.actions.setSliderIndex(session.sliderCount - 1)}>
-        Last Puzzle
-      </button>
-      <button type="button" onClick={session.actions.startNextPuzzle}>
-        Next Puzzle
-      </button>
-      <button type="button" onClick={() => session.actions.updateAppearance("aidTimeSeconds", 0)}>
-        Aid Time Zero
-      </button>
-      <button type="button" onClick={session.actions.useAid}>
-        Use Aid
-      </button>
     </>
+  );
+}
+
+function SessionHarnessWithHistory({ puzzle }: { puzzle: PublishedPuzzle }) {
+  const [history, setHistory] = useState<LocalPuzzleCompletionRecord[]>([]);
+
+  return (
+    <SessionHarness
+      puzzle={puzzle}
+      completionHistory={history}
+      onRecordCompletion={(record) => {
+        setHistory((currentHistory) => [...currentHistory, record]);
+      }}
+    />
   );
 }
 
@@ -129,7 +134,7 @@ describe("usePuzzleSession", () => {
     vi.restoreAllMocks();
   });
 
-  it("moves through preview, scramble, and playing states", () => {
+  it("moves through preview, scramble, and playing states for an injected puzzle", () => {
     render(<SessionHarness />);
 
     expect(screen.getByTestId("session-status")).toHaveTextContent("preview");
@@ -147,41 +152,10 @@ describe("usePuzzleSession", () => {
     expect(screen.getByTestId("session-status")).toHaveTextContent("playing");
   });
 
-  it("loads a deterministic published puzzle when the slider index changes", () => {
-    const catalog = getPublishedCatalog("v1");
-    render(<SessionHarness />);
-
-    fireEvent.click(screen.getByText("Puzzle 2"));
-
-    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("1");
-    expect(screen.getByTestId("session-puzzle-label")).toHaveTextContent(
-      `#${catalog.puzzles[1].tierIndex} (${catalog.puzzles[1].tier})`
-    );
-    expect(screen.getByTestId("session-grid")).toHaveTextContent(
-      `${catalog.puzzles[1].config.width} x ${catalog.puzzles[1].config.height}`
-    );
-    expect(screen.getByTestId("session-status")).toHaveTextContent("preview");
-  });
-
-  it("advances to the next published puzzle and disables progression on the last puzzle", () => {
-    render(<SessionHarness />);
-
-    fireEvent.click(screen.getByText("Next Puzzle"));
-    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("1");
-
-    fireEvent.click(screen.getByText("Last Puzzle"));
-    expect(screen.getByTestId("session-can-advance")).toHaveTextContent("false");
-
-    fireEvent.click(screen.getByText("Next Puzzle"));
-    expect(screen.getByTestId("session-slider-index")).toHaveTextContent("49");
-  });
-
-  it("starts the timer when play begins, records a manual solve, and exposes the new best", () => {
+  it("records a manual solve and updates the current best score for the puzzle", () => {
     const { puzzle, plan } = findShortestAidSolvePuzzle();
 
-    render(<SessionHarness targetSliderIndex={puzzle.sliderIndex} />);
-
-    fireEvent.click(screen.getByText("Target Puzzle"));
+    render(<SessionHarnessWithHistory puzzle={puzzle} />);
 
     act(() => {
       vi.advanceTimersByTime(2000);
@@ -202,38 +176,119 @@ describe("usePuzzleSession", () => {
       fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 20 });
     });
 
-    const stored = JSON.parse(window.localStorage.getItem("gradient:puzzle-history:v1") ?? "{}") as {
-      completions?: Array<{ moveCount: number; aidCount: number; solveDurationMs: number }>;
-    };
-
-    expect(stored.completions).toHaveLength(1);
-    expect(stored.completions?.[0]).toMatchObject({
-      moveCount: plan.length,
-      aidCount: 0,
-      solveDurationMs: 5000
-    });
     expect(screen.getByTestId("session-best-moves")).toHaveTextContent(String(plan.length));
   });
 
-  it("marks the attempt ineligible after aid and resets that state on the next puzzle", () => {
-    render(<SessionHarness />);
+  it("reads an existing personal best from the provided completion history", () => {
+    const puzzle = getPublishedCatalog("v1").puzzles[0]!;
+
+    render(
+      <SessionHarness
+        puzzle={puzzle}
+        completionHistory={[
+          {
+            puzzleId: puzzle.id,
+            catalogVersion: puzzle.catalogVersion,
+            sliderIndex: puzzle.sliderIndex,
+            tier: puzzle.tier,
+            tierIndex: puzzle.tierIndex,
+            moveCount: 7,
+            aidCount: 0,
+            startedAt: 1_000,
+            completedAt: 8_000,
+            solveDurationMs: 7_000
+          }
+        ]}
+      />
+    );
+
+    expect(screen.getByTestId("session-best-moves")).toHaveTextContent("7");
+  });
+
+  it("cancels the abort hold if released early", () => {
+    const onAbort = vi.fn();
+
+    render(
+      <PuzzlePlayScreen
+        puzzle={getPublishedCatalog("v1").puzzles[0]!}
+        completionHistory={[]}
+        onRecordCompletion={vi.fn()}
+        onAbort={onAbort}
+      />
+    );
+
+    fireEvent.pointerDown(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
+
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+
+    expect(screen.getByTestId("abort-progress")).toBeInTheDocument();
+    expect(onAbort).not.toHaveBeenCalled();
+
+    fireEvent.pointerUp(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
+
+    expect(screen.queryByTestId("abort-progress")).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(onAbort).not.toHaveBeenCalled();
+  });
+
+  it("aborts the puzzle after a full two-second hold", () => {
+    const onAbort = vi.fn();
+
+    render(
+      <PuzzlePlayScreen
+        puzzle={getPublishedCatalog("v1").puzzles[0]!}
+        completionHistory={[]}
+        onRecordCompletion={vi.fn()}
+        onAbort={onAbort}
+      />
+    );
+
+    fireEvent.pointerDown(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(onAbort).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets the back button abort immediately after the puzzle is solved", () => {
+    const { puzzle, plan } = findShortestAidSolvePuzzle();
+    const onAbort = vi.fn();
+
+    render(
+      <PuzzlePlayScreen
+        puzzle={puzzle}
+        completionHistory={[]}
+        onRecordCompletion={vi.fn()}
+        onAbort={onAbort}
+      />
+    );
 
     act(() => {
       vi.advanceTimersByTime(2000);
     });
     act(() => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(920);
     });
 
-    expect(screen.getByTestId("session-score-eligible")).toHaveTextContent("true");
+    plan.forEach((aidMove) => {
+      const fromTile = screen.getByTestId(`tile-${aidMove.primaryFromIndex}`);
+      const toTile = screen.getByTestId(`tile-${aidMove.secondaryFromIndex}`);
+      vi.mocked(document.elementFromPoint).mockReturnValue(toTile);
 
-    fireEvent.click(screen.getByText("Aid Time Zero"));
-    fireEvent.click(screen.getByText("Use Aid"));
+      fireEvent.pointerDown(fromTile, { pointerId: 1, pointerType: "mouse", clientX: 10, clientY: 10 });
+      fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 20 });
+    });
 
-    expect(screen.getByTestId("session-score-eligible")).toHaveTextContent("false");
+    fireEvent.click(screen.getByTestId("abort-button"));
 
-    fireEvent.click(screen.getByText("Next Puzzle"));
-
-    expect(screen.getByTestId("session-score-eligible")).toHaveTextContent("true");
+    expect(onAbort).toHaveBeenCalledTimes(1);
   });
 });

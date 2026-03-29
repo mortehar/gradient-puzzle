@@ -4,7 +4,6 @@ import { COMPLETION_CHECK_DURATION_MS, LOCK_FADE_DURATION_MS, type CompletionCer
 
 export function useCompletionBurst(status: GameState["status"]) {
   const [ceremonyPhase, setCeremonyPhase] = useState<CompletionCeremonyPhase>("idle");
-  const [highlightNewPuzzle, setHighlightNewPuzzle] = useState(false);
   const previousStatusRef = useRef<GameState["status"]>(status);
   const checkmarkTimeoutRef = useRef<number | null>(null);
   const settledTimeoutRef = useRef<number | null>(null);
@@ -17,14 +16,12 @@ export function useCompletionBurst(status: GameState["status"]) {
       if (status !== "solved") {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- ceremony state should reset immediately when leaving solved mode.
         setCeremonyPhase("idle");
-        setHighlightNewPuzzle(false);
       }
 
       return undefined;
     }
 
     setCeremonyPhase("fading-locks");
-    setHighlightNewPuzzle(true);
     checkmarkTimeoutRef.current = window.setTimeout(() => {
       setCeremonyPhase("checkmark");
     }, LOCK_FADE_DURATION_MS);
@@ -45,7 +42,6 @@ export function useCompletionBurst(status: GameState["status"]) {
   }, [status]);
 
   return {
-    ceremonyPhase,
-    highlightNewPuzzle
+    ceremonyPhase
   };
 }

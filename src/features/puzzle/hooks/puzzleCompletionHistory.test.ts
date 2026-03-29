@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  getCompletedPuzzleCountForTier,
   getBestCompletionForPuzzle,
+  getFirstIncompletePuzzleIndex,
   loadCompletionHistory,
   saveCompletion,
   type LocalPuzzleCompletionRecord
 } from "./puzzleCompletionHistory";
+import { getPublishedCatalog } from "../domain";
 
 const STORAGE_KEY = "gradient:puzzle-history:v1";
 
@@ -65,5 +68,50 @@ describe("puzzleCompletionHistory", () => {
     ];
 
     expect(getBestCompletionForPuzzle(records, "v1-puzzle-1", "v1")).toEqual(records[2]);
+  });
+
+  it("counts tier progress using only no-aid completions", () => {
+    const easyPuzzles = getPublishedCatalog("v1").puzzles.filter((puzzle) => puzzle.tier === "Easy").slice(0, 3);
+    const records = [
+      buildRecord({
+        puzzleId: easyPuzzles[0]!.id,
+        sliderIndex: easyPuzzles[0]!.sliderIndex,
+        tier: easyPuzzles[0]!.tier,
+        tierIndex: easyPuzzles[0]!.tierIndex,
+        aidCount: 0
+      }),
+      buildRecord({
+        puzzleId: easyPuzzles[1]!.id,
+        sliderIndex: easyPuzzles[1]!.sliderIndex,
+        tier: easyPuzzles[1]!.tier,
+        tierIndex: easyPuzzles[1]!.tierIndex,
+        aidCount: 1
+      })
+    ];
+
+    expect(getCompletedPuzzleCountForTier(records, easyPuzzles)).toBe(1);
+  });
+
+  it("finds the first incomplete puzzle and falls back to the first puzzle when the tier is complete", () => {
+    const easyPuzzles = getPublishedCatalog("v1").puzzles.filter((puzzle) => puzzle.tier === "Easy").slice(0, 3);
+    const partiallyCompleted = [
+      buildRecord({
+        puzzleId: easyPuzzles[0]!.id,
+        sliderIndex: easyPuzzles[0]!.sliderIndex,
+        tier: easyPuzzles[0]!.tier,
+        tierIndex: easyPuzzles[0]!.tierIndex
+      })
+    ];
+    const fullyCompleted = easyPuzzles.map((puzzle) =>
+      buildRecord({
+        puzzleId: puzzle.id,
+        sliderIndex: puzzle.sliderIndex,
+        tier: puzzle.tier,
+        tierIndex: puzzle.tierIndex
+      })
+    );
+
+    expect(getFirstIncompletePuzzleIndex(partiallyCompleted, easyPuzzles)).toBe(1);
+    expect(getFirstIncompletePuzzleIndex(fullyCompleted, easyPuzzles)).toBe(0);
   });
 });

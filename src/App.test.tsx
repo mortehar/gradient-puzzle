@@ -49,11 +49,31 @@ function findShortestAidSolvePuzzle() {
   return bestMatch;
 }
 
+function openTierFromHome(tierName: string) {
+  fireEvent.click(screen.getByTestId(`home-tier-card-${tierName.toLowerCase()}`));
+
+  if (screen.queryByTestId("home-screen")) {
+    fireEvent.click(screen.getByTestId(`home-tier-card-${tierName.toLowerCase()}`));
+  }
+}
+
+function openPuzzleFromTier(puzzleNumber: number) {
+  fireEvent.click(screen.getByTestId(`tier-puzzle-card-${puzzleNumber}`));
+
+  if (screen.queryByTestId("tier-screen")) {
+    fireEvent.click(screen.getByTestId(`tier-puzzle-card-${puzzleNumber}`));
+  }
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
     window.localStorage.clear();
+    Object.defineProperty(document, "elementFromPoint", {
+      configurable: true,
+      value: vi.fn(() => null)
+    });
   });
 
   afterEach(() => {
@@ -62,122 +82,30 @@ describe("App", () => {
     vi.restoreAllMocks();
   });
 
-  function openAdvancedSettings() {
-    if (!screen.queryByTestId("advanced-settings-panel")) {
-      fireEvent.click(screen.getByTestId("advanced-settings-toggle"));
-    }
-  }
-
-  it("renders the published-puzzle footer and keeps custom controls out of the player UI", () => {
+  it("starts on the home screen and removes the old puzzle controls", () => {
     render(<App />);
 
-    expect(screen.getByTestId("board-footer")).toBeInTheDocument();
-    expect(screen.getByTestId("difficulty-slider")).toHaveValue("0");
-    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #1 (Easy)");
-    expect(screen.getByTestId("new-puzzle-button")).toHaveTextContent("Next");
-    expect(screen.queryByText(/Best:/)).not.toBeInTheDocument();
-    expect(screen.queryByTestId("advanced-settings-panel")).not.toBeInTheDocument();
-
-    openAdvancedSettings();
-
-    expect(screen.getByTestId("advanced-settings-panel")).toBeInTheDocument();
-    expect(screen.queryByTestId("cell-spacing-slider")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("cell-rounding-slider")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("lock-rounding-slider")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("lock-thickness-slider")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("aid-time-slider")).not.toBeInTheDocument();
-    expect(screen.getByText("Catalog")).toBeInTheDocument();
-    expect(screen.getByText("V1")).toBeInTheDocument();
-    expect(screen.queryByTestId("setup-mode-custom")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("width-slider")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("research-panel")).not.toBeInTheDocument();
+    expect(screen.getByTestId("home-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("home-tier-progress-easy")).toHaveTextContent("0/10");
+    expect(screen.queryByTestId("difficulty-slider")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("advanced-settings-toggle")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("aid-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("new-puzzle-button")).not.toBeInTheDocument();
   });
 
-  it("advances to the next published puzzle and updates the slider label", () => {
-    render(<App />);
+  it("opens a tier on its first incomplete puzzle and ignores aided runs in home progress", () => {
+    const catalog = getPublishedCatalog("v1");
+    const easyPuzzles = catalog.puzzles.filter((puzzle) => puzzle.tier === "Easy");
 
-    fireEvent.click(screen.getByTestId("new-puzzle-button"));
-
-    expect(screen.getByTestId("difficulty-slider")).toHaveValue("1");
-    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #2 (Easy)");
-  });
-
-  it("loads a new published puzzle immediately when the slider moves", () => {
-    render(<App />);
-
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    act(() => {
-      vi.advanceTimersByTime(920);
-    });
-
-    expect(screen.getByTestId("aid-button")).not.toBeDisabled();
-
-    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "10" } });
-
-    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #1 (Medium)");
-    expect(screen.getByTestId("aid-button")).toBeDisabled();
-    expect(screen.queryByTestId("scramble-overlay")).not.toBeInTheDocument();
-    expect(screen.getByTestId("puzzle-board")).toHaveClass("board-no-motion");
-  });
-
-  it("keeps the board flush and removes all cell appearance controls from advanced settings", () => {
-    render(<App />);
-
-    openAdvancedSettings();
-
-    const board = screen.getByTestId("puzzle-board");
-
-    expect(board).not.toHaveStyle("--tile-gap: 12px");
-    expect(board).not.toHaveStyle("--tile-radius: 3px");
-    expect(board).not.toHaveStyle("--tile-inner-radius: 5px");
-    expect(board).not.toHaveStyle("--tile-lock-width: 6px");
-    expect(screen.queryByTestId("aid-time-slider")).not.toBeInTheDocument();
-  });
-
-  it("disables Next on the final published puzzle", () => {
-    render(<App />);
-
-    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: "49" } });
-
-    expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #10 (Master)");
-    expect(screen.getByTestId("new-puzzle-button")).toBeDisabled();
-  });
-
-  it("counts aids toward swaps and shows the staged aid overlays", () => {
-    render(<App />);
-
-    expect(screen.getByTestId("aid-button")).toBeDisabled();
-
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
-
-    fireEvent.click(screen.getByTestId("aid-button"));
-
-    expect(screen.getByTestId("aid-button")).toBeDisabled();
-    expect(screen.getByText("MOVES: 1")).toBeInTheDocument();
-    expect(screen.getByText("(1 aids used)")).toBeInTheDocument();
-    expect(screen.getByText("Score ineligible")).toBeInTheDocument();
-    expect(screen.queryByText("Best: 1")).not.toBeInTheDocument();
-    expect(screen.getByTestId("aid-primary-overlay")).toBeInTheDocument();
-    expect(screen.getByTestId("aid-secondary-overlay")).toBeInTheDocument();
-  });
-
-  it("shows the stored best move count for the active puzzle when an eligible score exists", () => {
     window.localStorage.setItem(
       "gradient:puzzle-history:v1",
       JSON.stringify({
         version: 1,
         completions: [
           {
-            puzzleId: "v1/easy/1",
+            puzzleId: easyPuzzles[0]!.id,
             catalogVersion: "v1",
-            sliderIndex: 0,
+            sliderIndex: easyPuzzles[0]!.sliderIndex,
             tier: "Easy",
             tierIndex: 1,
             moveCount: 7,
@@ -185,6 +113,30 @@ describe("App", () => {
             startedAt: 1_000,
             completedAt: 8_000,
             solveDurationMs: 7_000
+          },
+          {
+            puzzleId: easyPuzzles[1]!.id,
+            catalogVersion: "v1",
+            sliderIndex: easyPuzzles[1]!.sliderIndex,
+            tier: "Easy",
+            tierIndex: 2,
+            moveCount: 8,
+            aidCount: 0,
+            startedAt: 2_000,
+            completedAt: 9_000,
+            solveDurationMs: 7_000
+          },
+          {
+            puzzleId: easyPuzzles[2]!.id,
+            catalogVersion: "v1",
+            sliderIndex: easyPuzzles[2]!.sliderIndex,
+            tier: "Easy",
+            tierIndex: 3,
+            moveCount: 9,
+            aidCount: 1,
+            startedAt: 3_000,
+            completedAt: 11_000,
+            solveDurationMs: 8_000
           }
         ]
       })
@@ -192,15 +144,56 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(screen.getByText("Best: 7")).toBeInTheDocument();
+    expect(screen.getByTestId("home-tier-progress-easy")).toHaveTextContent("2/10");
+
+    openTierFromHome("easy");
+
+    expect(screen.getByTestId("tier-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("tier-number-label-3")).toHaveClass("tier-number-label-active");
   });
 
-  it("fades the lock squares for one second before showing the completion checkmark", () => {
+  it("returns from a tier to the home screen and keeps the selected tier visible", () => {
+    render(<App />);
+
+    openTierFromHome("medium");
+
+    expect(screen.getByText("Medium")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("tier-back-button"));
+
+    expect(screen.getByTestId("home-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("home-tier-card-medium")).toHaveClass("tier-card-active");
+  });
+
+  it("opens a puzzle from the tier screen and aborts back to the same puzzle card after a two-second hold", () => {
+    render(<App />);
+
+    openTierFromHome("easy");
+    openPuzzleFromTier(5);
+
+    expect(screen.getByTestId("puzzle-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("abort-control")).toBeInTheDocument();
+    expect(screen.queryByTestId("aid-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("new-puzzle-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("difficulty-slider")).not.toBeInTheDocument();
+
+    fireEvent.pointerDown(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByTestId("tier-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("tier-number-label-5")).toHaveClass("tier-number-label-active");
+  });
+
+  it("preserves the solve ceremony on the puzzle screen", () => {
     const { puzzle, plan } = findShortestAidSolvePuzzle();
 
     render(<App />);
 
-    fireEvent.change(screen.getByTestId("difficulty-slider"), { target: { value: String(puzzle.sliderIndex) } });
+    openTierFromHome(puzzle.tier);
+    openPuzzleFromTier(puzzle.tierIndex);
 
     act(() => {
       vi.advanceTimersByTime(2000);
@@ -209,26 +202,20 @@ describe("App", () => {
       vi.advanceTimersByTime(1000);
     });
 
-    plan.forEach(() => {
-      fireEvent.click(screen.getByTestId("aid-button"));
+    plan.forEach((aidMove) => {
+      const fromTile = screen.getByTestId(`tile-${aidMove.primaryFromIndex}`);
+      const toTile = screen.getByTestId(`tile-${aidMove.secondaryFromIndex}`);
+      vi.mocked(document.elementFromPoint).mockReturnValue(toTile);
 
-      act(() => {
-        vi.advanceTimersByTime(1000);
-      });
+      fireEvent.pointerDown(fromTile, { pointerId: 1, pointerType: "mouse", clientX: 10, clientY: 10 });
+      fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 20 });
     });
 
     expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "fading-locks");
     expect(screen.queryByTestId("completion-checkmark")).not.toBeInTheDocument();
-    expect(screen.getByTestId("new-puzzle-button")).toHaveClass("new-button-celebrating");
 
     act(() => {
-      vi.advanceTimersByTime(999);
-    });
-
-    expect(screen.queryByTestId("completion-checkmark")).not.toBeInTheDocument();
-
-    act(() => {
-      vi.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1000);
     });
 
     expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "checkmark");
@@ -237,6 +224,9 @@ describe("App", () => {
 
   it("prevents native context-menu selection on the puzzle board", () => {
     render(<App />);
+
+    openTierFromHome("easy");
+    openPuzzleFromTier(1);
 
     const board = screen.getByTestId("puzzle-board");
     const event = createEvent.contextMenu(board);

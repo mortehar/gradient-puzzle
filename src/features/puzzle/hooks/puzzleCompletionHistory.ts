@@ -1,4 +1,5 @@
 import type { CatalogVersion } from "../domain";
+import type { PublishedPuzzle } from "../domain";
 
 const STORAGE_KEY = "gradient:puzzle-history:v1";
 const STORAGE_VERSION = 1;
@@ -107,13 +108,17 @@ export function saveCompletion(record: LocalPuzzleCompletionRecord): void {
   writeHistoryDocument([...existingCompletions, record]);
 }
 
+export function isEligibleCompletion(record: LocalPuzzleCompletionRecord): boolean {
+  return record.aidCount === 0;
+}
+
 export function getBestCompletionForPuzzle(
   records: readonly LocalPuzzleCompletionRecord[],
   puzzleId: string,
   catalogVersion: CatalogVersion
 ): LocalPuzzleCompletionRecord | null {
   const eligibleCompletions = records.filter(
-    (record) => record.puzzleId === puzzleId && record.catalogVersion === catalogVersion && record.aidCount === 0
+    (record) => record.puzzleId === puzzleId && record.catalogVersion === catalogVersion && isEligibleCompletion(record)
   );
 
   if (eligibleCompletions.length === 0) {
@@ -121,4 +126,32 @@ export function getBestCompletionForPuzzle(
   }
 
   return [...eligibleCompletions].sort(compareCompletions)[0] ?? null;
+}
+
+export function hasEligibleCompletionForPuzzle(
+  records: readonly LocalPuzzleCompletionRecord[],
+  puzzleId: string,
+  catalogVersion: CatalogVersion
+): boolean {
+  return records.some(
+    (record) => record.puzzleId === puzzleId && record.catalogVersion === catalogVersion && isEligibleCompletion(record)
+  );
+}
+
+export function getCompletedPuzzleCountForTier(
+  records: readonly LocalPuzzleCompletionRecord[],
+  puzzles: readonly PublishedPuzzle[]
+): number {
+  return puzzles.filter((puzzle) => hasEligibleCompletionForPuzzle(records, puzzle.id, puzzle.catalogVersion)).length;
+}
+
+export function getFirstIncompletePuzzleIndex(
+  records: readonly LocalPuzzleCompletionRecord[],
+  puzzles: readonly PublishedPuzzle[]
+): number {
+  const firstIncompleteIndex = puzzles.findIndex(
+    (puzzle) => !hasEligibleCompletionForPuzzle(records, puzzle.id, puzzle.catalogVersion)
+  );
+
+  return firstIncompleteIndex === -1 ? 0 : firstIncompleteIndex;
 }
