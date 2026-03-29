@@ -28,6 +28,8 @@ node -v
 - Keep `src/game.ts` and `src/colorAnalysis.ts` pure and framework-agnostic.
 - Keep `src/App.tsx` tiny. Do not move orchestration back into it.
 - Prefer adding feature behavior to `usePuzzleSession` and presentation changes to `ui/` components.
+- For locked-cell visuals, keep square-frame geometry centralized in [`src/features/puzzle/ui/boardPresentation.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/ui/boardPresentation.ts) and consume the shared `--tile-lock-*` CSS variables instead of hardcoding radii or insets inside individual variants.
+- Lock-square corner rounding must scale consistently across home previews, tier previews, and the live board. Prefer percentage-based shared radius tokens over per-variant pixel radii.
 - Preserve current gameplay unless the task explicitly changes behavior.
 - When changing gameplay, generator behavior, difficulty logic, or research heuristics, update docs as part of the same task.
 

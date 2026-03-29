@@ -65,6 +65,8 @@ function openPuzzleFromTier(puzzleNumber: number) {
   }
 }
 
+const BROWSER_PREFERENCES_STORAGE_KEY = "gradient:browser-preferences:v1";
+
 describe("App", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -174,7 +176,7 @@ describe("App", () => {
     fireEvent.click(screen.getByTestId("browser-settings-button"));
 
     expect(screen.getByTestId("browser-settings-menu")).toBeInTheDocument();
-    expect(screen.getByRole("dialog", { name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Locked cell themes" })).toBeInTheDocument();
 
     openTierFromHome("easy");
 
@@ -191,6 +193,70 @@ describe("App", () => {
     expect(screen.getByTestId("puzzle-screen")).toBeInTheDocument();
     expect(screen.queryByTestId("browser-settings-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("browser-settings-menu")).not.toBeInTheDocument();
+  });
+
+  it("lets you switch locked-cell styles and carries the choice into previews and play", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByTestId("browser-settings-button"));
+
+    expect(screen.getByTestId("lock-style-option-frame")).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByTestId("lock-style-option-mounted")).toBeInTheDocument();
+    expect(screen.getByTestId("lock-style-option-frosted")).toBeInTheDocument();
+    expect(screen.getByTestId("lock-style-option-texture")).toBeInTheDocument();
+    expect(screen.getByTestId("lock-style-option-icon")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("lock-style-option-mounted"));
+
+    expect(screen.getByTestId("lock-style-option-mounted")).toHaveAttribute("aria-checked", "true");
+    expect(JSON.parse(window.localStorage.getItem(BROWSER_PREFERENCES_STORAGE_KEY) ?? "null")).toMatchObject({
+      version: 1,
+      lockedTileStyle: "mounted"
+    });
+
+    openTierFromHome("easy");
+
+    expect(screen.getByTestId("tier-active-preview")).toHaveAttribute("data-locked-tile-style", "mounted");
+
+    openPuzzleFromTier(1);
+
+    expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-locked-tile-style", "mounted");
+  });
+
+  it("restores the saved locked-cell style from local storage", () => {
+    window.localStorage.setItem(
+      BROWSER_PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        lockedTileStyle: "icon"
+      })
+    );
+
+    render(<App />);
+
+    fireEvent.click(screen.getByTestId("browser-settings-button"));
+
+    expect(screen.getByTestId("lock-style-option-icon")).toHaveAttribute("aria-checked", "true");
+
+    openTierFromHome("easy");
+
+    expect(screen.getByTestId("tier-active-preview")).toHaveAttribute("data-locked-tile-style", "icon");
+  });
+
+  it("falls back to the default style when an old removed style is stored", () => {
+    window.localStorage.setItem(
+      BROWSER_PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        lockedTileStyle: "corners"
+      })
+    );
+
+    render(<App />);
+
+    fireEvent.click(screen.getByTestId("browser-settings-button"));
+
+    expect(screen.getByTestId("lock-style-option-frame")).toHaveAttribute("aria-checked", "true");
   });
 
   it("opens a puzzle from the tier screen and aborts back to the same puzzle card after a two-second hold", () => {

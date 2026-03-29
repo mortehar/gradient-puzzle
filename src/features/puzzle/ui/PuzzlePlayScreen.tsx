@@ -5,15 +5,23 @@ import { HoldToAbortButton, type AbortHoldState } from "./HoldToAbortButton";
 import { usePuzzleSession } from "../hooks/usePuzzleSession";
 import type { LocalPuzzleCompletionRecord } from "../hooks/puzzleCompletionHistory";
 import type { Tile } from "../domain";
+import type { LockedTileStyle } from "./lockedTileStyles";
 
 type PuzzlePlayScreenProps = {
   puzzle: PublishedPuzzle;
   completionHistory: readonly LocalPuzzleCompletionRecord[];
+  lockedTileStyle: LockedTileStyle;
   onRecordCompletion: (record: LocalPuzzleCompletionRecord) => void;
   onAbort: () => void;
 };
 
-export function PuzzlePlayScreen({ puzzle, completionHistory, onRecordCompletion, onAbort }: PuzzlePlayScreenProps) {
+export function PuzzlePlayScreen({
+  puzzle,
+  completionHistory,
+  lockedTileStyle,
+  onRecordCompletion,
+  onAbort
+}: PuzzlePlayScreenProps) {
   const session = usePuzzleSession({
     puzzle,
     completionHistory,
@@ -37,6 +45,7 @@ export function PuzzlePlayScreen({ puzzle, completionHistory, onRecordCompletion
             game={session.game}
             previewConfig={session.previewConfig}
             orderedTiles={session.orderedTiles}
+            lockedTileStyle={lockedTileStyle}
             transitionMode={session.transitionMode}
             activeScrambleFlip={session.activeScrambleFlip}
             completionCeremonyPhase={session.completionCeremonyPhase}

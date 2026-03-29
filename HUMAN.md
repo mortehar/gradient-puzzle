@@ -25,6 +25,7 @@ This file is for the human operator of this repo: how to get the best results fr
   - pure domain in `src/game.ts` and `src/colorAnalysis.ts`
   - feature orchestration in `src/features/puzzle/hooks`
   - rendering in `src/features/puzzle/ui`
+- For locked-cell styling work, ask Codex to keep frame geometry centralized in `src/features/puzzle/ui/boardPresentation.ts` so radius and inset scaling stay consistent across previews and the live board.
 - Encourage narrow write scopes. Good ask: “Own `src/features/puzzle/ui` only and don’t touch domain logic.”
 - Ask for verification using `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`.
 

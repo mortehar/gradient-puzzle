@@ -11,6 +11,7 @@ import {
 } from "../domain";
 import { PuzzleBoard } from "../ui/PuzzleBoard";
 import { PuzzlePlayScreen } from "../ui/PuzzlePlayScreen";
+import { DEFAULT_LOCKED_TILE_STYLE } from "../ui/lockedTileStyles";
 import { usePuzzleSession } from "./usePuzzleSession";
 import type { LocalPuzzleCompletionRecord } from "./puzzleCompletionHistory";
 
@@ -88,6 +89,7 @@ function SessionHarness({
         game={session.game}
         previewConfig={session.previewConfig}
         orderedTiles={session.orderedTiles}
+        lockedTileStyle={DEFAULT_LOCKED_TILE_STYLE}
         transitionMode={session.transitionMode}
         activeScrambleFlip={session.activeScrambleFlip}
         completionCeremonyPhase={session.completionCeremonyPhase}
@@ -212,6 +214,7 @@ describe("usePuzzleSession", () => {
       <PuzzlePlayScreen
         puzzle={getPublishedCatalog("v1").puzzles[0]!}
         completionHistory={[]}
+        lockedTileStyle={DEFAULT_LOCKED_TILE_STYLE}
         onRecordCompletion={vi.fn()}
         onAbort={onAbort}
       />
@@ -244,6 +247,7 @@ describe("usePuzzleSession", () => {
       <PuzzlePlayScreen
         puzzle={getPublishedCatalog("v1").puzzles[0]!}
         completionHistory={[]}
+        lockedTileStyle={DEFAULT_LOCKED_TILE_STYLE}
         onRecordCompletion={vi.fn()}
         onAbort={onAbort}
       />
@@ -266,6 +270,7 @@ describe("usePuzzleSession", () => {
       <PuzzlePlayScreen
         puzzle={puzzle}
         completionHistory={[]}
+        lockedTileStyle={DEFAULT_LOCKED_TILE_STYLE}
         onRecordCompletion={vi.fn()}
         onAbort={onAbort}
       />

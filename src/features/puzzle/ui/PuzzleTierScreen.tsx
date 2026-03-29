@@ -4,11 +4,14 @@ import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
 import { BackSymbolButton } from "./BackSymbolButton";
 import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
+import type { LockedTileStyle } from "./lockedTileStyles";
 
 type PuzzleTierScreenProps = {
   tier: TierSummary;
   isSettingsOpen: boolean;
+  lockedTileStyle: LockedTileStyle;
   onSelectPuzzle: (index: number) => void;
+  onLockedTileStyleChange: (value: LockedTileStyle) => void;
   onToggleSettings: () => void;
   onCloseSettings: () => void;
   onOpenPuzzle: (index: number) => void;
@@ -18,7 +21,9 @@ type PuzzleTierScreenProps = {
 export function PuzzleTierScreen({
   tier,
   isSettingsOpen,
+  lockedTileStyle,
   onSelectPuzzle,
+  onLockedTileStyleChange,
   onToggleSettings,
   onCloseSettings,
   onOpenPuzzle,
@@ -63,7 +68,9 @@ export function PuzzleTierScreen({
     <section className="browser-screen screen-panel" data-testid="tier-screen">
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
+        lockedTileStyle={lockedTileStyle}
         onToggleSettings={onToggleSettings}
+        onLockedTileStyleChange={onLockedTileStyleChange}
         onCloseSettings={onCloseSettings}
       />
 
@@ -121,6 +128,7 @@ export function PuzzleTierScreen({
               <StaticPuzzlePreview
                 puzzle={puzzle}
                 size="large"
+                lockedTileStyle={lockedTileStyle}
                 testId={index === tier.selectedPuzzleIndex ? "tier-active-preview" : undefined}
               />
             </button>

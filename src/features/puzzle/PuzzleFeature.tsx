@@ -15,7 +15,9 @@ export function PuzzleFeature() {
           tiers={browser.tiers}
           selectedTierIndex={browser.selectedTierIndex}
           isSettingsOpen={openSettingsScreen === "home"}
+          lockedTileStyle={browser.preferences.lockedTileStyle}
           onSelectTier={browser.actions.setHomeTierIndex}
+          onLockedTileStyleChange={browser.actions.setLockedTileStyle}
           onToggleSettings={() => setOpenSettingsScreen((currentValue) => (currentValue === "home" ? null : "home"))}
           onCloseSettings={() => setOpenSettingsScreen(null)}
           onOpenTier={browser.actions.openTier}
@@ -26,7 +28,9 @@ export function PuzzleFeature() {
         <PuzzleTierScreen
           tier={browser.activeTier}
           isSettingsOpen={openSettingsScreen === "tier"}
+          lockedTileStyle={browser.preferences.lockedTileStyle}
           onSelectPuzzle={browser.actions.setTierPuzzleIndex}
+          onLockedTileStyleChange={browser.actions.setLockedTileStyle}
           onToggleSettings={() => setOpenSettingsScreen((currentValue) => (currentValue === "tier" ? null : "tier"))}
           onCloseSettings={() => setOpenSettingsScreen(null)}
           onOpenPuzzle={browser.actions.openPuzzle}
@@ -39,6 +43,7 @@ export function PuzzleFeature() {
           key={browser.activePuzzle.id}
           puzzle={browser.activePuzzle}
           completionHistory={browser.completionHistory}
+          lockedTileStyle={browser.preferences.lockedTileStyle}
           onRecordCompletion={browser.actions.recordCompletion}
           onAbort={browser.actions.returnToTier}
         />

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { getPublishedCatalog, type DifficultyTier, type PublishedPuzzle } from "../domain";
+import { loadBrowserPreferences, saveBrowserPreferences, type BrowserPreferences } from "./browserPreferences";
 import {
   getBestCompletionForPuzzle,
   getCompletedPuzzleCountForTier,
@@ -61,6 +62,7 @@ const TIER_CATALOG = buildTierCatalog();
 export function usePublishedPuzzleBrowser() {
   const [screen, setScreen] = useState<BrowserScreen>("home");
   const [selectedTierIndex, setSelectedTierIndex] = useState(0);
+  const [preferences, setPreferences] = useState<BrowserPreferences>(() => loadBrowserPreferences());
   const [completionHistory, setCompletionHistory] = useState<LocalPuzzleCompletionRecord[]>(() => loadCompletionHistory());
   const [selectedPuzzleIndexByTier, setSelectedPuzzleIndexByTier] = useState(() =>
     TIER_CATALOG.map((tier) => getFirstIncompletePuzzleIndex(completionHistory, tier.puzzles))
@@ -145,11 +147,24 @@ export function usePublishedPuzzleBrowser() {
     setCompletionHistory((currentHistory) => [...currentHistory, record]);
   }
 
+  function setLockedTileStyle(lockedTileStyle: BrowserPreferences["lockedTileStyle"]) {
+    setPreferences((currentPreferences) => {
+      const nextPreferences = {
+        ...currentPreferences,
+        lockedTileStyle
+      };
+
+      saveBrowserPreferences(nextPreferences);
+      return nextPreferences;
+    });
+  }
+
   return {
     screen,
     tiers,
     activeTier,
     activePuzzle,
+    preferences,
     selectedTierIndex,
     completionHistory,
     actions: {
@@ -159,7 +174,8 @@ export function usePublishedPuzzleBrowser() {
       openPuzzle,
       returnToHome,
       returnToTier,
-      recordCompletion
+      recordCompletion,
+      setLockedTileStyle
     }
   };
 }

@@ -207,7 +207,10 @@ input[type="range"]::-moz-range-thumb {
   top: calc(100% + 0.75rem);
   right: 0;
   z-index: 4;
-  width: min(22rem, calc(100vw - 4rem));
+  width: min(22rem, calc(100vw - 1.5rem));
+  max-height: min(78vh, 42rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1.25rem;
 }
 
@@ -215,6 +218,80 @@ input[type="range"]::-moz-range-thumb {
   margin: 0;
   color: rgba(248, 241, 231, 0.82);
   line-height: 1.5;
+}
+
+.lock-style-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.lock-style-option {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 0.8rem;
+  font: inherit;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.1), transparent 55%),
+    rgba(255, 255, 255, 0.04);
+  color: rgba(248, 241, 231, 0.9);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.lock-style-option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 58%),
+    rgba(255, 255, 255, 0.06);
+}
+
+.lock-style-option-active {
+  border-color: rgba(255, 204, 111, 0.34);
+  background:
+    radial-gradient(circle at top, rgba(255, 204, 111, 0.12), transparent 58%),
+    rgba(255, 204, 111, 0.08);
+}
+
+.lock-style-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.lock-style-preview-swatch {
+  position: relative;
+  aspect-ratio: 1;
+  --tile-lock-width: clamp(1px, 0.14rem, 1.75px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.lock-style-option-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.lock-style-option-copy {
+  color: rgba(248, 241, 231, 0.74);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+@media (min-width: 960px) {
+  .lock-style-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .browser-settings-menu {
+    width: min(31rem, calc(100vw - 2rem));
+  }
 }
 
 .home-tier-title-row {
@@ -583,9 +660,6 @@ input[type="range"]::-moz-range-thumb {
   overflow: hidden;
   touch-action: none;
   isolation: isolate;
-  --tile-lock-inset: 14%;
-  --tile-lock-width: 5px;
-  --tile-lock-radius: 12px;
   --tile-motion-duration: 180ms;
   --tile-motion-easing: ease;
   --scramble-flip-duration: 1000ms;
@@ -593,7 +667,9 @@ input[type="range"]::-moz-range-thumb {
 
 .board,
 .tile,
-.tile::after,
+.tile-lock-art,
+.tile-lock-art::before,
+.tile-lock-art::after,
 .scramble-overlay,
 .completion-checkmark,
 .drag-preview {
@@ -605,7 +681,10 @@ input[type="range"]::-moz-range-thumb {
 .tile {
   position: absolute;
   border: 0;
+  padding: 0;
   border-radius: 0;
+  overflow: hidden;
+  appearance: none;
   cursor: grab;
   box-shadow: none;
   -webkit-user-drag: none;
@@ -647,19 +726,107 @@ input[type="range"]::-moz-range-thumb {
   cursor: default;
 }
 
-.tile-locked::after {
-  content: "";
+.tile-lock-art {
   position: absolute;
-  inset: var(--tile-lock-inset);
-  border-radius: var(--tile-lock-radius);
-  border: var(--tile-lock-width) solid rgba(255, 255, 255, 0.72);
-  box-sizing: border-box;
+  inset: 0;
+  pointer-events: none;
   opacity: 1;
   transition: opacity 1000ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.tile-lock-frame-hidden::after {
+.tile-lock-art::before,
+.tile-lock-art::after {
+  content: "";
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.tile-lock-frame-hidden .tile-lock-art {
   opacity: 0;
+}
+
+.tile-lock-art-frame::before {
+  inset: var(--tile-lock-inset);
+  border-radius: var(--tile-lock-radius);
+  border: var(--tile-lock-width) solid rgba(255, 255, 255, 0.72);
+}
+
+.tile-lock-art-mounted::before {
+  inset: var(--tile-lock-inset);
+  border-radius: var(--tile-lock-radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 72%);
+  box-shadow:
+    inset 0 1px 0 var(--tile-lock-gloss),
+    inset 0 0 0 1px var(--tile-lock-soft-ink),
+    inset 0 -10px 16px rgba(6, 10, 18, 0.08),
+    0 10px 18px -16px rgba(5, 8, 14, 0.6);
+}
+
+.tile-lock-art-mounted::after {
+  inset: var(--tile-lock-secondary-inset);
+  border-radius: var(--tile-lock-radius);
+  box-shadow: inset 0 0 0 1px var(--tile-lock-soft-ink);
+  opacity: 0.4;
+}
+
+.tile-lock-art-frosted::before {
+  inset: var(--tile-lock-inset);
+  border-radius: var(--tile-lock-radius);
+  border: 1px solid var(--tile-lock-frost-edge);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 34%),
+    linear-gradient(180deg, var(--tile-lock-frost), rgba(255, 255, 255, 0.04));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 8px 18px -16px rgba(10, 14, 22, 0.6);
+  backdrop-filter: blur(8px) saturate(0.78);
+}
+
+.tile-lock-art-frosted::after {
+  inset: var(--tile-lock-secondary-inset);
+  border-radius: var(--tile-lock-radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 75%);
+  opacity: 0.65;
+}
+
+.tile-lock-art-texture::before {
+  inset: var(--tile-lock-inset);
+  border-radius: var(--tile-lock-radius);
+  border: 1px solid var(--tile-lock-soft-ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 52%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.14) 0 2px,
+      rgba(255, 255, 255, 0) 2px 7px
+    );
+  opacity: 0.5;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.tile-lock-art-icon::before,
+.tile-lock-art-icon::after {
+  content: none;
+}
+
+.tile-lock-glyph {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  height: 34%;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 1px 1px var(--tile-lock-shadow));
+}
+
+.tile-lock-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: var(--tile-lock-fill);
+  stroke: var(--tile-lock-icon-stroke);
+  stroke-width: 0.65;
+  paint-order: stroke fill;
 }
 
 .tile-dragging {
@@ -764,7 +931,7 @@ input[type="range"]::-moz-range-thumb {
 .board-preview-small {
   max-width: 100%;
   --tile-lock-inset: 20%;
-  --tile-lock-width: clamp(1px, 0.18vw, 1.6px);
+  --tile-lock-width: clamp(0.9px, 0.14vw, 1.3px);
   --tile-lock-radius: 10%;
   filter: saturate(0.76) brightness(0.84);
   opacity: 0.9;
@@ -773,7 +940,7 @@ input[type="range"]::-moz-range-thumb {
 .board-preview-large {
   max-width: 620px;
   --tile-lock-inset: 16%;
-  --tile-lock-width: clamp(1.25px, 0.24vw, 2.5px);
+  --tile-lock-width: clamp(1px, 0.18vw, 1.85px);
   --tile-lock-radius: 8%;
 }
 
@@ -1153,7 +1320,11 @@ input[type="range"]::-moz-range-thumb {
   }
 
   .browser-settings-menu {
-    width: min(100%, 18rem);
+    width: min(100%, 26rem);
+  }
+
+  .lock-style-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .home-carousel {

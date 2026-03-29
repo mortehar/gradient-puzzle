@@ -18,6 +18,7 @@ The board now sits inside a fixed portrait frame so the surrounding browser scre
 
 1. Open the home screen and scroll horizontally through the published difficulty tiers.
 2. Use the top-right menu button on the home or tier screen whenever you need browser-level settings.
+   The browser settings menu now includes a locked-cell style chooser, so you can compare multiple visual treatments before opening a puzzle.
 3. Choose a tier card to enter the tier screen.
 4. Swipe through the tier's puzzles in order and pick one to start.
 5. Study the solved board during the preview phase.

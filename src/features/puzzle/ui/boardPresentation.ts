@@ -14,6 +14,11 @@ export const RESEARCH_SAMPLE_COUNT = 24;
 export const DEFAULT_DIFFICULTY_TARGET = 10;
 export const FIXED_BOARD_FRAME_ASPECT_RATIO = "5 / 7";
 export const TILE_OVERDRAW_PX = 1;
+// Keep lock-frame geometry here so previews and the live board share identical scaling.
+export const LOCK_FRAME_INSET = "14%";
+export const LOCK_FRAME_SECONDARY_INSET = "22%";
+export const LOCK_FRAME_RADIUS = "16%";
+export const LOCK_FRAME_WIDTH = "clamp(2px, 0.62vw, 4px)";
 
 export type TransitionMode = "none" | "quick" | "cinematic";
 
@@ -86,6 +91,10 @@ export function getBoardStyle(gameState: GameState, _previewConfig: GameConfig, 
   return {
     "--board-columns": gameState.config.width,
     "--board-rows": gameState.config.height,
+    "--tile-lock-inset": LOCK_FRAME_INSET,
+    "--tile-lock-secondary-inset": LOCK_FRAME_SECONDARY_INSET,
+    "--tile-lock-radius": LOCK_FRAME_RADIUS,
+    "--tile-lock-width": LOCK_FRAME_WIDTH,
     "--tile-motion-duration":
       transitionMode === "cinematic" ? `${SCRAMBLE_DURATION_MS}ms` : `${MANUAL_MOVE_DURATION_MS}ms`,
     "--tile-motion-easing": transitionMode === "cinematic" ? CINEMATIC_EASING : QUICK_EASING,

@@ -2,11 +2,13 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from
 import type { CompletionCeremonyPhase, PointerPosition, ScrambleFlipTile, TransitionMode } from "./boardPresentation";
 import { getBoardStyle, getTileLayoutStyle } from "./boardPresentation";
 import type { GameConfig, GameState, Tile } from "../domain";
+import { LockedTileAdornment, type LockedTileStyle } from "./lockedTileStyles";
 
 type PuzzleBoardProps = {
   game: GameState;
   previewConfig: GameConfig;
   orderedTiles: Tile[];
+  lockedTileStyle: LockedTileStyle;
   transitionMode: TransitionMode;
   activeScrambleFlip: ScrambleFlipTile[] | null;
   completionCeremonyPhase: CompletionCeremonyPhase;
@@ -21,6 +23,7 @@ export function PuzzleBoard({
   game,
   previewConfig,
   orderedTiles,
+  lockedTileStyle,
   transitionMode,
   activeScrambleFlip,
   completionCeremonyPhase,
@@ -41,6 +44,7 @@ export function PuzzleBoard({
       aria-label="Gradient puzzle board"
       role="grid"
       data-testid="puzzle-board"
+      data-locked-tile-style={lockedTileStyle}
       data-ceremony-phase={completionCeremonyPhase}
       style={getBoardStyle(game, previewConfig, transitionMode)}
       onContextMenu={(event) => event.preventDefault()}
@@ -69,7 +73,9 @@ export function PuzzleBoard({
             data-current-index={tile.currentIndex}
             data-testid={`tile-${tile.currentIndex}`}
             onPointerDown={(event) => onTilePointerDown(tile, event)}
-          />
+          >
+            {tile.locked ? <LockedTileAdornment lockedTileStyle={lockedTileStyle} tileColor={tile.color} /> : null}
+          </button>
         );
       })}
 

@@ -3,12 +3,15 @@ import { useSnapCarousel } from "../hooks/useSnapCarousel";
 import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
 import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
+import type { LockedTileStyle } from "./lockedTileStyles";
 
 type PuzzleHomeScreenProps = {
   tiers: readonly TierSummary[];
   selectedTierIndex: number;
   isSettingsOpen: boolean;
+  lockedTileStyle: LockedTileStyle;
   onSelectTier: (index: number) => void;
+  onLockedTileStyleChange: (value: LockedTileStyle) => void;
   onToggleSettings: () => void;
   onCloseSettings: () => void;
   onOpenTier: (index: number) => void;
@@ -18,7 +21,9 @@ export function PuzzleHomeScreen({
   tiers,
   selectedTierIndex,
   isSettingsOpen,
+  lockedTileStyle,
   onSelectTier,
+  onLockedTileStyleChange,
   onToggleSettings,
   onCloseSettings,
   onOpenTier
@@ -62,7 +67,9 @@ export function PuzzleHomeScreen({
     <section className="browser-screen screen-panel" data-testid="home-screen">
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
+        lockedTileStyle={lockedTileStyle}
         onToggleSettings={onToggleSettings}
+        onLockedTileStyleChange={onLockedTileStyleChange}
         onCloseSettings={onCloseSettings}
       />
 
@@ -115,7 +122,7 @@ export function PuzzleHomeScreen({
             >
               <div className="tier-preview-grid" data-testid={`home-tier-preview-${tier.tier.toLowerCase()}`}>
                 {tier.previewPuzzles.map(({ puzzle }) => (
-                  <StaticPuzzlePreview key={puzzle.id} puzzle={puzzle} size="small" />
+                  <StaticPuzzlePreview key={puzzle.id} puzzle={puzzle} size="small" lockedTileStyle={lockedTileStyle} />
                 ))}
               </div>
               <p className="browser-meta" data-testid={`home-tier-progress-${tier.tier.toLowerCase()}`}>

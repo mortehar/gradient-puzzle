@@ -1,15 +1,20 @@
 import { useEffect, useRef } from "react";
 import { BrowserSettingsMenu } from "./BrowserSettingsMenu";
+import type { LockedTileStyle } from "./lockedTileStyles";
 
 type BrowserScreenTopRowProps = {
   isSettingsOpen: boolean;
+  lockedTileStyle: LockedTileStyle;
   onToggleSettings: () => void;
+  onLockedTileStyleChange: (value: LockedTileStyle) => void;
   onCloseSettings: () => void;
 };
 
 export function BrowserScreenTopRow({
   isSettingsOpen,
+  lockedTileStyle,
   onToggleSettings,
+  onLockedTileStyleChange,
   onCloseSettings
 }: BrowserScreenTopRowProps) {
   const topRowRef = useRef<HTMLDivElement | null>(null);
@@ -60,7 +65,9 @@ export function BrowserScreenTopRow({
         </svg>
       </button>
 
-      {isSettingsOpen ? <BrowserSettingsMenu /> : null}
+      {isSettingsOpen ? (
+        <BrowserSettingsMenu lockedTileStyle={lockedTileStyle} onLockedTileStyleChange={onLockedTileStyleChange} />
+      ) : null}
     </div>
   );
 }
