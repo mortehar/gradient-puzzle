@@ -95,13 +95,16 @@ function SessionHarness({
         activeScrambleFlip={session.activeScrambleFlip}
         completionCeremonyPhase={session.completionCeremonyPhase}
         dragTileId={session.dragTile?.id ?? null}
+        dragTargetIndex={session.dragTargetIndex}
         dragPointerType={session.dragPointerType}
         isInteractive={session.isInteractive}
         onTilePointerDown={handleTilePointerDown}
       />
       <p data-testid="session-status">{session.game.status}</p>
+      <p data-testid="session-swap-count">{session.game.swapCount}</p>
       <p data-testid="session-puzzle-label">{session.currentPuzzleLabel}</p>
       <p data-testid="session-aid-count">{session.game.hintCount}</p>
+      <p data-testid="session-drag-target-index">{session.dragTargetIndex ?? "none"}</p>
       <p data-testid="session-score-eligible">{String(session.isScoreEligible)}</p>
       <p data-testid="session-best-moves">{session.bestCompletion?.moveCount ?? "none"}</p>
       <button type="button" onClick={session.actions.useAid}>
@@ -123,6 +126,31 @@ function SessionHarnessWithHistory({ puzzle }: { puzzle: PublishedPuzzle }) {
       }}
     />
   );
+}
+
+function advanceSessionToPlaying() {
+  act(() => {
+    vi.advanceTimersByTime(2000);
+  });
+  act(() => {
+    vi.advanceTimersByTime(920);
+  });
+}
+
+function getBoardTiles() {
+  const boardTiles = screen.getAllByRole("gridcell") as HTMLButtonElement[];
+  const movableTiles = boardTiles.filter((tile) => !tile.getAttribute("aria-label")?.includes("locked tile"));
+  const lockedTile = boardTiles.find((tile) => tile.getAttribute("aria-label")?.includes("locked tile")) ?? null;
+
+  if (movableTiles.length < 2) {
+    throw new Error("Expected at least two movable tiles on the board.");
+  }
+
+  return {
+    fromTile: movableTiles[0]!,
+    toTile: movableTiles[1]!,
+    lockedTile
+  };
 }
 
 describe("usePuzzleSession", () => {
@@ -165,12 +193,7 @@ describe("usePuzzleSession", () => {
 
     render(<SessionHarnessWithHistory puzzle={puzzle} />);
 
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    act(() => {
-      vi.advanceTimersByTime(920);
-    });
+    advanceSessionToPlaying();
     act(() => {
       vi.advanceTimersByTime(5000);
     });
@@ -192,12 +215,7 @@ describe("usePuzzleSession", () => {
 
     render(<SessionHarnessWithHistory puzzle={puzzle} />);
 
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    act(() => {
-      vi.advanceTimersByTime(920);
-    });
+    advanceSessionToPlaying();
 
     plan.forEach(() => {
       fireEvent.click(screen.getByText("Use Aid"));
@@ -211,6 +229,86 @@ describe("usePuzzleSession", () => {
     expect(screen.getByTestId("session-aid-count")).toHaveTextContent(String(plan.length));
     expect(screen.getByTestId("session-score-eligible")).toHaveTextContent("false");
     expect(screen.getByTestId("session-best-moves")).toHaveTextContent("none");
+  });
+
+  it("highlights the current movable drop target and clears invalid targets during drag", () => {
+    render(<SessionHarness />);
+
+    advanceSessionToPlaying();
+
+    const { fromTile, toTile, lockedTile } = getBoardTiles();
+
+    fireEvent.pointerDown(fromTile, { pointerId: 1, pointerType: "touch", clientX: 10, clientY: 10 });
+
+    vi.mocked(document.elementFromPoint).mockReturnValue(toTile);
+    fireEvent.pointerMove(window, { pointerId: 1, pointerType: "touch", clientX: 20, clientY: 20 });
+
+    expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent(toTile.dataset.currentIndex!);
+    expect(toTile).toHaveClass("tile-drop-target");
+
+    vi.mocked(document.elementFromPoint).mockReturnValue(fromTile);
+    fireEvent.pointerMove(window, { pointerId: 1, pointerType: "touch", clientX: 18, clientY: 18 });
+
+    expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent("none");
+    expect(fromTile).not.toHaveClass("tile-drop-target");
+    expect(toTile).not.toHaveClass("tile-drop-target");
+
+    if (lockedTile) {
+      vi.mocked(document.elementFromPoint).mockReturnValue(lockedTile);
+      fireEvent.pointerMove(window, { pointerId: 1, pointerType: "touch", clientX: 16, clientY: 16 });
+
+      expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent("none");
+      expect(lockedTile).not.toHaveClass("tile-drop-target");
+    }
+
+    vi.mocked(document.elementFromPoint).mockReturnValue(null);
+    fireEvent.pointerMove(window, { pointerId: 1, pointerType: "touch", clientX: 14, clientY: 14 });
+
+    expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent("none");
+  });
+
+  it("clears the live drop target when the drag is cancelled", () => {
+    render(<SessionHarness />);
+
+    advanceSessionToPlaying();
+
+    const { fromTile, toTile } = getBoardTiles();
+
+    fireEvent.pointerDown(fromTile, { pointerId: 1, pointerType: "touch", clientX: 10, clientY: 10 });
+
+    vi.mocked(document.elementFromPoint).mockReturnValue(toTile);
+    fireEvent.pointerMove(window, { pointerId: 1, pointerType: "touch", clientX: 20, clientY: 20 });
+
+    expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent(toTile.dataset.currentIndex!);
+    expect(toTile).toHaveClass("tile-drop-target");
+
+    fireEvent.pointerCancel(window, { pointerId: 1, pointerType: "touch" });
+
+    expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent("none");
+    expect(toTile).not.toHaveClass("tile-drop-target");
+  });
+
+  it("uses the final pointer location for drop validation instead of a stale hover target", () => {
+    render(<SessionHarness />);
+
+    advanceSessionToPlaying();
+
+    const { fromTile, toTile } = getBoardTiles();
+
+    fireEvent.pointerDown(fromTile, { pointerId: 1, pointerType: "touch", clientX: 10, clientY: 10 });
+
+    vi.mocked(document.elementFromPoint).mockReturnValue(toTile);
+    fireEvent.pointerMove(window, { pointerId: 1, pointerType: "touch", clientX: 20, clientY: 20 });
+
+    expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent(toTile.dataset.currentIndex!);
+    expect(toTile).toHaveClass("tile-drop-target");
+
+    vi.mocked(document.elementFromPoint).mockReturnValue(null);
+    fireEvent.pointerUp(window, { pointerId: 1, pointerType: "touch", clientX: 30, clientY: 30 });
+
+    expect(screen.getByTestId("session-swap-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("session-drag-target-index")).toHaveTextContent("none");
+    expect(toTile).not.toHaveClass("tile-drop-target");
   });
 
   it("reads an existing personal best from the provided completion history", () => {
@@ -304,12 +402,7 @@ describe("usePuzzleSession", () => {
       />
     );
 
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    act(() => {
-      vi.advanceTimersByTime(920);
-    });
+    advanceSessionToPlaying();
 
     expect(screen.getByText("Moves: 0")).toBeInTheDocument();
 
@@ -379,12 +472,7 @@ describe("usePuzzleSession", () => {
       />
     );
 
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    act(() => {
-      vi.advanceTimersByTime(920);
-    });
+    advanceSessionToPlaying();
 
     plan.forEach((aidMove) => {
       const fromTile = screen.getByTestId(`tile-${aidMove.primaryFromIndex}`);

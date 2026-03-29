@@ -89,6 +89,7 @@ export function PuzzlePlayScreen({
             activeScrambleFlip={session.activeScrambleFlip}
             completionCeremonyPhase={session.completionCeremonyPhase}
             dragTileId={session.dragTile?.id ?? null}
+            dragTargetIndex={session.dragTargetIndex}
             dragPointerType={session.dragPointerType}
             isInteractive={session.isInteractive}
             overlay={

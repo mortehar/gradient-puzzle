@@ -34,6 +34,7 @@ export type PuzzleSession = {
   activeAidAnimation: AidAnimationState | null;
   activeScrambleFlip: ScrambleFlipTile[] | null;
   dragTile: Tile | null;
+  dragTargetIndex: number | null;
   dragPointerType: string | null;
   pointerPosition: PointerPosition | null;
   orderedTiles: Tile[];
@@ -80,6 +81,30 @@ function buildCompletionRecord(
   };
 }
 
+function resolveDragTargetIndex(clientX: number, clientY: number, tiles: Tile[], originIndex: number): number | null {
+  const element = document.elementFromPoint(clientX, clientY);
+  const tileElement = element?.closest<HTMLElement>("[data-current-index]");
+  const indexAttribute = tileElement?.dataset.currentIndex;
+
+  if (!indexAttribute) {
+    return null;
+  }
+
+  const targetIndex = Number(indexAttribute);
+
+  if (Number.isNaN(targetIndex) || targetIndex === originIndex) {
+    return null;
+  }
+
+  const targetTile = tiles.find((tile) => tile.currentIndex === targetIndex);
+
+  if (!targetTile || targetTile.locked) {
+    return null;
+  }
+
+  return targetIndex;
+}
+
 export function usePuzzleSession({
   puzzle,
   completionHistory,
@@ -87,6 +112,7 @@ export function usePuzzleSession({
 }: UsePuzzleSessionOptions): PuzzleSession {
   const [game, setGame] = useState(() => buildGame(puzzle));
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const [dragTargetIndex, setDragTargetIndex] = useState<number | null>(null);
   const [pointerPosition, setPointerPosition] = useState<PointerPosition | null>(null);
   const [transitionMode, setTransitionMode] = useState<TransitionMode>("none");
   const [activeAidAnimation, setActiveAidAnimation] = useState<AidAnimationState | null>(null);
@@ -117,6 +143,7 @@ export function usePuzzleSession({
 
   function clearDragState() {
     setDragState(null);
+    setDragTargetIndex(null);
     setPointerPosition(null);
   }
 
@@ -222,11 +249,7 @@ export function usePuzzleSession({
       }
 
       setPointerPosition({ x: event.clientX, y: event.clientY });
-    };
-
-    const clearDragState = () => {
-      setDragState(null);
-      setPointerPosition(null);
+      setDragTargetIndex(resolveDragTargetIndex(event.clientX, event.clientY, game.tiles, dragState.originIndex));
     };
 
     const handlePointerUp = (event: PointerEvent) => {
@@ -234,10 +257,7 @@ export function usePuzzleSession({
         return;
       }
 
-      const element = document.elementFromPoint(event.clientX, event.clientY);
-      const tileElement = element?.closest<HTMLElement>("[data-current-index]");
-      const indexAttribute = tileElement?.dataset.currentIndex;
-      const toIndex = indexAttribute ? Number(indexAttribute) : null;
+      const toIndex = resolveDragTargetIndex(event.clientX, event.clientY, game.tiles, dragState.originIndex);
 
       if (toIndex !== null && dragState.originIndex !== toIndex) {
         const nextTiles = swapTiles(game.tiles, dragState.originIndex, toIndex);
@@ -274,7 +294,11 @@ export function usePuzzleSession({
       clearDragState();
     };
 
-    const handlePointerCancel = () => {
+    const handlePointerCancel = (event: PointerEvent) => {
+      if (event.pointerId !== dragState.pointerId) {
+        return;
+      }
+
       clearDragState();
     };
 
@@ -367,6 +391,7 @@ export function usePuzzleSession({
     activeAidAnimation,
     activeScrambleFlip,
     dragTile,
+    dragTargetIndex,
     dragPointerType: dragState?.pointerType ?? null,
     pointerPosition,
     orderedTiles,
@@ -388,6 +413,7 @@ export function usePuzzleSession({
           pointerId,
           pointerType
         });
+        setDragTargetIndex(null);
         setPointerPosition({ x: clientX, y: clientY });
       },
       useAid: handleAid

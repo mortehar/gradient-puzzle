@@ -20,6 +20,7 @@ type PuzzleBoardProps = {
   activeScrambleFlip: ScrambleFlipTile[] | null;
   completionCeremonyPhase: CompletionCeremonyPhase;
   dragTileId: string | null;
+  dragTargetIndex: number | null;
   dragPointerType: string | null;
   isInteractive: boolean;
   overlay?: ReactNode;
@@ -36,6 +37,7 @@ export function PuzzleBoard({
   activeScrambleFlip,
   completionCeremonyPhase,
   dragTileId,
+  dragTargetIndex,
   dragPointerType,
   isInteractive,
   overlay,
@@ -59,6 +61,7 @@ export function PuzzleBoard({
     >
       {orderedTiles.map((tile) => {
         const isDragging = dragTileId === tile.id;
+        const isDropTarget = dragTargetIndex === tile.currentIndex;
         const isTouchDragging = isDragging && dragPointerType === "touch";
         const isHiddenForAid =
           activeAidAnimation !== null &&
@@ -76,6 +79,7 @@ export function PuzzleBoard({
               tile.locked ? "tile-locked" : "",
               tile.locked && completionCeremonyPhase !== "idle" ? "tile-lock-frame-hidden" : "",
               isDragging ? "tile-dragging" : "",
+              isDropTarget ? "tile-drop-target" : "",
               isTouchDragging ? "tile-dragging-touch" : "",
               isHiddenForScramble ? "tile-hidden-for-scramble" : "",
               isHiddenForAid ? "tile-hidden-for-aid" : "",
