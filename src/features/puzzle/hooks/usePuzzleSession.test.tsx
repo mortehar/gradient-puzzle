@@ -91,6 +91,7 @@ function SessionHarness({
         orderedTiles={session.orderedTiles}
         lockedTileStyle={DEFAULT_LOCKED_TILE_STYLE}
         transitionMode={session.transitionMode}
+        activeAidAnimation={session.activeAidAnimation}
         activeScrambleFlip={session.activeScrambleFlip}
         completionCeremonyPhase={session.completionCeremonyPhase}
         dragTileId={session.dragTile?.id ?? null}
@@ -100,7 +101,12 @@ function SessionHarness({
       />
       <p data-testid="session-status">{session.game.status}</p>
       <p data-testid="session-puzzle-label">{session.currentPuzzleLabel}</p>
+      <p data-testid="session-aid-count">{session.game.hintCount}</p>
+      <p data-testid="session-score-eligible">{String(session.isScoreEligible)}</p>
       <p data-testid="session-best-moves">{session.bestCompletion?.moveCount ?? "none"}</p>
+      <button type="button" onClick={session.actions.useAid}>
+        Use Aid
+      </button>
     </>
   );
 }
@@ -181,6 +187,32 @@ describe("usePuzzleSession", () => {
     expect(screen.getByTestId("session-best-moves")).toHaveTextContent(String(plan.length));
   });
 
+  it("records aided solves without updating the score-eligible best", () => {
+    const { puzzle, plan } = findShortestAidSolvePuzzle();
+
+    render(<SessionHarnessWithHistory puzzle={puzzle} />);
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(920);
+    });
+
+    plan.forEach(() => {
+      fireEvent.click(screen.getByText("Use Aid"));
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+    });
+
+    expect(screen.getByTestId("session-status")).toHaveTextContent("solved");
+    expect(screen.getByTestId("session-aid-count")).toHaveTextContent(String(plan.length));
+    expect(screen.getByTestId("session-score-eligible")).toHaveTextContent("false");
+    expect(screen.getByTestId("session-best-moves")).toHaveTextContent("none");
+  });
+
   it("reads an existing personal best from the provided completion history", () => {
     const puzzle = getPublishedCatalog("v1").puzzles[0]!;
 
@@ -259,6 +291,56 @@ describe("usePuzzleSession", () => {
     });
 
     expect(onAbort).not.toHaveBeenCalled();
+  });
+
+  it("requires a hold for the first aid and then makes later aids instant", () => {
+    render(
+      <PuzzlePlayScreen
+        puzzle={getPublishedCatalog("v1").puzzles[0]!}
+        completionHistory={[]}
+        lockedTileStyle={DEFAULT_LOCKED_TILE_STYLE}
+        onRecordCompletion={vi.fn()}
+        onAbort={vi.fn()}
+      />
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(920);
+    });
+
+    expect(screen.getByText("Moves: 0")).toBeInTheDocument();
+
+    fireEvent.pointerDown(screen.getByTestId("aid-hold-hitbox"), { pointerId: 1 });
+
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+
+    expect(screen.getByTestId("aid-progress")).toBeInTheDocument();
+    expect(screen.getByText("Hold to get help", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("but no score", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Moves: 0")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(screen.getByText("Moves: 1")).toBeInTheDocument();
+    expect(screen.queryByTestId("aid-hold-hitbox")).not.toBeInTheDocument();
+    expect(screen.getByTestId("aid-button")).toBeDisabled();
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByTestId("aid-button")).not.toBeDisabled();
+
+    fireEvent.click(screen.getByTestId("aid-button"));
+
+    expect(screen.getByText("Moves: 2")).toBeInTheDocument();
   });
 
   it("aborts the puzzle after a full two-second hold", () => {

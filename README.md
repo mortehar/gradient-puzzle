@@ -24,8 +24,10 @@ The board now sits inside a fixed portrait frame so the surrounding browser scre
 5. Study the solved board during the preview phase.
 6. Watch the scramble animation reveal the shuffled board.
 7. Drag tiles to reconstruct the gradient.
-8. Reach the solved state and watch the centered glowing checkmark animate in while the lock frames disappear.
-9. Use the hold-to-abort back control if you need to leave an active puzzle.
+8. Use the right-side aid control if you need help:
+   the first aid requires a two-second hold and warns that the run will no longer count for `Best`, while later aids on that same puzzle are instant.
+9. Reach the solved state and watch the centered glowing checkmark animate in while the lock frames disappear.
+10. Use the hold-to-abort back control if you need to leave an active puzzle.
 
 ## Local Score History
 

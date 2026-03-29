@@ -267,7 +267,7 @@ describe("App", () => {
 
     expect(screen.getByTestId("puzzle-screen")).toBeInTheDocument();
     expect(screen.getByTestId("abort-control")).toBeInTheDocument();
-    expect(screen.queryByTestId("aid-button")).not.toBeInTheDocument();
+    expect(screen.getByTestId("aid-control")).toBeInTheDocument();
     expect(screen.queryByTestId("new-puzzle-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("difficulty-slider")).not.toBeInTheDocument();
 
@@ -279,6 +279,48 @@ describe("App", () => {
 
     expect(screen.getByTestId("tier-screen")).toBeInTheDocument();
     expect(screen.getByTestId("tier-number-label-5")).toHaveClass("tier-number-label-active");
+  });
+
+  it("keeps aided solves out of tier bests and home progress", () => {
+    const { puzzle, plan } = findShortestAidSolvePuzzle();
+
+    render(<App />);
+
+    openTierFromHome(puzzle.tier);
+    openPuzzleFromTier(puzzle.tierIndex);
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(920);
+    });
+
+    fireEvent.pointerDown(screen.getByTestId("aid-hold-hitbox"), { pointerId: 1 });
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    plan.slice(1).forEach(() => {
+      fireEvent.click(screen.getByTestId("aid-button"));
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+    });
+
+    fireEvent.click(screen.getByTestId("abort-button"));
+
+    expect(screen.getByTestId("tier-screen")).toBeInTheDocument();
+    expect(screen.getByTestId("tier-best-score")).not.toHaveTextContent("Best:");
+
+    fireEvent.click(screen.getByTestId("tier-back-button"));
+
+    expect(screen.getByTestId(`home-tier-progress-${puzzle.tier.toLowerCase()}`)).toHaveTextContent("0/10");
   });
 
   it("preserves the solve ceremony on the puzzle screen", () => {

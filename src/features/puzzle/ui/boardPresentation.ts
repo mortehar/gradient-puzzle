@@ -1,9 +1,10 @@
 import type { CSSProperties } from "react";
-import type { GameConfig, GameState, Tile } from "../domain";
+import type { AidMove, GameConfig, GameState, Tile } from "../domain";
 
 export const PREVIEW_DURATION_MS = 2000;
 export const SCRAMBLE_DURATION_MS = 1000;
 export const MANUAL_MOVE_DURATION_MS = 180;
+export const AID_ANIMATION_START_DELAY_MS = 20;
 export const LOCK_FADE_DURATION_MS = 1000;
 export const COMPLETION_CHECK_DURATION_MS = 4400;
 export const SCRAMBLE_FLIP_CARD_DURATION_MS = 700;
@@ -34,6 +35,13 @@ export type PointerPosition = {
   y: number;
 };
 
+export type AidAnimationState = AidMove & {
+  primaryColor: string;
+  secondaryColor: string;
+  durationMs: number;
+  moving: boolean;
+};
+
 export type ScrambleFlipTile = {
   index: number;
   frontColor: string;
@@ -43,6 +51,10 @@ export type ScrambleFlipTile = {
 };
 
 export type CompletionCeremonyPhase = "idle" | "fading-locks" | "checkmark" | "settled";
+
+export function getAidDurationMs(aidTimeSeconds: number): number {
+  return Math.round(aidTimeSeconds * 1000);
+}
 
 export function buildScrambleFlipTiles(tiles: Tile[], scrambledTiles: Tile[], config: GameConfig): ScrambleFlipTile[] {
   const solvedTiles = [...tiles].sort((left, right) => left.solvedIndex - right.solvedIndex);

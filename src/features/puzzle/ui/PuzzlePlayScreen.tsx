@@ -1,11 +1,13 @@
 import { useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { PublishedPuzzle } from "../domain";
 import { PuzzleBoard, PuzzleDragPreview } from "./PuzzleBoard";
-import { HoldToAbortButton, type AbortHoldState } from "./HoldToAbortButton";
+import { HoldToAbortButton } from "./HoldToAbortButton";
+import { HoldToAidButton } from "./HoldToAidButton";
 import { usePuzzleSession } from "../hooks/usePuzzleSession";
 import type { LocalPuzzleCompletionRecord } from "../hooks/puzzleCompletionHistory";
 import type { Tile } from "../domain";
 import type { LockedTileStyle } from "./lockedTileStyles";
+import type { HoldActionState } from "./useHoldToAction";
 
 type PuzzlePlayScreenProps = {
   puzzle: PublishedPuzzle;
@@ -27,11 +29,46 @@ export function PuzzlePlayScreen({
     completionHistory,
     onRecordCompletion
   });
-  const [abortHoldState, setAbortHoldState] = useState<AbortHoldState>({
+  const [abortHoldState, setAbortHoldState] = useState<HoldActionState>({
     isHolding: false,
     progress: 0,
     isVisible: false
   });
+  const [aidHoldState, setAidHoldState] = useState<HoldActionState>({
+    isHolding: false,
+    progress: 0,
+    isVisible: false
+  });
+
+  const activeHoldOverlay = aidHoldState.isHolding
+    ? {
+        ...aidHoldState,
+        label: (
+          <>
+            Hold to get help
+            <br />
+            but no score
+          </>
+        ),
+        testId: "aid-progress"
+      }
+    : abortHoldState.isHolding
+      ? { ...abortHoldState, label: "Hold to exit", testId: "abort-progress" }
+      : aidHoldState.isVisible
+        ? {
+            ...aidHoldState,
+            label: (
+              <>
+                Hold to get help
+                <br />
+                but no score
+              </>
+            ),
+            testId: "aid-progress"
+          }
+        : abortHoldState.isVisible
+          ? { ...abortHoldState, label: "Hold to exit", testId: "abort-progress" }
+          : null;
 
   function handleTilePointerDown(tile: Tile, event: ReactPointerEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -48,21 +85,22 @@ export function PuzzlePlayScreen({
             orderedTiles={session.orderedTiles}
             lockedTileStyle={lockedTileStyle}
             transitionMode={session.transitionMode}
+            activeAidAnimation={session.activeAidAnimation}
             activeScrambleFlip={session.activeScrambleFlip}
             completionCeremonyPhase={session.completionCeremonyPhase}
             dragTileId={session.dragTile?.id ?? null}
             dragPointerType={session.dragPointerType}
             isInteractive={session.isInteractive}
             overlay={
-              session.game.status !== "solved" && abortHoldState.isVisible ? (
-                <div className="abort-progress-overlay" data-testid="abort-progress" aria-live="polite">
+              activeHoldOverlay ? (
+                <div className="abort-progress-overlay" data-testid={activeHoldOverlay.testId} aria-live="polite">
                   <div className="abort-progress">
-                    <p className="abort-progress-label">Hold to exit</p>
+                    <p className="abort-progress-label">{activeHoldOverlay.label}</p>
                     <div className="abort-progress-track" aria-hidden="true">
                       <div
                         className="abort-progress-fill"
-                        data-testid="abort-progress-fill"
-                        style={{ transform: `scaleX(${abortHoldState.progress})` }}
+                        data-testid={`${activeHoldOverlay.testId}-fill`}
+                        style={{ transform: `scaleX(${activeHoldOverlay.progress})` }}
                       />
                     </div>
                   </div>
@@ -74,6 +112,12 @@ export function PuzzlePlayScreen({
         </div>
 
         <div className="play-footer" data-testid="play-footer">
+          <HoldToAbortButton
+            onAbort={onAbort}
+            requiresHold={session.game.status !== "solved"}
+            onHoldStateChange={setAbortHoldState}
+          />
+
           <div className="completion-summary" data-testid="completion-summary">
             <div className="completion-summary-line">
               <p className="completion-title">Moves: {session.game.swapCount}</p>
@@ -81,10 +125,11 @@ export function PuzzlePlayScreen({
             </div>
           </div>
 
-          <HoldToAbortButton
-            onAbort={onAbort}
-            requiresHold={session.game.status !== "solved"}
-            onHoldStateChange={setAbortHoldState}
+          <HoldToAidButton
+            onAid={session.actions.useAid}
+            requiresHold={session.game.hintCount === 0}
+            disabled={!session.canUseAid}
+            onHoldStateChange={setAidHoldState}
           />
         </div>
       </section>

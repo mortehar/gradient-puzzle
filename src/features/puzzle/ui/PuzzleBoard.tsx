@@ -1,5 +1,11 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import type { CompletionCeremonyPhase, PointerPosition, ScrambleFlipTile, TransitionMode } from "./boardPresentation";
+import type {
+  AidAnimationState,
+  CompletionCeremonyPhase,
+  PointerPosition,
+  ScrambleFlipTile,
+  TransitionMode
+} from "./boardPresentation";
 import { getBoardStyle, getTileLayoutStyle } from "./boardPresentation";
 import type { GameConfig, GameState, Tile } from "../domain";
 import { LockedTileAdornment, type LockedTileStyle } from "./lockedTileStyles";
@@ -10,6 +16,7 @@ type PuzzleBoardProps = {
   orderedTiles: Tile[];
   lockedTileStyle: LockedTileStyle;
   transitionMode: TransitionMode;
+  activeAidAnimation: AidAnimationState | null;
   activeScrambleFlip: ScrambleFlipTile[] | null;
   completionCeremonyPhase: CompletionCeremonyPhase;
   dragTileId: string | null;
@@ -25,6 +32,7 @@ export function PuzzleBoard({
   orderedTiles,
   lockedTileStyle,
   transitionMode,
+  activeAidAnimation,
   activeScrambleFlip,
   completionCeremonyPhase,
   dragTileId,
@@ -52,6 +60,9 @@ export function PuzzleBoard({
       {orderedTiles.map((tile) => {
         const isDragging = dragTileId === tile.id;
         const isTouchDragging = isDragging && dragPointerType === "touch";
+        const isHiddenForAid =
+          activeAidAnimation !== null &&
+          (tile.id === activeAidAnimation.primaryTileId || tile.id === activeAidAnimation.secondaryTileId);
         const isHiddenForScramble = activeScrambleFlip !== null && !tile.locked;
 
         return (
@@ -67,6 +78,7 @@ export function PuzzleBoard({
               isDragging ? "tile-dragging" : "",
               isTouchDragging ? "tile-dragging-touch" : "",
               isHiddenForScramble ? "tile-hidden-for-scramble" : "",
+              isHiddenForAid ? "tile-hidden-for-aid" : "",
               !isInteractive ? "tile-static" : ""
             ].join(" ")}
             style={{ backgroundColor: tile.color, ...getTileLayoutStyle(tile.currentIndex, game.config) }}
@@ -78,6 +90,39 @@ export function PuzzleBoard({
           </button>
         );
       })}
+
+      {activeAidAnimation ? (
+        <>
+          <div
+            className={[
+              "aid-overlay",
+              "aid-overlay-primary",
+              activeAidAnimation.moving ? "aid-overlay-primary-moving" : ""
+            ].join(" ")}
+            data-testid="aid-primary-overlay"
+            style={
+              {
+                backgroundColor: activeAidAnimation.primaryColor,
+                ...getTileLayoutStyle(
+                  activeAidAnimation.moving ? activeAidAnimation.primaryToIndex : activeAidAnimation.primaryFromIndex,
+                  game.config
+                ),
+                "--aid-motion-duration": `${activeAidAnimation.durationMs}ms`
+              } as CSSProperties
+            }
+          />
+          <div
+            className="aid-overlay aid-overlay-secondary"
+            data-testid="aid-secondary-overlay"
+            style={
+              {
+                backgroundColor: activeAidAnimation.secondaryColor,
+                ...getTileLayoutStyle(activeAidAnimation.secondaryFromIndex, game.config)
+              } as CSSProperties
+            }
+          />
+        </>
+      ) : null}
 
       {activeScrambleFlip ? (
         <div className="scramble-overlay" data-testid="scramble-overlay" aria-hidden="true">

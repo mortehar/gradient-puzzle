@@ -10,7 +10,7 @@ This document explains what the game does at runtime and how the current codebas
    - the home screen tier carousel
    - the tier screen puzzle carousel
    - the shared browser-screen top row and settings menu state
-   - the puzzle play screen with the hold-to-abort back control
+   - the puzzle play screen with the hold-to-abort back control and the mirrored hold-to-aid help control
 4. [`src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts) owns the browser state:
    - selected tier and selected puzzle per tier
    - completion-history-backed tier progress
@@ -18,6 +18,7 @@ This document explains what the game does at runtime and how the current codebas
 5. [`src/features/puzzle/hooks/usePuzzleSession.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePuzzleSession.ts) owns the single-puzzle session state:
    - preview -> scrambling -> playing -> solved transitions
    - drag interactions
+   - aid move selection, score ineligibility after first aid use, and aided completion recording
    - local completion-history persistence and best-score derivation
    - local completion recording
 6. UI components render the browser and session state and call back into the hook actions.

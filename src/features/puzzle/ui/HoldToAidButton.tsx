@@ -1,45 +1,53 @@
-import { BackSymbolButton } from "./BackSymbolButton";
+import { AidSymbolButton } from "./AidSymbolButton";
 import { useHoldToAction, type HoldActionState } from "./useHoldToAction";
 
-export type AbortHoldState = HoldActionState;
-
-type HoldToAbortButtonProps = {
-  onAbort: () => void;
+type HoldToAidButtonProps = {
+  onAid: () => void;
   requiresHold?: boolean;
-  onHoldStateChange?: (state: AbortHoldState) => void;
+  disabled?: boolean;
+  onHoldStateChange?: (state: HoldActionState) => void;
 };
 
-export function HoldToAbortButton({
-  onAbort,
+export function HoldToAidButton({
+  onAid,
   requiresHold = true,
+  disabled = false,
   onHoldStateChange
-}: HoldToAbortButtonProps) {
+}: HoldToAidButtonProps) {
   const { holdState, beginHold, endHoldEarly, triggerInstantAction } = useHoldToAction({
-    onAction: onAbort,
+    onAction: onAid,
     requiresHold,
+    disabled,
     onHoldStateChange
   });
 
   if (!requiresHold) {
     return (
-      <div className="abort-control abort-control-instant" data-testid="abort-control">
-        <BackSymbolButton testId="abort-button" onClick={triggerInstantAction} />
+      <div className="aid-control aid-control-instant" data-testid="aid-control">
+        <AidSymbolButton testId="aid-button" disabled={disabled} onClick={triggerInstantAction} />
       </div>
     );
   }
 
   return (
-    <div className="abort-control" data-testid="abort-control">
-      <BackSymbolButton
-        className={holdState.isHolding ? "back-symbol-button-holding" : ""}
-        testId="abort-button"
+    <div className="aid-control" data-testid="aid-control">
+      <AidSymbolButton
+        className={[
+          holdState.isHolding ? "aid-symbol-button-holding" : "",
+          disabled ? "aid-symbol-button-disabled" : ""
+        ]
+          .join(" ")
+          .trim()}
+        testId="aid-button"
+        disabled={disabled}
         onClick={() => undefined}
       />
       <button
-        className="abort-control-hitbox"
+        className="aid-control-hitbox"
         type="button"
-        aria-label="Hold to abort puzzle"
-        data-testid="abort-hold-hitbox"
+        aria-label="Hold to use aid"
+        data-testid="aid-hold-hitbox"
+        disabled={disabled}
         onPointerDown={beginHold}
         onPointerUp={endHoldEarly}
         onPointerLeave={endHoldEarly}
@@ -62,7 +70,7 @@ export function HoldToAbortButton({
           }
         }}
       >
-        <span className="sr-only">Hold to abort puzzle</span>
+        <span className="sr-only">Hold to use aid</span>
       </button>
     </div>
   );
