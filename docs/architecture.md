@@ -52,12 +52,21 @@ The pure domain must remain React-free and framework-free.
 ## Styling
 
 - `src/styles.css` is the entrypoint only.
+- `src/theme.css` owns the atmospheric visual tokens:
+  - typography stacks
+  - color and surface ramps
+  - spacing, radii, shadows, and motion curves
+  - scene-level `dawn` / `dusk` / `night` overlays
 - Global styles are split into:
   - `src/styles/tokens.css`
   - `src/styles/layout.css`
   - `src/styles/browser.css`
   - `src/styles/board.css`
   - `src/styles/controls.css`
+- The partial stylesheets should consume the theme tokens instead of hardcoding one-off visual values when the decision is meant to be global.
+- Board geometry remains centralized in `src/features/puzzle/ui/boardPresentation.ts`.
+- Locked-cell tone ramps remain centralized in `src/features/puzzle/ui/lockedTileStyles.tsx`.
+- Screen components should mainly opt into named scene classes and semantic layout hooks rather than owning bespoke visual values inline.
 
 Keep class names stable unless behavior or markup changes require otherwise.
 
