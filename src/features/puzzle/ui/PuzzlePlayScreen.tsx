@@ -29,7 +29,8 @@ export function PuzzlePlayScreen({
   });
   const [abortHoldState, setAbortHoldState] = useState<AbortHoldState>({
     isHolding: false,
-    progress: 0
+    progress: 0,
+    isVisible: false
   });
 
   function handleTilePointerDown(tile: Tile, event: ReactPointerEvent<HTMLButtonElement>) {
@@ -53,13 +54,14 @@ export function PuzzlePlayScreen({
             dragPointerType={session.dragPointerType}
             isInteractive={session.isInteractive}
             overlay={
-                  abortHoldState.isHolding ? (
+              session.game.status !== "solved" && abortHoldState.isVisible ? (
                 <div className="abort-progress-overlay" data-testid="abort-progress" aria-live="polite">
                   <div className="abort-progress">
                     <p className="abort-progress-label">Hold to exit</p>
                     <div className="abort-progress-track" aria-hidden="true">
                       <div
                         className="abort-progress-fill"
+                        data-testid="abort-progress-fill"
                         style={{ transform: `scaleX(${abortHoldState.progress})` }}
                       />
                     </div>

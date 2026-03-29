@@ -207,7 +207,7 @@ describe("usePuzzleSession", () => {
     expect(screen.getByTestId("session-best-moves")).toHaveTextContent("7");
   });
 
-  it("cancels the abort hold if released early", () => {
+  it("keeps the abort hold progress visible briefly after an early release", () => {
     const onAbort = vi.fn();
 
     render(
@@ -230,6 +230,27 @@ describe("usePuzzleSession", () => {
     expect(onAbort).not.toHaveBeenCalled();
 
     fireEvent.pointerUp(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
+    fireEvent.pointerLeave(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
+
+    expect(screen.getByTestId("abort-progress")).toBeInTheDocument();
+    expect(screen.getByTestId("abort-progress-fill")).toHaveStyle({ transform: "scaleX(0.75)" });
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(screen.getByTestId("abort-progress")).toBeInTheDocument();
+    expect(screen.getByTestId("abort-progress-fill")).toHaveStyle({ transform: "scaleX(0.375)" });
+
+    act(() => {
+      vi.advanceTimersByTime(499);
+    });
+
+    expect(screen.getByTestId("abort-progress")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
 
     expect(screen.queryByTestId("abort-progress")).not.toBeInTheDocument();
 
