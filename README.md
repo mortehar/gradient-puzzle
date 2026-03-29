@@ -26,6 +26,15 @@ The board now sits inside a fixed portrait frame so the footer controls and adva
 7. Use `Aid` if needed.
 8. Reach the solved state, watch the centered glowing checkmark animate in while the lock frames disappear, and use the warm emphasized `Next` button to continue.
 
+## Local Score History
+
+- Completed runs are stored locally in the browser with `localStorage`; nothing is synced to a server.
+- Each completion records the published puzzle identity, move count, aid count, start time, completion time, and solve duration.
+- Solve time starts only when the board becomes interactive after preview and scramble, and stops on the move or aid that solves the board.
+- The footer shows `Best: X` for the current published puzzle only when there is at least one no-aid completion for that puzzle.
+- `Best` is chosen by lowest move count, with solve time used only as a tiebreaker between equal-move runs.
+- Using `Aid` still records the completion locally, but that attempt becomes score-ineligible and will not count toward `Best`.
+
 ## Architecture Snapshot
 
 - [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx): composition root only.

@@ -1,10 +1,12 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, createEvent, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
 describe("App", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    window.localStorage.clear();
   });
 
   afterEach(() => {
@@ -26,6 +28,7 @@ describe("App", () => {
     expect(screen.getByTestId("difficulty-slider")).toHaveValue("0");
     expect(screen.getByTestId("difficulty-slider-label")).toHaveTextContent("Puzzle: #1 (Very easy)");
     expect(screen.getByTestId("new-puzzle-button")).toHaveTextContent("Next");
+    expect(screen.queryByText(/Best:/)).not.toBeInTheDocument();
     expect(screen.queryByTestId("advanced-settings-panel")).not.toBeInTheDocument();
 
     openAdvancedSettings();
@@ -112,8 +115,37 @@ describe("App", () => {
     expect(screen.getByTestId("aid-button")).toBeDisabled();
     expect(screen.getByText("MOVES: 1")).toBeInTheDocument();
     expect(screen.getByText("(1 aids used)")).toBeInTheDocument();
+    expect(screen.getByText("Score ineligible")).toBeInTheDocument();
+    expect(screen.queryByText("Best: 1")).not.toBeInTheDocument();
     expect(screen.getByTestId("aid-primary-overlay")).toBeInTheDocument();
     expect(screen.getByTestId("aid-secondary-overlay")).toBeInTheDocument();
+  });
+
+  it("shows the stored best move count for the active puzzle when an eligible score exists", () => {
+    window.localStorage.setItem(
+      "gradient:puzzle-history:v1",
+      JSON.stringify({
+        version: 1,
+        completions: [
+          {
+            puzzleId: "v1/very-easy/1",
+            catalogVersion: "v1",
+            sliderIndex: 0,
+            tier: "Very easy",
+            tierIndex: 1,
+            moveCount: 7,
+            aidCount: 0,
+            startedAt: 1_000,
+            completedAt: 8_000,
+            solveDurationMs: 7_000
+          }
+        ]
+      })
+    );
+
+    render(<App />);
+
+    expect(screen.getByText("Best: 7")).toBeInTheDocument();
   });
 
   it("fades the lock squares for one second before showing the completion checkmark", () => {
@@ -148,5 +180,16 @@ describe("App", () => {
 
     expect(screen.getByTestId("puzzle-board")).toHaveAttribute("data-ceremony-phase", "checkmark");
     expect(screen.getByTestId("completion-checkmark")).toBeInTheDocument();
+  });
+
+  it("prevents native context-menu selection on the puzzle board", () => {
+    render(<App />);
+
+    const board = screen.getByTestId("puzzle-board");
+    const event = createEvent.contextMenu(board);
+
+    fireEvent(board, event);
+
+    expect(event.defaultPrevented).toBe(true);
   });
 });

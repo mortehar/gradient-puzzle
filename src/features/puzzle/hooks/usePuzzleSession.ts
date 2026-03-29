@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CONFIG,
   analyzeBoardTiles,
@@ -13,6 +13,12 @@ import {
   type PublishedPuzzle,
   type Tile
 } from "../domain";
+import {
+  getBestCompletionForPuzzle,
+  loadCompletionHistory,
+  saveCompletion,
+  type LocalPuzzleCompletionRecord
+} from "./puzzleCompletionHistory";
 import { useCompletionBurst } from "./useCompletionBurst";
 import {
   AID_ANIMATION_START_DELAY_MS,
@@ -47,6 +53,8 @@ export type PuzzleSession = {
   currentBoardMetrics: ReturnType<typeof analyzeBoardTiles>;
   currentPuzzleLabel: string;
   canAdvancePuzzle: boolean;
+  isScoreEligible: boolean;
+  bestCompletion: LocalPuzzleCompletionRecord | null;
   completionCeremonyPhase: CompletionCeremonyPhase;
   highlightNextPuzzle: boolean;
   actions: {
@@ -69,6 +77,9 @@ export function usePuzzleSession(): PuzzleSession {
   const [transitionMode, setTransitionMode] = useState<TransitionMode>("none");
   const [activeAidAnimation, setActiveAidAnimation] = useState<AidAnimationState | null>(null);
   const [activeScrambleFlip, setActiveScrambleFlip] = useState<ScrambleFlipTile[] | null>(null);
+  const [isScoreEligible, setIsScoreEligible] = useState(true);
+  const [completionHistory, setCompletionHistory] = useState<LocalPuzzleCompletionRecord[]>(() => loadCompletionHistory());
+  const attemptStartedAtRef = useRef<number | null>(null);
   const completionBurst = useCompletionBurst(game.status);
   const activePuzzle = useMemo(() => PUBLISHED_CATALOG.puzzles[sliderIndex], [sliderIndex]);
   const previewConfig = useMemo(
@@ -89,17 +100,35 @@ export function usePuzzleSession(): PuzzleSession {
   const lockedCount = game.tiles.filter((tile) => tile.locked).length;
   const currentPuzzleLabel = `#${activePuzzle.tierIndex} (${activePuzzle.tier})`;
   const canAdvancePuzzle = sliderIndex < PUBLISHED_CATALOG.puzzles.length - 1;
+  const bestCompletion = useMemo(
+    () => getBestCompletionForPuzzle(completionHistory, activePuzzle.id, activePuzzle.catalogVersion),
+    [activePuzzle.catalogVersion, activePuzzle.id, completionHistory]
+  );
 
-  function getDropIndex(clientX: number, clientY: number): number | null {
-    const element = document.elementFromPoint(clientX, clientY);
-    const tileElement = element?.closest<HTMLElement>("[data-current-index]");
-    const indexAttribute = tileElement?.dataset.currentIndex;
+  function appendCompletion(record: LocalPuzzleCompletionRecord) {
+    saveCompletion(record);
+    setCompletionHistory((currentHistory) => [...currentHistory, record]);
+  }
 
-    if (!indexAttribute) {
-      return null;
-    }
+  function buildCompletionRecord(
+    nextMoveCount: number,
+    nextAidCount: number,
+    completedAt: number
+  ): LocalPuzzleCompletionRecord {
+    const startedAt = attemptStartedAtRef.current ?? completedAt;
 
-    return Number(indexAttribute);
+    return {
+      puzzleId: activePuzzle.id,
+      catalogVersion: activePuzzle.catalogVersion,
+      sliderIndex: activePuzzle.sliderIndex,
+      tier: activePuzzle.tier,
+      tierIndex: activePuzzle.tierIndex,
+      moveCount: nextMoveCount,
+      aidCount: nextAidCount,
+      startedAt,
+      completedAt,
+      solveDurationMs: Math.max(0, completedAt - startedAt)
+    };
   }
 
   function clearDragState() {
@@ -119,36 +148,13 @@ export function usePuzzleSession(): PuzzleSession {
     setActiveAidAnimation(null);
     setActiveScrambleFlip(null);
     setTransitionMode("none");
+    attemptStartedAtRef.current = null;
+    setIsScoreEligible(true);
     clearDragState();
 
     window.setTimeout(() => {
       setTransitionMode("quick");
     }, 0);
-  }
-
-  function commitSwap(fromIndex: number, toIndex: number | null) {
-    if (toIndex === null || fromIndex === toIndex) {
-      return;
-    }
-
-    setGame((currentGame) => {
-      const nextTiles = swapTiles(currentGame.tiles, fromIndex, toIndex);
-
-      if (nextTiles === currentGame.tiles) {
-        return currentGame;
-      }
-
-      const solved = isSolved(nextTiles);
-
-      setTransitionMode("quick");
-
-      return {
-        ...currentGame,
-        tiles: nextTiles,
-        swapCount: currentGame.swapCount + 1,
-        status: solved ? "solved" : "playing"
-      };
-    });
   }
 
   useEffect(() => {
@@ -260,12 +266,63 @@ export function usePuzzleSession(): PuzzleSession {
         return;
       }
 
-      commitSwap(dragState.originIndex, getDropIndex(event.clientX, event.clientY));
-      clearDragState();
+      const element = document.elementFromPoint(event.clientX, event.clientY);
+      const tileElement = element?.closest<HTMLElement>("[data-current-index]");
+      const indexAttribute = tileElement?.dataset.currentIndex;
+      const toIndex = indexAttribute ? Number(indexAttribute) : null;
+
+      if (toIndex !== null && dragState.originIndex !== toIndex) {
+        const nextTiles = swapTiles(game.tiles, dragState.originIndex, toIndex);
+
+        if (nextTiles !== game.tiles) {
+          const solved = isSolved(nextTiles);
+
+          if (solved) {
+            const completedAt = Date.now();
+            const startedAt = attemptStartedAtRef.current ?? completedAt;
+            const completionRecord: LocalPuzzleCompletionRecord = {
+              puzzleId: activePuzzle.id,
+              catalogVersion: activePuzzle.catalogVersion,
+              sliderIndex: activePuzzle.sliderIndex,
+              tier: activePuzzle.tier,
+              tierIndex: activePuzzle.tierIndex,
+              moveCount: game.swapCount + 1,
+              aidCount: game.hintCount,
+              startedAt,
+              completedAt,
+              solveDurationMs: Math.max(0, completedAt - startedAt)
+            };
+
+            saveCompletion(completionRecord);
+            setCompletionHistory((currentHistory) => [...currentHistory, completionRecord]);
+          }
+
+          setGame((currentGame) => {
+            const swappedTiles = swapTiles(currentGame.tiles, dragState.originIndex, toIndex);
+
+            if (swappedTiles === currentGame.tiles) {
+              return currentGame;
+            }
+
+            setTransitionMode("quick");
+
+            return {
+              ...currentGame,
+              tiles: swappedTiles,
+              swapCount: currentGame.swapCount + 1,
+              status: isSolved(swappedTiles) ? "solved" : "playing"
+            };
+          });
+        }
+      }
+
+      setDragState(null);
+      setPointerPosition(null);
     };
 
     const handlePointerCancel = () => {
-      clearDragState();
+      setDragState(null);
+      setPointerPosition(null);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -277,15 +334,12 @@ export function usePuzzleSession(): PuzzleSession {
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerCancel);
     };
-  }, [dragState]);
+  }, [activePuzzle, dragState, game, isScoreEligible]);
 
   useEffect(() => {
-    if (game.status === "playing") {
-      return;
+    if (game.status === "playing" && attemptStartedAtRef.current === null) {
+      attemptStartedAtRef.current = Date.now();
     }
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- leaving play mode should immediately clear any drag interaction state.
-    clearDragState();
   }, [game.status]);
 
   function handleAid() {
@@ -307,6 +361,8 @@ export function usePuzzleSession(): PuzzleSession {
     }
 
     const aidDurationMs = getAidDurationMs(game.config.appearance.aidTimeSeconds);
+    const nextTiles = swapTiles(game.tiles, aidMove.primaryFromIndex, aidMove.secondaryFromIndex);
+    const solved = isSolved(nextTiles);
     clearDragState();
 
     setTransitionMode("none");
@@ -321,6 +377,14 @@ export function usePuzzleSession(): PuzzleSession {
       });
     } else {
       setActiveAidAnimation(null);
+    }
+
+    if (isScoreEligible) {
+      setIsScoreEligible(false);
+    }
+
+    if (solved) {
+      appendCompletion(buildCompletionRecord(game.swapCount + 1, game.hintCount + 1, Date.now()));
     }
 
     setGame((currentGame) => {
@@ -361,6 +425,8 @@ export function usePuzzleSession(): PuzzleSession {
     currentBoardMetrics,
     currentPuzzleLabel,
     canAdvancePuzzle,
+    isScoreEligible,
+    bestCompletion,
     completionCeremonyPhase: completionBurst.ceremonyPhase,
     highlightNextPuzzle: completionBurst.highlightNewPuzzle,
     actions: {

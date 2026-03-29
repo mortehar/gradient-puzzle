@@ -575,6 +575,14 @@ input[type="range"]::-moz-range-thumb {
   min-width: 0;
 }
 
+.completion-summary-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .board-footer-difficulty {
   display: grid;
   gap: 0.65rem;
@@ -604,6 +612,20 @@ input[type="range"]::-moz-range-thumb {
   letter-spacing: 0;
   text-transform: none;
   font-size: 0.92em;
+}
+
+.completion-inline-status {
+  color: rgba(248, 241, 231, 0.86);
+}
+
+.completion-best {
+  margin: 0 0 0 auto;
+  color: rgba(248, 241, 231, 0.84);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.77rem;
+  white-space: nowrap;
 }
 
 .settings-note {

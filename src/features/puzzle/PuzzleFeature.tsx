@@ -43,12 +43,14 @@ export function PuzzleFeature() {
           <PuzzleStatusFooter
             swapCount={session.game.swapCount}
             hintCount={session.game.hintCount}
+            bestMoveCount={session.bestCompletion?.moveCount ?? null}
             sliderIndex={session.sliderIndex}
             sliderCount={session.sliderCount}
             currentPuzzleLabel={session.currentPuzzleLabel}
             canUseAid={session.isInteractive}
             canAdvancePuzzle={session.canAdvancePuzzle}
             highlightNextPuzzle={session.highlightNextPuzzle}
+            isScoreEligible={session.isScoreEligible}
             isAdvancedOpen={showAdvancedSettings}
             onSetSliderIndex={handleSliderIndexChange}
             onToggleAdvancedSettings={toggleAdvancedSettings}

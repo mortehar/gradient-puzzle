@@ -1,12 +1,14 @@
 type PuzzleStatusFooterProps = {
   swapCount: number;
   hintCount: number;
+  bestMoveCount: number | null;
   sliderIndex: number;
   sliderCount: number;
   currentPuzzleLabel: string;
   canUseAid: boolean;
   canAdvancePuzzle: boolean;
   highlightNextPuzzle: boolean;
+  isScoreEligible: boolean;
   isAdvancedOpen: boolean;
   onSetSliderIndex: (value: number) => void;
   onToggleAdvancedSettings: () => void;
@@ -17,12 +19,14 @@ type PuzzleStatusFooterProps = {
 export function PuzzleStatusFooter({
   swapCount,
   hintCount,
+  bestMoveCount,
   sliderIndex,
   sliderCount,
   currentPuzzleLabel,
   canUseAid,
   canAdvancePuzzle,
   highlightNextPuzzle,
+  isScoreEligible,
   isAdvancedOpen,
   onSetSliderIndex,
   onToggleAdvancedSettings,
@@ -33,10 +37,16 @@ export function PuzzleStatusFooter({
     <div className="board-footer" data-testid="board-footer">
       <div className="board-footer-top">
         <div className="completion-summary" data-testid="completion-summary">
-          <p className="completion-title">
-            MOVES: {swapCount}
-            {hintCount > 0 ? <span className="completion-inline-note"> ({hintCount} aids used)</span> : null}
-          </p>
+          <div className="completion-summary-line">
+            <p className="completion-title">
+              MOVES: {swapCount}
+              {hintCount > 0 ? <span className="completion-inline-note"> ({hintCount} aids used)</span> : null}
+              {!isScoreEligible && hintCount > 0 ? (
+                <span className="completion-inline-note completion-inline-status"> Score ineligible</span>
+              ) : null}
+            </p>
+            {bestMoveCount !== null ? <p className="completion-best">Best: {bestMoveCount}</p> : null}
+          </div>
         </div>
 
         <div className="board-footer-actions" data-testid="board-footer-actions">

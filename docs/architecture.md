@@ -15,6 +15,7 @@ This document explains what the game does at runtime and how the current codebas
    - published puzzle selection state
    - drag interactions
    - aid application
+   - local completion-history persistence and best-score derivation
    - derived selection and presentation values
 5. UI components render the session state and call back into the hook actions.
 
@@ -112,6 +113,16 @@ When the board is solved:
 - the `Next` button stays visually highlighted until the next puzzle loads
 
 This ceremony state is tracked in the puzzle session hook and exposed to the board and footer as presentation state.
+
+## Local Score History
+
+The player feature now keeps a browser-local completion history for published puzzles:
+
+- persistence lives in a feature-local storage helper, not in the pure domain layer
+- each stored record includes puzzle identity, move count, aid count, start time, completion time, and solve duration
+- solve timing starts when session state first reaches `playing`
+- solve timing stops on the action that changes the board into `solved`, before the completion ceremony finishes
+- aided runs are still stored for future stats, but only no-aid runs are eligible for footer `Best` scores
 
 ## Catalog UX
 
