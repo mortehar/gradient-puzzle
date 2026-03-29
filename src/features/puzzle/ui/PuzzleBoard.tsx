@@ -43,6 +43,7 @@ export function PuzzleBoard({
       data-testid="puzzle-board"
       data-ceremony-phase={completionCeremonyPhase}
       style={getBoardStyle(game, previewConfig, transitionMode)}
+      onContextMenu={(event) => event.preventDefault()}
     >
       {orderedTiles.map((tile) => {
         const isDragging = dragTileId === tile.id;
@@ -72,9 +73,7 @@ export function PuzzleBoard({
             data-current-index={tile.currentIndex}
             data-testid={`tile-${tile.currentIndex}`}
             onPointerDown={(event) => onTilePointerDown(tile, event)}
-          >
-            <span className="sr-only">{tile.locked ? "Locked tile" : "Movable tile"}</span>
-          </button>
+          />
         );
       })}
 
