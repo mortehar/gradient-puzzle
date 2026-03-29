@@ -5,7 +5,7 @@ export const LOCKED_TILE_STYLES = ["frame", "mounted", "frosted", "texture", "ic
 
 export type LockedTileStyle = (typeof LOCKED_TILE_STYLES)[number];
 
-export const DEFAULT_LOCKED_TILE_STYLE: LockedTileStyle = "frame";
+export const DEFAULT_LOCKED_TILE_STYLE: LockedTileStyle = "texture";
 
 export type LockedTileStyleOption = {
   value: LockedTileStyle;

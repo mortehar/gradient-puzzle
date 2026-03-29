@@ -200,7 +200,7 @@ describe("App", () => {
 
     fireEvent.click(screen.getByTestId("browser-settings-button"));
 
-    expect(screen.getByTestId("lock-style-option-frame")).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByTestId("lock-style-option-texture")).toHaveAttribute("aria-checked", "true");
     expect(screen.getByTestId("lock-style-option-mounted")).toBeInTheDocument();
     expect(screen.getByTestId("lock-style-option-frosted")).toBeInTheDocument();
     expect(screen.getByTestId("lock-style-option-texture")).toBeInTheDocument();
@@ -256,7 +256,7 @@ describe("App", () => {
 
     fireEvent.click(screen.getByTestId("browser-settings-button"));
 
-    expect(screen.getByTestId("lock-style-option-frame")).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByTestId("lock-style-option-texture")).toHaveAttribute("aria-checked", "true");
   });
 
   it("opens a puzzle from the tier screen and aborts back to the same puzzle card after a two-second hold", () => {
