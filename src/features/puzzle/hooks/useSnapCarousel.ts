@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 
 type UseSnapCarouselOptions = {
   selectedIndex: number;
@@ -6,23 +6,100 @@ type UseSnapCarouselOptions = {
   onSelectedIndexChange: (index: number) => void;
 };
 
+type DragState = {
+  pointerId: number;
+  startX: number;
+  startScrollLeft: number;
+  hasDragged: boolean;
+};
+
+const DESKTOP_DRAG_THRESHOLD_PX = 8;
+
 export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChange }: UseSnapCarouselOptions) {
   const carouselRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef<DragState | null>(null);
+  const suppressClickRef = useRef(false);
+  const [isPointerDragging, setIsPointerDragging] = useState(false);
 
   useEffect(() => {
     const carousel = carouselRef.current;
 
-    if (!carousel) {
+    if (!carousel || dragStateRef.current) {
       return;
     }
 
     scrollCarouselToIndex(carousel, selectedIndex);
   }, [selectedIndex]);
 
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      const carousel = carouselRef.current;
+
+      if (!dragState || !carousel || event.pointerId !== dragState.pointerId) {
+        return;
+      }
+
+      const dragDelta = event.clientX - dragState.startX;
+
+      if (!dragState.hasDragged) {
+        if (Math.abs(dragDelta) < DESKTOP_DRAG_THRESHOLD_PX) {
+          return;
+        }
+
+        dragState.hasDragged = true;
+        setIsPointerDragging(true);
+      }
+
+      event.preventDefault();
+      carousel.scrollLeft = dragState.startScrollLeft - dragDelta;
+    };
+
+    const finishPointerDrag = (pointerId: number) => {
+      const dragState = dragStateRef.current;
+      const carousel = carouselRef.current;
+
+      if (!dragState || !carousel || pointerId !== dragState.pointerId) {
+        return;
+      }
+
+      dragStateRef.current = null;
+      setIsPointerDragging(false);
+
+      if (!dragState.hasDragged) {
+        return;
+      }
+
+      suppressClickRef.current = true;
+      const nextIndex = getClosestSlideIndex(carousel, itemCount);
+
+      onSelectedIndexChange(nextIndex);
+      scrollCarouselToIndex(carousel, nextIndex);
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      finishPointerDrag(event.pointerId);
+    };
+
+    const handlePointerCancel = (event: PointerEvent) => {
+      finishPointerDrag(event.pointerId);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerCancel);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerCancel);
+    };
+  }, [itemCount, onSelectedIndexChange]);
+
   function handleScroll() {
     const carousel = carouselRef.current;
 
-    if (!carousel) {
+    if (!carousel || dragStateRef.current?.hasDragged) {
       return;
     }
     const nextIndex = getClosestSlideIndex(carousel, itemCount);
@@ -45,10 +122,47 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
     scrollCarouselToIndex(carousel, nextIndex);
   }
 
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const carousel = carouselRef.current;
+
+    if (!carousel || event.pointerType === "touch") {
+      return;
+    }
+
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    if (carousel.scrollWidth <= carousel.clientWidth) {
+      return;
+    }
+
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: carousel.scrollLeft,
+      hasDragged: false
+    };
+    suppressClickRef.current = false;
+  }
+
+  function handleClickCapture(event: ReactMouseEvent<HTMLDivElement>) {
+    if (!suppressClickRef.current) {
+      return;
+    }
+
+    suppressClickRef.current = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   return {
     carouselRef,
     handleScroll,
-    snapToIndex
+    snapToIndex,
+    handlePointerDown,
+    handleClickCapture,
+    isPointerDragging
   };
 }
 

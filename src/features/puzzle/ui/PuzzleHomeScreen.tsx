@@ -24,7 +24,7 @@ export function PuzzleHomeScreen({
   onOpenTier
 }: PuzzleHomeScreenProps) {
   const titleRowRef = useRef<HTMLDivElement | null>(null);
-  const { carouselRef, handleScroll, snapToIndex } = useSnapCarousel({
+  const { carouselRef, handleScroll, snapToIndex, handlePointerDown, handleClickCapture, isPointerDragging } = useSnapCarousel({
     selectedIndex: selectedTierIndex,
     itemCount: tiers.length,
     onSelectedIndexChange: onSelectTier
@@ -90,7 +90,14 @@ export function PuzzleHomeScreen({
         </div>
       </div>
 
-      <div className="snap-carousel home-carousel" ref={carouselRef} onScroll={handleCarouselScroll} data-testid="home-carousel">
+      <div
+        className={["snap-carousel", "home-carousel", isPointerDragging ? "snap-carousel-dragging" : ""].join(" ")}
+        ref={carouselRef}
+        onScroll={handleCarouselScroll}
+        onPointerDown={handlePointerDown}
+        onClickCapture={handleClickCapture}
+        data-testid="home-carousel"
+      >
         {tiers.map((tier, index) => (
           <div className="snap-slide home-carousel-slide" key={tier.tier}>
             <button

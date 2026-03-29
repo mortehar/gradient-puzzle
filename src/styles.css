@@ -314,6 +314,11 @@ input[type="range"]::-moz-range-thumb {
   touch-action: pan-x;
 }
 
+.snap-carousel-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
 .snap-carousel::-webkit-scrollbar {
   display: none;
 }

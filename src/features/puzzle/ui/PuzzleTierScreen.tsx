@@ -26,7 +26,7 @@ export function PuzzleTierScreen({
 }: PuzzleTierScreenProps) {
   const numberRowRef = useRef<HTMLDivElement | null>(null);
   const activePuzzle = tier.puzzles[tier.selectedPuzzleIndex] ?? tier.puzzles[0];
-  const { carouselRef, handleScroll, snapToIndex } = useSnapCarousel({
+  const { carouselRef, handleScroll, snapToIndex, handlePointerDown, handleClickCapture, isPointerDragging } = useSnapCarousel({
     selectedIndex: tier.selectedPuzzleIndex,
     itemCount: tier.puzzles.length,
     onSelectedIndexChange: onSelectPuzzle
@@ -95,7 +95,14 @@ export function PuzzleTierScreen({
         </div>
       </div>
 
-      <div className="snap-carousel tier-carousel" ref={carouselRef} onScroll={handleCarouselScroll} data-testid="tier-carousel">
+      <div
+        className={["snap-carousel", "tier-carousel", isPointerDragging ? "snap-carousel-dragging" : ""].join(" ")}
+        ref={carouselRef}
+        onScroll={handleCarouselScroll}
+        onPointerDown={handlePointerDown}
+        onClickCapture={handleClickCapture}
+        data-testid="tier-carousel"
+      >
         {tier.puzzles.map(({ puzzle }, index) => (
           <div className="snap-slide tier-carousel-slide" key={puzzle.id}>
             <button
