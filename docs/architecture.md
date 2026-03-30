@@ -1,148 +1,67 @@
 # Gradient Architecture
 
-This document explains what the game does at runtime and how the current codebase is organized after the professionalization pass.
+This document is the source of truth for how the current repo is structured.
 
 ## Runtime Flow
 
-1. [`src/main.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/main.tsx) bootstraps React and renders [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx).
-2. [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx) mounts the puzzle feature only.
-3. [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx) composes:
-   - the home screen tier carousel
-   - the tier screen puzzle carousel
-   - the shared browser-screen top row and settings menu state
-   - the puzzle play screen with the hold-to-abort back control and the mirrored hold-to-aid help control
-4. [`src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePublishedPuzzleBrowser.ts) owns the browser state:
-   - selected tier and selected puzzle per tier
-   - completion-history-backed tier progress
-   - tier and puzzle summaries for the screen components
-5. [`src/features/puzzle/hooks/usePuzzleSession.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks/usePuzzleSession.ts) owns the single-puzzle session state:
-   - preview -> scrambling -> playing -> solved transitions
-   - drag interactions
-   - aid move selection, score ineligibility after first aid use, and aided completion recording
-   - local completion-history persistence and best-score derivation
-   - local completion recording
-6. UI components render the browser and session state and call back into the hook actions.
+1. `src/main.tsx` mounts `src/App.tsx`.
+2. `src/App.tsx` renders `src/features/puzzle/PuzzleFeature.tsx` only.
+3. `PuzzleFeature` owns top-level screen switching and QA bootstrap wiring.
+4. `usePublishedPuzzleBrowser` owns browser-level state:
+   selected tier, selected puzzle per tier, preferences, and completion-backed progress.
+5. `usePuzzleSession` owns one active puzzle session:
+   preview, scramble, play, aid, drag state, completion recording, and ceremony state.
+6. UI components under `src/features/puzzle/ui/` stay presentation-focused and receive state/actions from the hooks.
 
-Two current UX constraints are intentional:
+## Main Boundaries
 
-- published boards stay portrait-oriented (`width <= height`)
-- the rendered board sits inside a fixed portrait frame so surrounding controls do not reflow wildly as difficulty changes
+### App Root
 
-## Domain Model
+- `src/App.tsx` is composition-only.
+- Root tests should stay tiny and avoid owning feature behavior.
 
-The core game logic intentionally remains outside React.
+### Feature Layer
 
-### Puzzle domain
+- `src/features/puzzle/hooks/`: React orchestration and storage adapters.
+- `src/features/puzzle/ui/`: rendering and presentation helpers.
+- `src/features/puzzle/qa/`: automation-only bootstrap parsing.
+- `src/features/puzzle/domain/`: narrow feature-facing barrel over runtime domain APIs.
 
-[`src/game.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/game.ts) is the main source of truth for:
+### Pure Domain Package
 
-- structural catalog authoring
-- published puzzle loading
-- lock placement rules
-- offline board generation
-- scrambling
-- tile swapping
-- solved-state checks
-- aid move selection
+`src/game.ts` is a thin stable barrel over `src/game/`.
 
-Important types:
+- `config-and-locks.ts`: config normalization, valid lock options, locked-index calculation.
+- `generation.ts`: board generation, scrambling, swapping, aid selection, solved checks.
+- `difficulty.ts`: structural difficulty metrics, scoring, tier mapping.
+- `catalog-authoring.ts`: structural catalog creation and published catalog authoring.
+- `catalog-runtime.ts`: published catalog reads and puzzle-to-game hydration.
+- `generated/`: checked-in generated catalog artifacts used by runtime and generated-catalog accessors.
+- `generated-catalog.ts`: explicit accessors for the checked-in generated structural catalog.
 
-- `GameConfig`
-- `GameState`
-- `Tile`
-- `DifficultyCatalogEntry`
+The pure domain must remain React-free and framework-free.
 
-### Perceptual analysis
+## Generated Artifacts
 
-[`src/colorAnalysis.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/colorAnalysis.ts) evaluates the solved board using `Oklab` and computes metrics such as:
+- `scripts/generatePublishedCatalog.ts` rebuilds:
+  - `src/game/generated/structuralCatalog.generated.ts`
+  - `src/game/generated/publishedCatalog.generated.ts`
+- Runtime reads the published catalog artifact directly.
+- Authoring code can still rebuild catalogs from first principles when the generation rules change.
 
-- neighbor distance distributions
-- lightness monotonicity and reversal rates
-- edge smoothness
-- center chroma drop
-- midpoint clarity
-- axis balance
-- readability score and label
+## Styling
 
-The feature-level domain entrypoint at [`src/features/puzzle/domain/index.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/domain/index.ts) re-exports these pure modules so the React feature depends on one internal boundary instead of importing unrelated root files directly.
+- `src/styles.css` is the entrypoint only.
+- Global styles are split into:
+  - `src/styles/tokens.css`
+  - `src/styles/layout.css`
+  - `src/styles/browser.css`
+  - `src/styles/board.css`
+  - `src/styles/controls.css`
 
-## Board Generation Pipeline
+Keep class names stable unless behavior or markup changes require otherwise.
 
-Player runtime now loads from a published catalog rather than generating a fresh puzzle on demand:
+## Verification Sources Of Truth
 
-1. The home screen groups the published `v1` catalog into five difficulty tiers.
-2. The home and tier screens share a static top row with an icon-only settings button in the upper right.
-3. The home screen previews the first six puzzles in each tier and shows tier completion progress.
-4. The tier screen previews puzzles in order and opens the selected puzzle into the play flow.
-5. The puzzle screen builds tiles from the stored artifact and runs the normal preview -> scramble -> play flow.
-
-Catalog authoring still happens from the pure domain:
-
-1. [`src/game.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/game.ts) builds the full structural difficulty catalog.
-2. The authoring pipeline selects 10 evenly spaced structural entries per published difficulty tier, skipping `Very easy` for `v1`.
-3. A seeded trajectory search generates one canonical solved board per selected entry.
-4. A seeded derangement produces one canonical scramble per selected entry.
-5. [`scripts/generatePublishedCatalog.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/scripts/generatePublishedCatalog.ts) writes the structural artifact to [`src/structuralCatalog.generated.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/structuralCatalog.generated.ts) and the player-facing artifact to [`src/publishedCatalog.generated.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/publishedCatalog.generated.ts).
-
-The important design choice is that published puzzle identity is now fixed by the catalog artifact, not by rerunning the generator at play time.
-
-## Lock Rules
-
-Published lock layouts still originate from unions of:
-
-- corner anchors
-- vertical lines
-- horizontal lines
-- diagonal cross lines
-- generator-only rectangular islands
-
-Island layouts are part of the internal difficulty catalog only, not the player-facing UI. A single island is centered, while multiple islands are distributed across a balanced portrait-safe lattice of centers.
-All generated lock layouts are kept mirror-symmetric across both board axes.
-The config is normalized so only valid counts, footprints, and spacings are used for a given board size.
-
-## Move Selection
-
-The pure domain still contains the swap-selection logic that identifies the best corrective move for a board:
-
-- prefer swaps that place both tiles correctly
-- otherwise place the primary tile correctly and minimize the remaining secondary distance
-
-That logic stays in the pure domain layer, so UI animation only visualizes the chosen move.
-
-## Completion Ceremony
-
-When the board is solved:
-
-- locked frames fade away
-- a centered animated checkmark appears
-
-This ceremony state is tracked in the puzzle session hook and exposed to the board as presentation state.
-
-## Local Score History
-
-The player feature now keeps a browser-local completion history for published puzzles:
-
-- persistence lives in a feature-local storage helper, not in the pure domain layer
-- each stored record includes puzzle identity, move count, aid count, start time, completion time, and solve duration
-- solve timing starts when session state first reaches `playing`
-- solve timing stops on the action that changes the board into `solved`, before the completion ceremony finishes
-- score-eligible runs are the ones with no aid usage, and those are the runs that count toward `Best`
-
-## Catalog UX
-
-The current player-facing catalog behavior is:
-
-- 50 published puzzles in `v1`
-- 10 puzzles per published tier
-- user-facing numbering is bin-local (`#1` to `#10`)
-- the home screen uses tier-level progress counts, while the tier screen uses per-puzzle best scores
-
-## Frontend Structure
-
-The React-side feature is intentionally split by responsibility:
-
-- `hooks/`: orchestration and side effects
-- `ui/`: rendering and small presentation helpers
-- `domain/`: the feature-facing exports of the pure engine
-
-This keeps `App.tsx` small, makes feature-level tests easier to write, and gives AI agents clear boundaries for safe edits.
+- Unit, integration, coverage, CI, and Playwright workflow rules live in `docs/testing-and-verification.md`.
+- Color and generator heuristics live in `docs/color-research.md`.

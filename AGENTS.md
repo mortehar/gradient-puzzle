@@ -1,66 +1,43 @@
 # Agent Notes
 
-## Runtime Setup
+## Setup
 
-- This repo must use Node 20 via `nvm`. The system `node` on PATH is Node 12 and is too old for the project toolchain.
-- Before running `npm`, `npx`, `vitest`, `tsc`, or `vite`, load `nvm` first:
+- Use Node 20 via `nvm` before any `npm`, `vite`, `vitest`, or `tsc` command.
 
 ```bash
 export NVM_DIR="$HOME/.nvm"
 . "$NVM_DIR/nvm.sh"
 nvm use 20 >/dev/null
-node -v
 ```
 
-- Installed version confirmed in this environment: `v20.20.2`.
+## Read First
 
-## Architecture Map
+- `README.md`
+- `docs/architecture.md`
+- `docs/testing-and-verification.md`
 
-- [`src/App.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/App.tsx): composition root only.
-- [`src/features/puzzle/PuzzleFeature.tsx`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/PuzzleFeature.tsx): feature assembly.
-- [`src/features/puzzle/hooks`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/hooks): React orchestration and session state.
-- [`src/features/puzzle/ui`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/ui): rendering and presentation helpers.
-- [`src/game.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/game.ts): pure puzzle engine and difficulty/layout logic.
-- [`src/colorAnalysis.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/colorAnalysis.ts): pure perceptual analysis.
+## Guardrails
 
-## Editing Rules
+- Keep `src/App.tsx` composition-only.
+- Keep `src/game/` pure and React-free.
+- Keep feature orchestration in `src/features/puzzle/hooks/`.
+- Keep rendering logic in `src/features/puzzle/ui/`.
+- Keep QA bootstrap logic inside `src/features/puzzle/qa/`.
+- Prefer narrow, behavior-preserving refactors over broad rewrites.
 
-- Keep `src/game.ts` and `src/colorAnalysis.ts` pure and framework-agnostic.
-- Keep `src/App.tsx` tiny. Do not move orchestration back into it.
-- Prefer adding feature behavior to `usePuzzleSession` and presentation changes to `ui/` components.
-- For locked-cell visuals, keep square-frame geometry centralized in [`src/features/puzzle/ui/boardPresentation.ts`](/mnt/c/Users/Morten/Documents/Codex/Gradient/src/features/puzzle/ui/boardPresentation.ts) and consume the shared `--tile-lock-*` CSS variables instead of hardcoding radii or insets inside individual variants.
-- Lock-square corner rounding must scale consistently across home previews, tier previews, and the live board. Prefer percentage-based shared radius tokens over per-variant pixel radii.
-- Preserve current gameplay unless the task explicitly changes behavior.
-- When changing gameplay, generator behavior, difficulty logic, or research heuristics, update docs as part of the same task.
+## Verification
 
-## Workflow Expectations
-
-- Start by inspecting the relevant files before proposing or making changes.
-- For substantial work, explain the plan before editing.
-- Prefer narrow diffs over broad rewrites.
-- If extracting logic, add or update targeted tests for the extracted module.
-- Before handoff, run the relevant checks with Node 20:
+- Run the smallest relevant checks while working.
+- Before handoff for substantial work, aim to run:
   - `npm run lint`
   - `npm run typecheck`
   - `npm test`
   - `npm run build`
+- For UI or interaction work, also run the browser feedback loop described in `docs/testing-and-verification.md`.
 
-## AI Delegation Guidance
+## Docs
 
-- Use sub-agents only for bounded, non-overlapping work.
-- Give each worker explicit ownership of files or folders.
-- Tell workers they are not alone in the codebase and must not revert others’ edits.
-- Good delegation examples:
-  - one worker updates docs only
-  - one worker adds tests in one file
-  - one worker refactors one UI component
-- Bad delegation examples:
-  - multiple workers editing the same hook
-  - one worker refactoring domain while another edits the same types
-
-## Documentation Contract
-
-- Update [`README.md`](/mnt/c/Users/Morten/Documents/Codex/Gradient/README.md) for product-level behavior or setup changes.
-- Update [`docs/architecture.md`](/mnt/c/Users/Morten/Documents/Codex/Gradient/docs/architecture.md) for structural changes.
-- Keep [`docs/color-research.md`](/mnt/c/Users/Morten/Documents/Codex/Gradient/docs/color-research.md) aligned with generator/readability heuristics when those change.
-- Keep [`HUMAN.md`](/mnt/c/Users/Morten/Documents/Codex/Gradient/HUMAN.md) and this file aligned with the intended Codex workflow.
+- Update `README.md` for entrypoint/setup changes.
+- Update `docs/architecture.md` for structural changes.
+- Update `docs/testing-and-verification.md` for test, CI, or Playwright workflow changes.
+- Update `docs/color-research.md` when generator or readability heuristics change.
