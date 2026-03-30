@@ -3,10 +3,12 @@ import type { PublishedPuzzle } from "../domain";
 import { PuzzleBoard, PuzzleDragPreview } from "./PuzzleBoard";
 import { HoldToAbortButton } from "./HoldToAbortButton";
 import { HoldToAidButton } from "./HoldToAidButton";
+import { ScreenIntro } from "./ScreenIntro";
 import { usePuzzleSession } from "../hooks/usePuzzleSession";
 import type { LocalPuzzleCompletionRecord } from "../hooks/puzzleCompletionHistory";
 import type { Tile } from "../domain";
 import type { LockedTileStyle } from "./lockedTileStyles";
+import { getPlayScreenArtDirection } from "./screenArtDirection";
 import type { HoldActionState } from "./useHoldToAction";
 import type { PuzzleQaSessionBootstrap } from "../qa/bootstrap";
 
@@ -33,6 +35,7 @@ export function PuzzlePlayScreen({
     qaBootstrap,
     onRecordCompletion
   });
+  const artDirection = getPlayScreenArtDirection(puzzle);
   const [abortHoldState, setAbortHoldState] = useState<HoldActionState>({
     isHolding: false,
     progress: 0,
@@ -82,15 +85,17 @@ export function PuzzlePlayScreen({
   return (
     <>
       <section
-        className="board-panel play-panel screen-scene screen-scene-night"
+        className={["board-panel", "play-panel", artDirection.sectionClassName].join(" ")}
         data-testid="puzzle-screen"
         data-game-status={session.game.status}
       >
-        <div className="screen-heading play-screen-heading">
-          <p className="screen-kicker">{puzzle.tier}</p>
-          <h1 className="screen-title screen-title-compact">Puzzle {puzzle.tierIndex}</h1>
-          <p className="screen-copy play-screen-copy">Shape the board back into one calm, continuous gradient.</p>
-        </div>
+        <ScreenIntro
+          className="screen-heading play-screen-heading"
+          titleClassName="screen-title screen-title-compact"
+          kicker={artDirection.kicker}
+          title={artDirection.title}
+          copy={artDirection.copy}
+        />
         <div className="play-board-shell">
           <PuzzleBoard
             game={session.game}

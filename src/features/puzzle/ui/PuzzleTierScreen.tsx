@@ -3,8 +3,10 @@ import { useSnapCarousel } from "../hooks/useSnapCarousel";
 import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
 import { BackSymbolButton } from "./BackSymbolButton";
 import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
+import { ScreenIntro } from "./ScreenIntro";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
 import type { LockedTileStyle } from "./lockedTileStyles";
+import { getTierScreenArtDirection } from "./screenArtDirection";
 
 type PuzzleTierScreenProps = {
   tier: TierSummary;
@@ -31,6 +33,7 @@ export function PuzzleTierScreen({
 }: PuzzleTierScreenProps) {
   const numberRowRef = useRef<HTMLDivElement | null>(null);
   const activePuzzle = tier.puzzles[tier.selectedPuzzleIndex] ?? tier.puzzles[0];
+  const artDirection = getTierScreenArtDirection(tier, activePuzzle);
   const { carouselRef, handleScroll, snapToIndex, handlePointerDown, handleClickCapture, isPointerDragging } = useSnapCarousel({
     selectedIndex: tier.selectedPuzzleIndex,
     itemCount: tier.puzzles.length,
@@ -65,7 +68,7 @@ export function PuzzleTierScreen({
   }, [syncNumberRowScroll]);
 
   return (
-    <section className="browser-screen screen-panel screen-scene screen-scene-dusk tier-screen-panel" data-testid="tier-screen">
+    <section className={["browser-screen", "screen-panel", artDirection.sectionClassName].join(" ")} data-testid="tier-screen">
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
         lockedTileStyle={lockedTileStyle}
@@ -74,27 +77,13 @@ export function PuzzleTierScreen({
         onCloseSettings={onCloseSettings}
       />
 
-      <div className="screen-heading">
-        <p className="screen-kicker">{tier.tier}</p>
-        <h1 className="screen-title">Choose a puzzle</h1>
-        <p className="screen-copy">
-          {tier.completedCount} of {tier.totalCount} completed
-        </p>
-        {activePuzzle ? (
-          <div className="screen-chip-row" data-testid="tier-screen-chips">
-            <div className="screen-chip">
-              <span className="screen-chip-label">Selected</span>
-              <strong className="screen-chip-value">Puzzle {activePuzzle.puzzle.tierIndex}</strong>
-            </div>
-            <div className="screen-chip">
-              <span className="screen-chip-label">Best</span>
-              <strong className="screen-chip-value">
-                {activePuzzle.bestCompletion ? `${activePuzzle.bestCompletion.moveCount} moves` : "Unplayed"}
-              </strong>
-            </div>
-          </div>
-        ) : null}
-      </div>
+      <ScreenIntro
+        kicker={artDirection.kicker}
+        title={artDirection.title}
+        copy={artDirection.copy}
+        chips={artDirection.chips}
+        chipsTestId="tier-screen-chips"
+      />
 
       <div className="tier-number-row" ref={numberRowRef} data-testid="tier-number-row">
         <div className="tier-number-track">

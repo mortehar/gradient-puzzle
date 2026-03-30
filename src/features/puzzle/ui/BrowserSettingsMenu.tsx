@@ -5,6 +5,7 @@ import {
   LOCK_FRAME_SECONDARY_INSET
 } from "./boardPresentation";
 import { LOCKED_TILE_STYLE_OPTIONS, LockedTileAdornment, type LockedTileStyle } from "./lockedTileStyles";
+import { SETTINGS_MENU_ART_DIRECTION } from "./screenArtDirection";
 
 type BrowserSettingsMenuProps = {
   lockedTileStyle: LockedTileStyle;
@@ -22,11 +23,10 @@ export function BrowserSettingsMenu({ lockedTileStyle, onLockedTileStyleChange }
       aria-label="Locked cell themes"
     >
       <div className="browser-settings-header">
-        <p className="screen-kicker">Locked cells</p>
-        <p className="browser-label browser-label-large">Board treatment</p>
+        <p className="screen-kicker">{SETTINGS_MENU_ART_DIRECTION.kicker}</p>
+        <p className="browser-label browser-label-large">{SETTINGS_MENU_ART_DIRECTION.title}</p>
         <p className="browser-settings-copy">
-          Pick the material language for fixed cells. The choice is visual only and carries through previews and live
-          play.
+          {SETTINGS_MENU_ART_DIRECTION.copy}
         </p>
       </div>
 

@@ -63,6 +63,9 @@ The pure domain must remain React-free and framework-free.
   - `src/styles/browser.css`
   - `src/styles/board.css`
   - `src/styles/controls.css`
+- `src/styles.css` imports those partials and serves as the shared styling entrypoint for the app shell, browser screens, board, and controls.
+- `src/features/puzzle/ui/screenArtDirection.ts` centralizes scene-class selection and authored visual copy for the home, tier, play, and settings surfaces.
+- `src/features/puzzle/ui/ScreenIntro.tsx` renders the shared kicker / title / copy / chip composition so screens opt into one visual grammar instead of rebuilding it ad hoc.
 - The partial stylesheets should consume the theme tokens instead of hardcoding one-off visual values when the decision is meant to be global.
 - Board geometry remains centralized in `src/features/puzzle/ui/boardPresentation.ts`.
 - Locked-cell tone ramps remain centralized in `src/features/puzzle/ui/lockedTileStyles.tsx`.

@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef } from "react";
 import { useSnapCarousel } from "../hooks/useSnapCarousel";
 import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
 import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
+import { ScreenIntro } from "./ScreenIntro";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
 import type { LockedTileStyle } from "./lockedTileStyles";
+import { getHomeScreenArtDirection } from "./screenArtDirection";
 
 type PuzzleHomeScreenProps = {
   tiers: readonly TierSummary[];
@@ -30,6 +32,7 @@ export function PuzzleHomeScreen({
 }: PuzzleHomeScreenProps) {
   const titleRowRef = useRef<HTMLDivElement | null>(null);
   const activeTier = tiers[selectedTierIndex] ?? tiers[0];
+  const artDirection = getHomeScreenArtDirection(activeTier);
   const { carouselRef, handleScroll, snapToIndex, handlePointerDown, handleClickCapture, isPointerDragging } = useSnapCarousel({
     selectedIndex: selectedTierIndex,
     itemCount: tiers.length,
@@ -65,7 +68,7 @@ export function PuzzleHomeScreen({
   }, [syncTitleRowScroll]);
 
   return (
-    <section className="browser-screen screen-panel screen-scene screen-scene-dawn home-screen-panel" data-testid="home-screen">
+    <section className={["browser-screen", "screen-panel", artDirection.sectionClassName].join(" ")} data-testid="home-screen">
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
         lockedTileStyle={lockedTileStyle}
@@ -74,28 +77,14 @@ export function PuzzleHomeScreen({
         onCloseSettings={onCloseSettings}
       />
 
-      <div className="screen-heading home-screen-heading">
-        <p className="screen-kicker">A quiet color puzzle</p>
-        <h1 className="screen-title">Gradient</h1>
-        <p className="screen-copy">
-          Arrange each board into a smooth color path. Browse by tier, settle into the atmosphere, and solve at your
-          own pace.
-        </p>
-        {activeTier ? (
-          <div className="screen-chip-row" data-testid="home-screen-chips">
-            <div className="screen-chip">
-              <span className="screen-chip-label">Tier</span>
-              <strong className="screen-chip-value">{activeTier.tier}</strong>
-            </div>
-            <div className="screen-chip">
-              <span className="screen-chip-label">Progress</span>
-              <strong className="screen-chip-value">
-                {activeTier.completedCount}/{activeTier.totalCount}
-              </strong>
-            </div>
-          </div>
-        ) : null}
-      </div>
+      <ScreenIntro
+        className="screen-heading home-screen-heading"
+        kicker={artDirection.kicker}
+        title={artDirection.title}
+        copy={artDirection.copy}
+        chips={artDirection.chips}
+        chipsTestId="home-screen-chips"
+      />
 
       <div className="home-tier-title-row" ref={titleRowRef} data-testid="home-tier-title-row">
         <div className="home-tier-title-track">
