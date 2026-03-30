@@ -259,7 +259,7 @@ describe("App", () => {
     expect(screen.getByTestId("lock-style-option-texture")).toHaveAttribute("aria-checked", "true");
   });
 
-  it("opens a puzzle from the tier screen and aborts back to the same puzzle card after a two-second hold", () => {
+  it("opens a puzzle from the tier screen and aborts back to the same puzzle card after a 1.5-second hold", () => {
     render(<App />);
 
     openTierFromHome("easy");
@@ -274,7 +274,7 @@ describe("App", () => {
     fireEvent.pointerDown(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
 
     act(() => {
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(1500);
     });
 
     expect(screen.getByTestId("tier-screen")).toBeInTheDocument();
@@ -299,7 +299,7 @@ describe("App", () => {
     fireEvent.pointerDown(screen.getByTestId("aid-hold-hitbox"), { pointerId: 1 });
 
     act(() => {
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(1500);
     });
     act(() => {
       vi.advanceTimersByTime(1000);

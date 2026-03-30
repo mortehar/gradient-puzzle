@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const HOLD_TO_ACTION_MS = 2000;
+const HOLD_TO_ACTION_MS = 1500;
 const HOLD_PROGRESS_INTERVAL_MS = 50;
 const HOLD_RELEASE_PREVIEW_MS = 1000;
 

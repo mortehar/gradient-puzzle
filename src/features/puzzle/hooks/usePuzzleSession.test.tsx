@@ -353,7 +353,7 @@ describe("usePuzzleSession", () => {
     fireEvent.pointerDown(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
 
     act(() => {
-      vi.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1125);
     });
 
     expect(screen.getByTestId("abort-progress")).toBeInTheDocument();
@@ -385,7 +385,7 @@ describe("usePuzzleSession", () => {
     expect(screen.queryByTestId("abort-progress")).not.toBeInTheDocument();
 
     act(() => {
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(1500);
     });
 
     expect(onAbort).not.toHaveBeenCalled();
@@ -409,7 +409,7 @@ describe("usePuzzleSession", () => {
     fireEvent.pointerDown(screen.getByTestId("aid-hold-hitbox"), { pointerId: 1 });
 
     act(() => {
-      vi.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1000);
     });
 
     expect(screen.getByTestId("aid-progress")).toBeInTheDocument();
@@ -436,7 +436,7 @@ describe("usePuzzleSession", () => {
     expect(screen.getByText("Moves: 2")).toBeInTheDocument();
   });
 
-  it("aborts the puzzle after a full two-second hold", () => {
+  it("aborts the puzzle after a full 1.5-second hold", () => {
     const onAbort = vi.fn();
 
     render(
@@ -452,7 +452,7 @@ describe("usePuzzleSession", () => {
     fireEvent.pointerDown(screen.getByTestId("abort-hold-hitbox"), { pointerId: 1 });
 
     act(() => {
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(1500);
     });
 
     expect(onAbort).toHaveBeenCalledTimes(1);
