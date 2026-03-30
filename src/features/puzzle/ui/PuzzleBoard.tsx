@@ -3,22 +3,23 @@ import type {
   AidAnimationState,
   CompletionCeremonyPhase,
   PointerPosition,
+  TransitionMode as BoardTransitionMode,
   ScrambleFlipTile,
-  TransitionMode
 } from "./boardPresentation";
 import { getBoardStyle, getTileLayoutStyle } from "./boardPresentation";
-import type { GameConfig, GameState, Tile } from "../domain";
+import type { GameState, Tile } from "../domain";
 import { LockedTileAdornment, type LockedTileStyle } from "./lockedTileStyles";
+import type { PuzzleQaMotion } from "../qa/bootstrap";
 
 type PuzzleBoardProps = {
   game: GameState;
-  previewConfig: GameConfig;
   orderedTiles: Tile[];
   lockedTileStyle: LockedTileStyle;
-  transitionMode: TransitionMode;
+  transitionMode: BoardTransitionMode;
   activeAidAnimation: AidAnimationState | null;
   activeScrambleFlip: ScrambleFlipTile[] | null;
   completionCeremonyPhase: CompletionCeremonyPhase;
+  qaMotion?: PuzzleQaMotion;
   dragTileId: string | null;
   dragTargetIndex: number | null;
   dragPointerType: string | null;
@@ -29,13 +30,13 @@ type PuzzleBoardProps = {
 
 export function PuzzleBoard({
   game,
-  previewConfig,
   orderedTiles,
   lockedTileStyle,
   transitionMode,
   activeAidAnimation,
   activeScrambleFlip,
   completionCeremonyPhase,
+  qaMotion = "live",
   dragTileId,
   dragTargetIndex,
   dragPointerType,
@@ -55,8 +56,10 @@ export function PuzzleBoard({
       role="grid"
       data-testid="puzzle-board"
       data-locked-tile-style={lockedTileStyle}
+      data-game-status={game.status}
       data-ceremony-phase={completionCeremonyPhase}
-      style={getBoardStyle(game, previewConfig, transitionMode)}
+      data-qa-motion={qaMotion}
+      style={getBoardStyle(game, transitionMode)}
       onContextMenu={(event) => event.preventDefault()}
     >
       {orderedTiles.map((tile) => {

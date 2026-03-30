@@ -28,7 +28,7 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
       return;
     }
 
-    scrollCarouselToIndex(carousel, selectedIndex);
+    scrollCarouselToIndex(carousel, selectedIndex, "auto");
   }, [selectedIndex]);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
       const nextIndex = getClosestSlideIndex(carousel, itemCount);
 
       onSelectedIndexChange(nextIndex);
-      scrollCarouselToIndex(carousel, nextIndex);
+      scrollCarouselToIndex(carousel, nextIndex, "smooth");
     };
 
     const handlePointerUp = (event: PointerEvent) => {
@@ -119,7 +119,7 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
       return;
     }
 
-    scrollCarouselToIndex(carousel, nextIndex);
+    scrollCarouselToIndex(carousel, nextIndex, "smooth");
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -166,7 +166,7 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
   };
 }
 
-function scrollCarouselToIndex(carousel: HTMLDivElement, index: number) {
+function scrollCarouselToIndex(carousel: HTMLDivElement, index: number, behavior: ScrollBehavior) {
   const targetSlide = carousel.children[index] as HTMLElement | undefined;
 
   if (!targetSlide) {
@@ -178,7 +178,7 @@ function scrollCarouselToIndex(carousel: HTMLDivElement, index: number) {
   if (typeof carousel.scrollTo === "function") {
     carousel.scrollTo({
       left: nextLeft,
-      behavior: "smooth"
+      behavior
     });
     return;
   }

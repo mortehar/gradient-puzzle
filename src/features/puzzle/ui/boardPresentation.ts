@@ -99,7 +99,7 @@ export function getTileLayoutStyle(index: number, config: GameConfig): CSSProper
   };
 }
 
-export function getBoardStyle(gameState: GameState, _previewConfig: GameConfig, transitionMode: TransitionMode): CSSProperties {
+export function getBoardStyle(gameState: GameState, transitionMode: TransitionMode): CSSProperties {
   return {
     "--board-columns": gameState.config.width,
     "--board-rows": gameState.config.height,

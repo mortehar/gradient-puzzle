@@ -8,11 +8,13 @@ import type { LocalPuzzleCompletionRecord } from "../hooks/puzzleCompletionHisto
 import type { Tile } from "../domain";
 import type { LockedTileStyle } from "./lockedTileStyles";
 import type { HoldActionState } from "./useHoldToAction";
+import type { PuzzleQaSessionBootstrap } from "../qa/bootstrap";
 
 type PuzzlePlayScreenProps = {
   puzzle: PublishedPuzzle;
   completionHistory: readonly LocalPuzzleCompletionRecord[];
   lockedTileStyle: LockedTileStyle;
+  qaBootstrap?: PuzzleQaSessionBootstrap | null;
   onRecordCompletion: (record: LocalPuzzleCompletionRecord) => void;
   onAbort: () => void;
 };
@@ -21,12 +23,14 @@ export function PuzzlePlayScreen({
   puzzle,
   completionHistory,
   lockedTileStyle,
+  qaBootstrap = null,
   onRecordCompletion,
   onAbort
 }: PuzzlePlayScreenProps) {
   const session = usePuzzleSession({
     puzzle,
     completionHistory,
+    qaBootstrap,
     onRecordCompletion
   });
   const [abortHoldState, setAbortHoldState] = useState<HoldActionState>({
@@ -77,17 +81,17 @@ export function PuzzlePlayScreen({
 
   return (
     <>
-      <section className="board-panel play-panel" data-testid="puzzle-screen">
+      <section className="board-panel play-panel" data-testid="puzzle-screen" data-game-status={session.game.status}>
         <div className="play-board-shell">
           <PuzzleBoard
             game={session.game}
-            previewConfig={session.previewConfig}
             orderedTiles={session.orderedTiles}
             lockedTileStyle={lockedTileStyle}
             transitionMode={session.transitionMode}
             activeAidAnimation={session.activeAidAnimation}
             activeScrambleFlip={session.activeScrambleFlip}
             completionCeremonyPhase={session.completionCeremonyPhase}
+            qaMotion={qaBootstrap?.motion ?? "live"}
             dragTileId={session.dragTile?.id ?? null}
             dragTargetIndex={session.dragTargetIndex}
             dragPointerType={session.dragPointerType}

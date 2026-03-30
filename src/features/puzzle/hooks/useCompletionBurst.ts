@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import type { GameState } from "../domain";
 import { COMPLETION_CHECK_DURATION_MS, LOCK_FADE_DURATION_MS, type CompletionCeremonyPhase } from "../ui/boardPresentation";
 
-export function useCompletionBurst(status: GameState["status"]) {
-  const [ceremonyPhase, setCeremonyPhase] = useState<CompletionCeremonyPhase>("idle");
+type UseCompletionBurstOptions = {
+  initialPhase?: CompletionCeremonyPhase;
+  disableAutoAdvance?: boolean;
+};
+
+export function useCompletionBurst(status: GameState["status"], { initialPhase = "idle", disableAutoAdvance = false }: UseCompletionBurstOptions = {}) {
+  const [ceremonyPhase, setCeremonyPhase] = useState<CompletionCeremonyPhase>(initialPhase);
   const previousStatusRef = useRef<GameState["status"]>(status);
   const checkmarkTimeoutRef = useRef<number | null>(null);
   const settledTimeoutRef = useRef<number | null>(null);
@@ -18,6 +23,11 @@ export function useCompletionBurst(status: GameState["status"]) {
         setCeremonyPhase("idle");
       }
 
+      return undefined;
+    }
+
+    if (disableAutoAdvance) {
+      setCeremonyPhase(initialPhase === "idle" ? "checkmark" : initialPhase);
       return undefined;
     }
 
@@ -39,7 +49,7 @@ export function useCompletionBurst(status: GameState["status"]) {
         settledTimeoutRef.current = null;
       }
     };
-  }, [status]);
+  }, [disableAutoAdvance, initialPhase, status]);
 
   return {
     ceremonyPhase

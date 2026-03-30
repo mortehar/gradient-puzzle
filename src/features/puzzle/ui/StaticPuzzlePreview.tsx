@@ -20,7 +20,7 @@ export function StaticPuzzlePreview({ puzzle, lockedTileStyle, size = "large", t
       aria-hidden="true"
       data-locked-tile-style={lockedTileStyle}
       data-testid={testId}
-      style={getBoardStyle(game, game.config, "none")}
+      style={getBoardStyle(game, "none")}
     >
       {orderedTiles.map((tile) => (
         <div

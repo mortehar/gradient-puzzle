@@ -3,13 +3,24 @@ import { PuzzleHomeScreen } from "./ui/PuzzleHomeScreen";
 import { PuzzlePlayScreen } from "./ui/PuzzlePlayScreen";
 import { PuzzleTierScreen } from "./ui/PuzzleTierScreen";
 import { usePublishedPuzzleBrowser } from "./hooks/usePublishedPuzzleBrowser";
+import { getPuzzleQaSessionBootstrap, loadPuzzleQaBootstrap } from "./qa/bootstrap";
 
 export function PuzzleFeature() {
-  const browser = usePublishedPuzzleBrowser();
-  const [openSettingsScreen, setOpenSettingsScreen] = useState<"home" | "tier" | null>(null);
+  const [qaBootstrap] = useState(() => loadPuzzleQaBootstrap());
+  const browser = usePublishedPuzzleBrowser({
+    qaBootstrap
+  });
+  const [openSettingsScreen, setOpenSettingsScreen] = useState<"home" | "tier" | null>(() => {
+    if (!qaBootstrap || qaBootstrap.settings !== "open" || qaBootstrap.screen === "puzzle") {
+      return null;
+    }
+
+    return qaBootstrap.screen;
+  });
+  const qaSessionBootstrap = getPuzzleQaSessionBootstrap(qaBootstrap);
 
   return (
-    <main className="app-shell">
+    <main className="app-shell" data-qa-motion={qaBootstrap?.motion ?? "live"}>
       {browser.screen === "home" ? (
         <PuzzleHomeScreen
           tiers={browser.tiers}
@@ -44,6 +55,7 @@ export function PuzzleFeature() {
           puzzle={browser.activePuzzle}
           completionHistory={browser.completionHistory}
           lockedTileStyle={browser.preferences.lockedTileStyle}
+          qaBootstrap={qaSessionBootstrap}
           onRecordCompletion={browser.actions.recordCompletion}
           onAbort={browser.actions.returnToTier}
         />

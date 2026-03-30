@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  DEFAULT_CONFIG,
   createGameFromPublishedPuzzle,
   findBestAidMove,
   isSolved,
-  normalizeConfig,
   swapTiles,
   type PublishedPuzzle,
   type Tile
 } from "../domain";
 import { getBestCompletionForPuzzle, type LocalPuzzleCompletionRecord } from "./puzzleCompletionHistory";
 import { useCompletionBurst } from "./useCompletionBurst";
+import { buildPuzzleCompletionRecord } from "./puzzleSessionCompletion";
+import { resolveDragTargetIndex } from "./puzzleSessionDrag";
+import { buildPuzzleSessionGame } from "./puzzleSessionGame";
 import {
   AID_ANIMATION_START_DELAY_MS,
   PREVIEW_DURATION_MS,
@@ -25,11 +26,10 @@ import {
   type ScrambleFlipTile,
   type TransitionMode
 } from "../ui/boardPresentation";
+import type { PuzzleQaSessionBootstrap } from "../qa/bootstrap";
 
 export type PuzzleSession = {
   game: ReturnType<typeof createGameFromPublishedPuzzle>;
-  activePuzzle: PublishedPuzzle;
-  previewConfig: ReturnType<typeof normalizeConfig>;
   transitionMode: TransitionMode;
   activeAidAnimation: AidAnimationState | null;
   activeScrambleFlip: ScrambleFlipTile[] | null;
@@ -41,7 +41,6 @@ export type PuzzleSession = {
   isInteractive: boolean;
   canUseAid: boolean;
   isScoreEligible: boolean;
-  currentPuzzleLabel: string;
   bestCompletion: LocalPuzzleCompletionRecord | null;
   completionCeremonyPhase: CompletionCeremonyPhase;
   actions: {
@@ -54,63 +53,16 @@ type UsePuzzleSessionOptions = {
   puzzle: PublishedPuzzle;
   completionHistory: readonly LocalPuzzleCompletionRecord[];
   onRecordCompletion: (record: LocalPuzzleCompletionRecord) => void;
+  qaBootstrap?: PuzzleQaSessionBootstrap | null;
 };
-
-function buildGame(puzzle: PublishedPuzzle) {
-  return createGameFromPublishedPuzzle(puzzle, DEFAULT_CONFIG.appearance);
-}
-
-function buildCompletionRecord(
-  puzzle: PublishedPuzzle,
-  startedAt: number,
-  nextMoveCount: number,
-  nextAidCount: number,
-  completedAt: number
-): LocalPuzzleCompletionRecord {
-  return {
-    puzzleId: puzzle.id,
-    catalogVersion: puzzle.catalogVersion,
-    sliderIndex: puzzle.sliderIndex,
-    tier: puzzle.tier,
-    tierIndex: puzzle.tierIndex,
-    moveCount: nextMoveCount,
-    aidCount: nextAidCount,
-    startedAt,
-    completedAt,
-    solveDurationMs: Math.max(0, completedAt - startedAt)
-  };
-}
-
-function resolveDragTargetIndex(clientX: number, clientY: number, tiles: Tile[], originIndex: number): number | null {
-  const element = document.elementFromPoint(clientX, clientY);
-  const tileElement = element?.closest<HTMLElement>("[data-current-index]");
-  const indexAttribute = tileElement?.dataset.currentIndex;
-
-  if (!indexAttribute) {
-    return null;
-  }
-
-  const targetIndex = Number(indexAttribute);
-
-  if (Number.isNaN(targetIndex) || targetIndex === originIndex) {
-    return null;
-  }
-
-  const targetTile = tiles.find((tile) => tile.currentIndex === targetIndex);
-
-  if (!targetTile || targetTile.locked) {
-    return null;
-  }
-
-  return targetIndex;
-}
 
 export function usePuzzleSession({
   puzzle,
   completionHistory,
-  onRecordCompletion
+  onRecordCompletion,
+  qaBootstrap = null
 }: UsePuzzleSessionOptions): PuzzleSession {
-  const [game, setGame] = useState(() => buildGame(puzzle));
+  const [game, setGame] = useState(() => buildPuzzleSessionGame(puzzle, qaBootstrap));
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [dragTargetIndex, setDragTargetIndex] = useState<number | null>(null);
   const [pointerPosition, setPointerPosition] = useState<PointerPosition | null>(null);
@@ -118,15 +70,11 @@ export function usePuzzleSession({
   const [activeAidAnimation, setActiveAidAnimation] = useState<AidAnimationState | null>(null);
   const [activeScrambleFlip, setActiveScrambleFlip] = useState<ScrambleFlipTile[] | null>(null);
   const attemptStartedAtRef = useRef<number | null>(null);
-  const completionBurst = useCompletionBurst(game.status);
-  const previewConfig = useMemo(
-    () =>
-      normalizeConfig({
-        ...puzzle.config,
-        appearance: DEFAULT_CONFIG.appearance
-      }),
-    [puzzle]
-  );
+  const disableAutomaticTransitions = qaBootstrap?.motion === "static";
+  const completionBurst = useCompletionBurst(game.status, {
+    initialPhase: qaBootstrap?.phase === "solved" ? "checkmark" : "idle",
+    disableAutoAdvance: disableAutomaticTransitions
+  });
   const orderedTiles = useMemo(() => [...game.tiles].sort((left, right) => left.currentIndex - right.currentIndex), [game.tiles]);
   const dragTile = dragState ? game.tiles.find((tile) => tile.id === dragState.tileId) ?? null : null;
   const isInteractive = game.status === "playing";
@@ -135,7 +83,6 @@ export function usePuzzleSession({
     [game.config, game.tiles, isInteractive]
   );
   const isScoreEligible = game.hintCount === 0;
-  const currentPuzzleLabel = `#${puzzle.tierIndex} (${puzzle.tier})`;
   const bestCompletion = useMemo(
     () => getBestCompletionForPuzzle(completionHistory, puzzle.id, puzzle.catalogVersion),
     [completionHistory, puzzle.catalogVersion, puzzle.id]
@@ -148,6 +95,10 @@ export function usePuzzleSession({
   }
 
   useEffect(() => {
+    if (disableAutomaticTransitions) {
+      return undefined;
+    }
+
     if (game.status !== "preview") {
       return undefined;
     }
@@ -168,9 +119,13 @@ export function usePuzzleSession({
     }, PREVIEW_DURATION_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [game.status]);
+  }, [disableAutomaticTransitions, game.status]);
 
   useEffect(() => {
+    if (disableAutomaticTransitions) {
+      return undefined;
+    }
+
     if (game.status !== "scrambling") {
       return undefined;
     }
@@ -201,9 +156,13 @@ export function usePuzzleSession({
         window.clearTimeout(restoreMotionTimeoutId);
       }
     };
-  }, [game.status]);
+  }, [disableAutomaticTransitions, game.status]);
 
   useEffect(() => {
+    if (disableAutomaticTransitions) {
+      return undefined;
+    }
+
     if (game.status !== "animating-hint" || !activeAidAnimation) {
       return undefined;
     }
@@ -222,7 +181,7 @@ export function usePuzzleSession({
     }, activeAidAnimation.durationMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [activeAidAnimation, game.status]);
+  }, [activeAidAnimation, disableAutomaticTransitions, game.status]);
 
   useEffect(() => {
     if (!activeAidAnimation || activeAidAnimation.moving || activeAidAnimation.durationMs === 0) {
@@ -269,7 +228,7 @@ export function usePuzzleSession({
             const completedAt = Date.now();
             const startedAt = attemptStartedAtRef.current ?? completedAt;
 
-            onRecordCompletion(buildCompletionRecord(puzzle, startedAt, game.swapCount + 1, game.hintCount, completedAt));
+            onRecordCompletion(buildPuzzleCompletionRecord(puzzle, startedAt, game.swapCount + 1, game.hintCount, completedAt));
           }
 
           setGame((currentGame) => {
@@ -360,7 +319,7 @@ export function usePuzzleSession({
       const completedAt = Date.now();
       const startedAt = attemptStartedAtRef.current ?? completedAt;
 
-      onRecordCompletion(buildCompletionRecord(puzzle, startedAt, game.swapCount + 1, game.hintCount + 1, completedAt));
+      onRecordCompletion(buildPuzzleCompletionRecord(puzzle, startedAt, game.swapCount + 1, game.hintCount + 1, completedAt));
     }
 
     setGame((currentGame) => {
@@ -385,8 +344,6 @@ export function usePuzzleSession({
 
   return {
     game,
-    activePuzzle: puzzle,
-    previewConfig,
     transitionMode,
     activeAidAnimation,
     activeScrambleFlip,
@@ -398,7 +355,6 @@ export function usePuzzleSession({
     isInteractive,
     canUseAid,
     isScoreEligible,
-    currentPuzzleLabel,
     bestCompletion,
     completionCeremonyPhase: completionBurst.ceremonyPhase,
     actions: {

@@ -9,6 +9,7 @@ import {
   saveCompletion,
   type LocalPuzzleCompletionRecord
 } from "./puzzleCompletionHistory";
+import { applyQaPreferenceOverride, type PuzzleQaBootstrap } from "../qa/bootstrap";
 
 export type TierPuzzleSummary = {
   puzzle: PublishedPuzzle;
@@ -59,14 +60,29 @@ function buildTierCatalog(): TierCatalog[] {
 
 const TIER_CATALOG = buildTierCatalog();
 
-export function usePublishedPuzzleBrowser() {
-  const [screen, setScreen] = useState<BrowserScreen>("home");
-  const [selectedTierIndex, setSelectedTierIndex] = useState(0);
-  const [preferences, setPreferences] = useState<BrowserPreferences>(() => loadBrowserPreferences());
-  const [completionHistory, setCompletionHistory] = useState<LocalPuzzleCompletionRecord[]>(() => loadCompletionHistory());
-  const [selectedPuzzleIndexByTier, setSelectedPuzzleIndexByTier] = useState(() =>
-    TIER_CATALOG.map((tier) => getFirstIncompletePuzzleIndex(completionHistory, tier.puzzles))
+type UsePublishedPuzzleBrowserOptions = {
+  qaBootstrap?: PuzzleQaBootstrap | null;
+};
+
+export function usePublishedPuzzleBrowser({ qaBootstrap = null }: UsePublishedPuzzleBrowserOptions = {}) {
+  const [screen, setScreen] = useState<BrowserScreen>(() => qaBootstrap?.screen ?? "home");
+  const [selectedTierIndex, setSelectedTierIndex] = useState(() => qaBootstrap?.selectedTierIndex ?? 0);
+  const [preferences, setPreferences] = useState<BrowserPreferences>(() =>
+    applyQaPreferenceOverride(loadBrowserPreferences(), qaBootstrap)
   );
+  const [completionHistory, setCompletionHistory] = useState<LocalPuzzleCompletionRecord[]>(() => loadCompletionHistory());
+  const [selectedPuzzleIndexByTier, setSelectedPuzzleIndexByTier] = useState(() => {
+    const nextIndexes = TIER_CATALOG.map((tier) => getFirstIncompletePuzzleIndex(completionHistory, tier.puzzles));
+
+    if (qaBootstrap) {
+      nextIndexes[qaBootstrap.selectedTierIndex] = clampIndex(
+        qaBootstrap.selectedPuzzleIndex,
+        TIER_CATALOG[qaBootstrap.selectedTierIndex]?.puzzles.length ?? 0
+      );
+    }
+
+    return nextIndexes;
+  });
 
   const tiers = useMemo<TierSummary[]>(
     () =>
