@@ -24,6 +24,13 @@ select {
   font: inherit;
 }
 
+button:not(.tile):focus-visible,
+input[type="range"]:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
 #root {
   min-height: 100vh;
 }

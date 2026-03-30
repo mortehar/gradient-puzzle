@@ -42,6 +42,7 @@
   --border-active: rgba(209, 181, 131, 0.3);
   --border-strong: rgba(255, 244, 228, 0.2);
   --border-chip: rgba(255, 255, 255, 0.1);
+  --focus-ring: rgba(239, 207, 154, 0.78);
 
   --shadow-panel: 0 30px 80px rgba(3, 4, 6, 0.28);
   --shadow-card: 0 18px 38px rgba(4, 5, 7, 0.18);
