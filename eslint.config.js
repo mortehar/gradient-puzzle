@@ -5,10 +5,28 @@ import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "coverage/**", "*.d.ts", "*.js", "vite.config.d.ts"]
+    ignores: [
+      "dist/**",
+      "coverage/**",
+      "artifacts/**",
+      "*.d.ts",
+      "*.js",
+      "**/*.generated.ts",
+      "vite.config.d.ts"
+    ]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    files: ["**/*.{js,mjs}"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: "module",
+      globals: {
+        ...globals.node
+      }
+    }
+  },
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {

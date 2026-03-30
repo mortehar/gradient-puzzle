@@ -62,7 +62,15 @@ function writeBrowserPreferencesDocument(preferences: BrowserPreferences): void 
 }
 
 export function loadBrowserPreferences(): BrowserPreferences {
-  return readBrowserPreferencesDocument() ?? DEFAULT_BROWSER_PREFERENCES;
+  const document = readBrowserPreferencesDocument();
+
+  if (!document) {
+    return DEFAULT_BROWSER_PREFERENCES;
+  }
+
+  return {
+    lockedTileStyle: document.lockedTileStyle
+  };
 }
 
 export function saveBrowserPreferences(preferences: BrowserPreferences): void {

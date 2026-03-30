@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getCompletedPuzzleCountForTier,
   getBestCompletionForPuzzle,
@@ -58,6 +58,18 @@ describe("puzzleCompletionHistory", () => {
     expect(loadCompletionHistory()).toEqual([first, second]);
   });
 
+  it("filters malformed completion entries out of the stored document", () => {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        completions: [buildRecord(), { not: "a completion" }]
+      })
+    );
+
+    expect(loadCompletionHistory()).toEqual([buildRecord()]);
+  });
+
   it("prefers fewer moves, then faster time, then earlier completion for best score", () => {
     const records = [
       buildRecord({ completedAt: 10_000, moveCount: 8, solveDurationMs: 3_000 }),
@@ -113,5 +125,15 @@ describe("puzzleCompletionHistory", () => {
 
     expect(getFirstIncompletePuzzleIndex(partiallyCompleted, easyPuzzles)).toBe(1);
     expect(getFirstIncompletePuzzleIndex(fullyCompleted, easyPuzzles)).toBe(0);
+  });
+
+  it("ignores storage write failures when saving completions", () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("quota exceeded");
+    });
+
+    expect(() => saveCompletion(buildRecord())).not.toThrow();
+
+    setItemSpy.mockRestore();
   });
 });

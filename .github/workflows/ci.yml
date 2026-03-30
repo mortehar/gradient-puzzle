@@ -29,8 +29,37 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test
-        run: npm test
+      - name: Test With Coverage
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
+
+  browser-feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser feedback
+        run: npm run feedback:ci
+
+      - name: Upload browser feedback artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-feedback-artifacts
+          path: artifacts/feedback/latest
+          if-no-files-found: warn

@@ -87,7 +87,6 @@ function SessionHarness({
     <>
       <PuzzleBoard
         game={session.game}
-        previewConfig={session.previewConfig}
         orderedTiles={session.orderedTiles}
         lockedTileStyle={DEFAULT_LOCKED_TILE_STYLE}
         transitionMode={session.transitionMode}
@@ -102,7 +101,6 @@ function SessionHarness({
       />
       <p data-testid="session-status">{session.game.status}</p>
       <p data-testid="session-swap-count">{session.game.swapCount}</p>
-      <p data-testid="session-puzzle-label">{session.currentPuzzleLabel}</p>
       <p data-testid="session-aid-count">{session.game.hintCount}</p>
       <p data-testid="session-drag-target-index">{session.dragTargetIndex ?? "none"}</p>
       <p data-testid="session-score-eligible">{String(session.isScoreEligible)}</p>
