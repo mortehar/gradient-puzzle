@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 import { buildPublishedCatalogManifest, buildStructuralCatalogManifest } from "../src/game";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
-const structuralOutputPath = resolve(scriptDirectory, "../src/structuralCatalog.generated.ts");
-const publishedOutputPath = resolve(scriptDirectory, "../src/publishedCatalog.generated.ts");
+const structuralOutputPath = resolve(scriptDirectory, "../src/game/generated/structuralCatalog.generated.ts");
+const publishedOutputPath = resolve(scriptDirectory, "../src/game/generated/publishedCatalog.generated.ts");
 
 const structuralManifest = buildStructuralCatalogManifest();
 const publishedCatalog = buildPublishedCatalogManifest("v1", structuralManifest.catalog);

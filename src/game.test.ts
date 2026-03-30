@@ -26,11 +26,11 @@ import {
   type GameConfig
 } from "./game";
 import {
-  buildDifficultyCatalog,
-  buildPublishedCatalogPlan,
-  createNewGameForDifficulty,
-  pickConfigForDifficulty
-} from "./gameCatalog";
+  buildGeneratedPublishedCatalogPlan,
+  createNewGameForGeneratedDifficulty,
+  getGeneratedDifficultyCatalog,
+  pickGeneratedConfigForDifficulty
+} from "./game/generated-catalog";
 
 function buildMockGradientColors(width: number, height: number): string[] {
   return Array.from({ length: width * height }, (_, index) => {
@@ -347,7 +347,7 @@ describe("game utilities", () => {
   });
 
   it("builds a deduplicated difficulty catalog with valid scores and tiers", () => {
-    const catalog = buildDifficultyCatalog();
+    const catalog = getGeneratedDifficultyCatalog();
     const signatures = new Set(catalog.map((entry) => entry.rating.layoutSignature));
 
     expect(catalog.length).toBe(signatures.size);
@@ -367,8 +367,8 @@ describe("game utilities", () => {
   });
 
   it("prefers structurally harder layouts for higher difficulty scores", () => {
-    const easy = pickConfigForDifficulty(15);
-    const hard = pickConfigForDifficulty(85);
+    const easy = pickGeneratedConfigForDifficulty(15);
+    const hard = pickGeneratedConfigForDifficulty(85);
 
     expect(easy.config.width).toBeLessThanOrEqual(easy.config.height);
     expect(hard.config.width).toBeLessThanOrEqual(hard.config.height);
@@ -378,7 +378,7 @@ describe("game utilities", () => {
   });
 
   it("creates difficulty-driven games with structural metadata", () => {
-    const game = createNewGameForDifficulty(70, DEFAULT_CONFIG);
+    const game = createNewGameForGeneratedDifficulty(70, DEFAULT_CONFIG);
 
     expect(game.difficulty.score).toBeGreaterThanOrEqual(0);
     expect(game.difficulty.score).toBeLessThanOrEqual(100);
@@ -407,8 +407,8 @@ describe("game utilities", () => {
   });
 
   it("selects the published tier entries by deterministic even spacing", () => {
-    const fullCatalog = buildDifficultyCatalog();
-    const publishedPlan = buildPublishedCatalogPlan();
+    const fullCatalog = getGeneratedDifficultyCatalog();
+    const publishedPlan = buildGeneratedPublishedCatalogPlan();
 
     (["Easy", "Medium", "Hard", "Expert", "Master"] as const).forEach((tier) => {
       const tierEntries = fullCatalog.filter((entry) => entry.rating.tier === tier);
