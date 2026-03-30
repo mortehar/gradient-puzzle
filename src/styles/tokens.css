@@ -1,0 +1,41 @@
+:root {
+  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+  color: #f8f1e7;
+  background:
+    radial-gradient(circle at top, rgba(242, 199, 92, 0.16), transparent 36%),
+    radial-gradient(circle at bottom left, rgba(233, 129, 112, 0.22), transparent 30%),
+    linear-gradient(160deg, #1a2740 0%, #102033 45%, #09131f 100%);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
