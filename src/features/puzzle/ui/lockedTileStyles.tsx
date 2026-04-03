@@ -10,34 +10,34 @@ export const DEFAULT_LOCKED_TILE_STYLE: LockedTileStyle = "texture";
 export type LockedTileStyleOption = {
   value: LockedTileStyle;
   label: string;
-  description: string;
+  description?: string;
 };
 
 export const LOCKED_TILE_STYLE_OPTIONS: readonly LockedTileStyleOption[] = [
   {
     value: "frame",
     label: "Original frame",
-    description: "The current white inset square for baseline comparison."
+    description: "Baseline look."
   },
   {
     value: "mounted",
     label: "Mounted inset",
-    description: "Makes locked tiles feel slightly seated into the board."
+    description: "More carved."
   },
   {
     value: "frosted",
     label: "Frosted pane",
-    description: "A soft translucent plate that reads polished and premium."
+    description: "Soft glass."
   },
   {
     value: "texture",
     label: "Microtexture",
-    description: "A satin texture overlay that suggests a different material."
+    description: "Matte grain."
   },
   {
     value: "icon",
     label: "Adaptive icon",
-    description: "A simple filled lock with contrast-aware ink for maximum explicitness."
+    description: "Most explicit."
   }
 ] as const;
 
@@ -45,53 +45,53 @@ type Rgba = [red: number, green: number, blue: number, alpha: number];
 
 const LOCKED_TILE_DECORATION_RAMPS = {
   "--tile-lock-ink": {
-    from: [25, 31, 42, 0.48],
-    to: [248, 242, 235, 0.68]
+    from: [249, 244, 238, 0.78],
+    to: [255, 252, 246, 0.92]
   },
   "--tile-lock-soft-ink": {
-    from: [25, 31, 42, 0.2],
-    to: [248, 242, 235, 0.28]
+    from: [248, 242, 236, 0.46],
+    to: [255, 252, 246, 0.68]
   },
   "--tile-lock-fill": {
-    from: [255, 250, 244, 0.42],
-    to: [28, 34, 45, 0.48]
+    from: [255, 250, 246, 0.38],
+    to: [255, 253, 249, 0.56]
   },
   "--tile-lock-icon-stroke": {
-    from: [255, 251, 246, 0.54],
-    to: [20, 26, 36, 0.62]
+    from: [255, 255, 255, 0.84],
+    to: [255, 255, 255, 0.98]
   },
   "--tile-lock-strong-ink": {
-    from: [16, 21, 31, 0.72],
-    to: [255, 250, 244, 0.84]
+    from: [255, 251, 246, 0.92],
+    to: [255, 255, 255, 0.99]
   },
   "--tile-lock-shadow": {
-    from: [6, 10, 18, 0.14],
-    to: [10, 14, 22, 0.22]
+    from: [8, 12, 20, 0.3],
+    to: [8, 12, 20, 0.42]
   },
   "--tile-lock-gloss": {
-    from: [255, 255, 255, 0.2],
-    to: [255, 255, 255, 0.12]
+    from: [255, 255, 255, 0.26],
+    to: [255, 255, 255, 0.2]
   },
   "--tile-lock-frost": {
-    from: [255, 255, 255, 0.14],
-    to: [255, 255, 255, 0.1]
+    from: [255, 255, 255, 0.18],
+    to: [255, 255, 255, 0.24]
   },
   "--tile-lock-frost-edge": {
-    from: [255, 255, 255, 0.34],
-    to: [255, 255, 255, 0.18]
+    from: [255, 255, 255, 0.44],
+    to: [255, 255, 255, 0.62]
   }
 } as const satisfies Record<string, { from: Rgba; to: Rgba }>;
 
 const LOCKED_TILE_FALLBACK_VARS = {
-  "--tile-lock-ink": "rgba(255, 255, 255, 0.72)",
-  "--tile-lock-soft-ink": "rgba(255, 255, 255, 0.34)",
-  "--tile-lock-fill": "rgba(255, 255, 255, 0.44)",
-  "--tile-lock-icon-stroke": "rgba(255, 255, 255, 0.58)",
-  "--tile-lock-strong-ink": "rgba(255, 255, 255, 0.92)",
-  "--tile-lock-shadow": "rgba(10, 14, 22, 0.24)",
-  "--tile-lock-gloss": "rgba(255, 255, 255, 0.16)",
-  "--tile-lock-frost": "rgba(255, 255, 255, 0.12)",
-  "--tile-lock-frost-edge": "rgba(255, 255, 255, 0.28)"
+  "--tile-lock-ink": "rgba(255, 252, 246, 0.88)",
+  "--tile-lock-soft-ink": "rgba(255, 252, 246, 0.58)",
+  "--tile-lock-fill": "rgba(255, 253, 249, 0.52)",
+  "--tile-lock-icon-stroke": "rgba(255, 255, 255, 0.96)",
+  "--tile-lock-strong-ink": "rgba(255, 255, 255, 0.99)",
+  "--tile-lock-shadow": "rgba(8, 12, 20, 0.38)",
+  "--tile-lock-gloss": "rgba(255, 255, 255, 0.22)",
+  "--tile-lock-frost": "rgba(255, 255, 255, 0.2)",
+  "--tile-lock-frost-edge": "rgba(255, 255, 255, 0.54)"
 } as const;
 
 export function isLockedTileStyle(value: unknown): value is LockedTileStyle {

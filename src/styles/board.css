@@ -1,6 +1,6 @@
 .board {
   position: relative;
-  width: min(100%, 760px);
+  width: min(100%, var(--board-max-width));
   margin: 0 auto;
   overflow: hidden;
   touch-action: none;
@@ -99,25 +99,26 @@
 .tile-lock-art-frame::before {
   inset: var(--tile-lock-inset);
   border-radius: var(--tile-lock-radius);
-  border: var(--tile-lock-width) solid rgba(255, 255, 255, 0.72);
+  border: var(--tile-lock-width) solid var(--lock-frame-stroke);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .tile-lock-art-mounted::before {
   inset: var(--tile-lock-inset);
   border-radius: var(--tile-lock-radius);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 72%);
+  background: linear-gradient(180deg, var(--lock-mounted-highlight), transparent 72%);
   box-shadow:
     inset 0 1px 0 var(--tile-lock-gloss),
     inset 0 0 0 1px var(--tile-lock-soft-ink),
-    inset 0 -10px 16px rgba(6, 10, 18, 0.08),
-    0 10px 18px -16px rgba(5, 8, 14, 0.6);
+    inset 0 -10px 16px var(--lock-mounted-depth),
+    0 10px 18px -16px var(--lock-mounted-shadow);
 }
 
 .tile-lock-art-mounted::after {
   inset: var(--tile-lock-secondary-inset);
   border-radius: var(--tile-lock-radius);
   box-shadow: inset 0 0 0 1px var(--tile-lock-soft-ink);
-  opacity: 0.4;
+  opacity: 0.56;
 }
 
 .tile-lock-art-frosted::before {
@@ -125,11 +126,11 @@
   border-radius: var(--tile-lock-radius);
   border: 1px solid var(--tile-lock-frost-edge);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 34%),
+    linear-gradient(180deg, var(--lock-frost-highlight), transparent 34%),
     linear-gradient(180deg, var(--tile-lock-frost), rgba(255, 255, 255, 0.04));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 8px 18px -16px rgba(10, 14, 22, 0.6);
+    inset 0 1px 0 var(--tile-lock-gloss),
+    0 8px 18px -16px var(--lock-frost-shadow);
   backdrop-filter: blur(8px) saturate(0.78);
 }
 
@@ -137,7 +138,7 @@
   inset: var(--tile-lock-secondary-inset);
   border-radius: var(--tile-lock-radius);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 75%);
-  opacity: 0.65;
+  opacity: 0.78;
 }
 
 .tile-lock-art-texture::before {
@@ -145,14 +146,14 @@
   border-radius: var(--tile-lock-radius);
   border: 1px solid var(--tile-lock-soft-ink);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 52%),
+    linear-gradient(180deg, var(--lock-texture-highlight), transparent 52%),
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.14) 0 2px,
+      var(--lock-texture-line) 0 2px,
       rgba(255, 255, 255, 0) 2px 7px
     );
-  opacity: 0.5;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  opacity: 0.72;
+  box-shadow: inset 0 1px 0 var(--lock-texture-sheen);
 }
 
 .tile-lock-art-icon::before,
@@ -164,10 +165,10 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 34%;
-  height: 34%;
+  width: 38%;
+  height: 38%;
   transform: translate(-50%, -50%);
-  filter: drop-shadow(0 1px 1px var(--tile-lock-shadow));
+  filter: drop-shadow(0 1px 1px var(--tile-lock-shadow)) drop-shadow(0 0 6px var(--lock-icon-shadow));
 }
 
 .tile-lock-glyph svg {
@@ -176,7 +177,9 @@
   height: 100%;
   fill: var(--tile-lock-fill);
   stroke: var(--tile-lock-icon-stroke);
-  stroke-width: 0.65;
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   paint-order: stroke fill;
 }
 
@@ -196,11 +199,11 @@
 .tile-drop-target {
   z-index: 2;
   box-shadow:
-    inset 0 0 0 3px rgba(255, 255, 255, 0.92),
-    inset 0 0 0 6px rgba(12, 19, 31, 0.34),
-    0 0 0 1px rgba(255, 255, 255, 0.4),
-    0 0 18px rgba(255, 255, 255, 0.34);
-  transform: scale(1.015);
+    inset 0 0 0 2px rgba(255, 250, 239, 0.88),
+    inset 0 0 0 5px rgba(12, 19, 31, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 10px 24px rgba(12, 18, 26, 0.22);
+  transform: scale(1.01);
 }
 
 .aid-overlay {
@@ -246,13 +249,13 @@
 
 .completion-checkmark svg {
   display: block;
-  width: min(96%, 552px);
+  width: min(78%, 420px);
   min-width: 0;
   height: auto;
   overflow: visible;
   filter:
-    drop-shadow(0 0 10px rgba(255, 255, 255, 0.62))
-    drop-shadow(0 0 22px rgba(255, 255, 255, 0.34));
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.42))
+    drop-shadow(0 0 18px rgba(255, 232, 189, 0.22));
 }
 
 .completion-checkmark-ring,
@@ -264,14 +267,14 @@
 }
 
 .completion-checkmark-ring {
-  stroke-width: 5.6;
+  stroke-width: 4.8;
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   animation: drawCompletionRing 2240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .completion-checkmark-path {
-  stroke-width: 6.6;
+  stroke-width: 5.8;
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   animation: drawCompletionCheck 1280ms cubic-bezier(0.22, 1, 0.36, 1) 1040ms forwards;
@@ -318,7 +321,7 @@
   --tile-lock-inset: 20%;
   --tile-lock-width: clamp(0.9px, 0.14vw, 1.3px);
   --tile-lock-radius: 10%;
-  filter: saturate(0.76) brightness(0.84);
+  filter: saturate(var(--preview-idle-saturation)) brightness(var(--preview-idle-brightness));
   opacity: 0.9;
 }
 
@@ -327,6 +330,7 @@
   --tile-lock-inset: 16%;
   --tile-lock-width: clamp(1px, 0.18vw, 1.85px);
   --tile-lock-radius: 8%;
+  filter: saturate(0.88) brightness(0.92);
 }
 
 .drag-preview {
@@ -337,10 +341,10 @@
   transform: translate(-50%, -50%) scale(1.03) rotate(3deg);
   pointer-events: none;
   -webkit-user-drag: none;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 18px 26px rgba(0, 0, 0, 0.28);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 18px 26px rgba(0, 0, 0, 0.24);
   z-index: 30;
 }
 
@@ -348,9 +352,9 @@
   width: clamp(82px, 22vw, 120px);
   transform: translate(-50%, calc(-60% - 2px)) scale(1.04);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    0 20px 34px rgba(0, 0, 0, 0.34),
-    0 0 0 1px rgba(255, 255, 255, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 20px 34px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 @keyframes scrambleFlip {

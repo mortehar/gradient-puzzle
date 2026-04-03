@@ -103,6 +103,21 @@ describe("useSnapCarousel", () => {
 
     expect(screen.getByTestId("open-index")).toHaveTextContent("none");
   });
+
+  it("preserves the intended selection while a programmatic scroll is settling", async () => {
+    render(<TestCarousel />);
+
+    const carousel = screen.getByTestId("carousel") as HTMLDivElement;
+    configureCarouselLayout(carousel);
+
+    fireEvent.doubleClick(screen.getByTestId("slide-2"));
+    carousel.scrollLeft = 120;
+    fireEvent.scroll(carousel);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("selected-index")).toHaveTextContent("2");
+    });
+  });
 });
 
 function configureCarouselLayout(carousel: HTMLDivElement) {

@@ -48,22 +48,24 @@ export function BrowserScreenTopRow({
   }, [isSettingsOpen, onCloseSettings]);
 
   return (
-    <div className="browser-top-row" ref={topRowRef} data-testid="browser-top-row">
-      <button
-        className={["browser-settings-button", isSettingsOpen ? "browser-settings-button-active" : ""].join(" ")}
-        type="button"
-        aria-label={isSettingsOpen ? "Close settings" : "Open settings"}
-        aria-expanded={isSettingsOpen}
-        aria-haspopup="dialog"
-        onClick={onToggleSettings}
-        data-testid="browser-settings-button"
-      >
-        <svg className="browser-settings-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M4 7h16" />
-          <path d="M7 12h13" />
-          <path d="M10 17h10" />
-        </svg>
-      </button>
+    <div className="browser-top-row-stack" ref={topRowRef} data-testid="browser-top-row">
+      <div className="browser-top-row">
+        <button
+          className={["browser-settings-button", isSettingsOpen ? "browser-settings-button-active" : ""].join(" ")}
+          type="button"
+          aria-label={isSettingsOpen ? "Close settings" : "Open settings"}
+          aria-expanded={isSettingsOpen}
+          aria-haspopup="dialog"
+          onClick={onToggleSettings}
+          data-testid="browser-settings-button"
+        >
+          <svg className="browser-settings-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 7h16" />
+            <path d="M7 12h13" />
+            <path d="M10 17h10" />
+          </svg>
+        </button>
+      </div>
 
       {isSettingsOpen ? (
         <BrowserSettingsMenu lockedTileStyle={lockedTileStyle} onLockedTileStyleChange={onLockedTileStyleChange} />

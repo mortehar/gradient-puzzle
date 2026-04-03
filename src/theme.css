@@ -1,58 +1,65 @@
 :root {
   --font-ui: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
-  --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  --font-accent: "Avenir Next", "Trebuchet MS", sans-serif;
+  --font-display: "Avenir Next Condensed", "Arial Narrow", "Avenir Next", "Trebuchet MS", sans-serif;
+  --font-accent: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
 
-  --ink-strong: #f3ede3;
-  --ink-soft: rgba(243, 237, 227, 0.82);
-  --ink-muted: rgba(243, 237, 227, 0.62);
-  --ink-faint: rgba(243, 237, 227, 0.38);
+  --ink-strong: #fff8f1;
+  --ink-soft: rgba(255, 248, 241, 0.84);
+  --ink-muted: rgba(255, 248, 241, 0.64);
+  --ink-faint: rgba(255, 248, 241, 0.42);
 
-  --accent-warm: #d1b583;
-  --accent-soft: rgba(209, 181, 131, 0.2);
-  --accent-line: rgba(209, 181, 131, 0.36);
-  --accent-rose: rgba(201, 137, 117, 0.18);
-  --accent-strong: #efcf9a;
+  --accent-warm: #f2d18f;
+  --accent-soft: rgba(242, 209, 143, 0.22);
+  --accent-line: rgba(242, 209, 143, 0.42);
+  --accent-rose: rgba(243, 155, 126, 0.2);
+  --accent-strong: #ffe0a7;
 
-  --shell-base: #120f0d;
-  --shell-sky-top: #3e352f;
-  --shell-sky-mid: #2c3540;
-  --shell-sky-bottom: #13181d;
+  --shell-base: #5a6e8a;
+  --shell-sky-top: #f2c8ad;
+  --shell-sky-mid: #9fafd9;
+  --shell-sky-bottom: #4c6785;
 
-  --surface-panel: rgba(22, 20, 18, 0.56);
-  --surface-panel-strong: rgba(18, 17, 16, 0.72);
-  --surface-panel-glow: rgba(255, 240, 215, 0.05);
-  --surface-card: rgba(248, 244, 238, 0.045);
-  --surface-card-hover: rgba(248, 244, 238, 0.08);
-  --surface-veil: rgba(248, 244, 238, 0.06);
-  --surface-veil-strong: rgba(248, 244, 238, 0.1);
-  --surface-control: rgba(248, 244, 238, 0.055);
-  --surface-control-hover: rgba(248, 244, 238, 0.095);
-  --surface-control-active: rgba(209, 181, 131, 0.14);
-  --surface-chip: rgba(248, 244, 238, 0.055);
-  --surface-chip-active: rgba(248, 244, 238, 0.085);
-  --surface-chip-warm: rgba(209, 181, 131, 0.1);
-  --surface-stage: rgba(10, 11, 12, 0.32);
-  --surface-board: rgba(8, 10, 12, 0.28);
-  --surface-board-shell: rgba(12, 12, 14, 0.3);
-  --surface-overlay: rgba(18, 18, 20, 0.82);
+  --surface-panel: rgba(82, 98, 132, 0.24);
+  --surface-panel-top: rgba(255, 235, 203, 0.24);
+  --surface-panel-strong: rgba(83, 94, 122, 0.42);
+  --surface-panel-deep: rgba(56, 68, 95, 0.44);
+  --surface-panel-glow: rgba(255, 240, 215, 0.12);
+  --surface-card: rgba(255, 255, 255, 0.1);
+  --surface-card-hover: rgba(255, 255, 255, 0.14);
+  --surface-card-active: rgba(255, 255, 255, 0.18);
+  --surface-veil: rgba(255, 255, 255, 0.08);
+  --surface-veil-strong: rgba(255, 255, 255, 0.14);
+  --surface-control: rgba(255, 255, 255, 0.1);
+  --surface-control-hover: rgba(255, 255, 255, 0.15);
+  --surface-control-active: rgba(242, 209, 143, 0.18);
+  --surface-chip: rgba(255, 255, 255, 0.08);
+  --surface-chip-active: rgba(255, 255, 255, 0.12);
+  --surface-chip-warm: rgba(242, 209, 143, 0.16);
+  --surface-stage: rgba(38, 48, 69, 0.18);
+  --surface-board: rgba(31, 39, 58, 0.2);
+  --surface-board-shell: rgba(38, 49, 68, 0.22);
+  --surface-overlay: rgba(63, 74, 101, 0.72);
+  --surface-settings: rgba(88, 101, 133, 0.58);
 
-  --border-quiet: rgba(255, 255, 255, 0.08);
-  --border-soft: rgba(255, 255, 255, 0.14);
-  --border-active: rgba(209, 181, 131, 0.3);
-  --border-strong: rgba(255, 244, 228, 0.2);
-  --border-chip: rgba(255, 255, 255, 0.1);
+  --border-quiet: rgba(255, 255, 255, 0.14);
+  --border-soft: rgba(255, 255, 255, 0.24);
+  --border-active: rgba(242, 209, 143, 0.44);
+  --border-strong: rgba(255, 244, 228, 0.28);
+  --border-chip: rgba(255, 255, 255, 0.16);
+  --border-panel-glow: rgba(255, 231, 190, 0.18);
   --focus-ring: rgba(239, 207, 154, 0.78);
 
-  --shadow-panel: 0 30px 80px rgba(3, 4, 6, 0.28);
-  --shadow-card: 0 18px 38px rgba(4, 5, 7, 0.18);
-  --shadow-stage: 0 18px 46px rgba(4, 5, 7, 0.3);
-  --shadow-control: 0 10px 24px rgba(4, 5, 7, 0.18);
+  --shadow-panel: 0 20px 60px rgba(41, 54, 75, 0.18);
+  --shadow-shell: 0 24px 72px rgba(41, 54, 75, 0.22);
+  --shadow-card: 0 14px 30px rgba(48, 62, 85, 0.16);
+  --shadow-stage: 0 18px 40px rgba(38, 49, 70, 0.2);
+  --shadow-control: 0 10px 22px rgba(45, 58, 78, 0.16);
+  --shadow-settings: 0 18px 40px rgba(43, 55, 75, 0.18);
   --shadow-board: 0 18px 36px rgba(4, 5, 7, 0.22);
   --shadow-drag: 0 18px 26px rgba(0, 0, 0, 0.28);
   --shadow-drag-touch: 0 20px 34px rgba(0, 0, 0, 0.34);
 
-  --radius-panel: 20px;
+  --radius-panel: 28px;
   --radius-card: 18px;
   --radius-control: 16px;
   --radius-chip: 12px;
@@ -71,7 +78,7 @@
   --panel-max-width: 780px;
   --board-max-width: 760px;
   --control-size: 3.65rem;
-  --settings-menu-max-width: 28rem;
+  --settings-menu-max-width: 40rem;
 
   --title-size: clamp(2.2rem, 6vw, 3.25rem);
   --title-size-compact: clamp(1.6rem, 4.2vw, 2.1rem);
@@ -81,13 +88,14 @@
   --tracking-wide: 0.22em;
   --tracking-label: 0.12em;
   --tracking-tight: 0.05em;
+  --content-measure: 34rem;
 
   --scene-ornament: rgba(255, 244, 228, 0.22);
   --scene-ornament-soft: rgba(255, 255, 255, 0.05);
-  --preview-idle-saturation: 0.74;
-  --preview-idle-brightness: 0.84;
-  --preview-active-saturation: 0.94;
-  --preview-active-brightness: 0.97;
+  --preview-idle-saturation: 0.94;
+  --preview-idle-brightness: 0.98;
+  --preview-active-saturation: 1.06;
+  --preview-active-brightness: 1.02;
   --preview-active-lift: -4px;
   --panel-reveal-distance: 12px;
 
@@ -98,15 +106,16 @@
   --board-drag-border: rgba(248, 241, 227, 0.18);
   --board-drag-highlight: rgba(255, 255, 255, 0.18);
 
-  --lock-frame-stroke: rgba(255, 255, 255, 0.72);
-  --lock-mounted-highlight: rgba(255, 255, 255, 0.08);
-  --lock-mounted-depth: rgba(6, 10, 18, 0.08);
-  --lock-mounted-shadow: rgba(5, 8, 14, 0.6);
-  --lock-frost-highlight: rgba(255, 255, 255, 0.22);
-  --lock-frost-shadow: rgba(10, 14, 22, 0.6);
-  --lock-texture-highlight: rgba(255, 255, 255, 0.08);
-  --lock-texture-line: rgba(255, 255, 255, 0.14);
-  --lock-texture-sheen: rgba(255, 255, 255, 0.1);
+  --lock-frame-stroke: rgba(255, 255, 255, 0.88);
+  --lock-mounted-highlight: rgba(255, 255, 255, 0.16);
+  --lock-mounted-depth: rgba(6, 10, 18, 0.14);
+  --lock-mounted-shadow: rgba(5, 8, 14, 0.64);
+  --lock-frost-highlight: rgba(255, 255, 255, 0.34);
+  --lock-frost-shadow: rgba(10, 14, 22, 0.68);
+  --lock-texture-highlight: rgba(255, 255, 255, 0.14);
+  --lock-texture-line: rgba(255, 255, 255, 0.22);
+  --lock-texture-sheen: rgba(255, 255, 255, 0.16);
+  --lock-icon-shadow: rgba(8, 12, 20, 0.42);
 
   --motion-quick: 180ms cubic-bezier(0.22, 1, 0.36, 1);
   --motion-soft: 260ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -127,9 +136,10 @@ body {
   color: var(--ink-strong);
   font-family: var(--font-ui);
   background:
-    radial-gradient(circle at top, rgba(241, 207, 145, 0.14), transparent 30%),
-    radial-gradient(circle at 12% 18%, rgba(211, 137, 110, 0.14), transparent 24%),
-    linear-gradient(180deg, var(--shell-sky-top) 0%, var(--shell-sky-mid) 38%, var(--shell-sky-bottom) 100%);
+    radial-gradient(circle at 50% 10%, rgba(255, 230, 177, 0.28), transparent 24%),
+    radial-gradient(circle at 18% 20%, rgba(244, 162, 127, 0.22), transparent 24%),
+    radial-gradient(circle at 78% 26%, rgba(160, 185, 255, 0.18), transparent 28%),
+    linear-gradient(180deg, var(--shell-sky-top) 0%, var(--shell-sky-mid) 34%, var(--shell-sky-bottom) 100%);
 }
 
 body::before,
@@ -142,23 +152,23 @@ body::after {
 
 body::before {
   background:
-    radial-gradient(circle at 50% 12%, rgba(248, 228, 173, 0.12), transparent 26%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 42%);
+    radial-gradient(circle at 50% 14%, rgba(255, 240, 198, 0.16), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%);
   z-index: -2;
 }
 
 body::after {
   inset: auto -8% -12% -8%;
-  height: 38vh;
+  height: 32vh;
   background:
-    radial-gradient(60% 120% at 50% 0%, rgba(193, 134, 109, 0.12), transparent 60%),
+    radial-gradient(60% 120% at 50% 0%, rgba(255, 208, 154, 0.14), transparent 60%),
     linear-gradient(
       180deg,
-      rgba(64, 58, 55, 0.76) 0%,
-      rgba(35, 33, 36, 0.88) 48%,
-      rgba(18, 17, 16, 0.98) 100%
+      rgba(140, 118, 118, 0.2) 0%,
+      rgba(92, 98, 128, 0.34) 46%,
+      rgba(58, 74, 101, 0.62) 100%
     );
-  opacity: 0.96;
+  opacity: 0.9;
   z-index: -1;
 }
 
@@ -175,12 +185,22 @@ select {
 }
 
 .screen-scene {
-  --scene-top: rgba(214, 180, 148, 0.18);
-  --scene-mid: rgba(104, 108, 124, 0.14);
-  --scene-bottom: rgba(26, 28, 31, 0.18);
-  --scene-glow: rgba(247, 218, 157, 0.18);
-  --scene-band-top: rgba(129, 109, 100, 0.2);
-  --scene-band-bottom: rgba(39, 39, 40, 0.66);
+  --scene-top: rgba(255, 219, 180, 0.26);
+  --scene-mid: rgba(165, 170, 217, 0.18);
+  --scene-bottom: rgba(85, 104, 135, 0.12);
+  --scene-glow: rgba(255, 228, 165, 0.3);
+  --scene-glow-position: 26% 10%;
+  --scene-glow-size: 18%;
+  --scene-band-top: rgba(216, 167, 138, 0.18);
+  --scene-band-bottom: rgba(84, 97, 128, 0.26);
+  --scenery-orb: rgba(255, 228, 190, 0.84);
+  --scenery-orb-glow: rgba(255, 232, 196, 0.18);
+  --scenery-haze: rgba(255, 233, 209, 0.08);
+  --scenery-ridge-back: rgba(196, 191, 225, 0.24);
+  --scenery-ridge-mid: rgba(132, 156, 190, 0.3);
+  --scenery-ridge-front: rgba(87, 108, 141, 0.34);
+  --scenery-spire: rgba(68, 86, 114, 0.42);
+  --scenery-star: rgba(255, 248, 238, 0.7);
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -196,9 +216,9 @@ select {
 
 .screen-scene::before {
   background:
-    radial-gradient(circle at 50% 10%, var(--scene-glow), transparent 26%),
+    radial-gradient(circle at var(--scene-glow-position), var(--scene-glow), transparent var(--scene-glow-size)),
     linear-gradient(180deg, var(--scene-top) 0%, var(--scene-mid) 42%, transparent 100%);
-  opacity: 0.95;
+  opacity: 0.9;
   z-index: 0;
 }
 
@@ -206,9 +226,9 @@ select {
   inset: auto -8% -24% -8%;
   height: 58%;
   background:
-    radial-gradient(70% 120% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 56%),
+    radial-gradient(70% 120% at 50% 0%, rgba(255, 255, 255, 0.08), transparent 56%),
     linear-gradient(180deg, var(--scene-band-top) 0%, var(--scene-band-bottom) 100%);
-  opacity: 0.9;
+  opacity: 0.82;
   z-index: 0;
 }
 
@@ -218,25 +238,51 @@ select {
 }
 
 .screen-scene-dawn {
-  --scene-top: rgba(222, 183, 147, 0.26);
-  --scene-mid: rgba(139, 127, 132, 0.18);
-  --scene-glow: rgba(250, 226, 168, 0.22);
-  --scene-band-top: rgba(148, 115, 97, 0.22);
-  --scene-band-bottom: rgba(53, 54, 63, 0.72);
+  --scene-top: rgba(255, 221, 182, 0.3);
+  --scene-mid: rgba(186, 172, 212, 0.24);
+  --scene-glow: rgba(255, 226, 181, 0.22);
+  --scene-glow-position: 24% 10%;
+  --scene-band-top: rgba(224, 167, 134, 0.22);
+  --scene-band-bottom: rgba(89, 109, 145, 0.24);
+  --scenery-orb: rgba(255, 224, 187, 0.88);
+  --scenery-orb-glow: rgba(255, 226, 192, 0.2);
+  --scenery-haze: rgba(255, 238, 212, 0.1);
+  --scenery-ridge-back: rgba(209, 193, 226, 0.28);
+  --scenery-ridge-mid: rgba(155, 181, 205, 0.34);
+  --scenery-ridge-front: rgba(108, 135, 160, 0.38);
+  --scenery-spire: rgba(78, 100, 126, 0.46);
 }
 
 .screen-scene-dusk {
-  --scene-top: rgba(186, 132, 127, 0.24);
-  --scene-mid: rgba(102, 103, 124, 0.18);
-  --scene-glow: rgba(246, 203, 158, 0.18);
-  --scene-band-top: rgba(104, 86, 100, 0.22);
-  --scene-band-bottom: rgba(39, 38, 46, 0.76);
+  --scene-top: rgba(249, 184, 158, 0.26);
+  --scene-mid: rgba(145, 154, 212, 0.22);
+  --scene-glow: rgba(251, 206, 174, 0.2);
+  --scene-glow-position: 28% 11%;
+  --scene-band-top: rgba(198, 139, 136, 0.2);
+  --scene-band-bottom: rgba(83, 89, 136, 0.28);
+  --scenery-orb: rgba(252, 205, 184, 0.82);
+  --scenery-orb-glow: rgba(248, 204, 191, 0.18);
+  --scenery-haze: rgba(255, 220, 202, 0.09);
+  --scenery-ridge-back: rgba(199, 167, 208, 0.24);
+  --scenery-ridge-mid: rgba(137, 139, 192, 0.3);
+  --scenery-ridge-front: rgba(96, 102, 155, 0.34);
+  --scenery-spire: rgba(77, 82, 130, 0.42);
 }
 
 .screen-scene-night {
-  --scene-top: rgba(104, 94, 121, 0.18);
-  --scene-mid: rgba(63, 74, 98, 0.22);
-  --scene-glow: rgba(222, 203, 162, 0.12);
-  --scene-band-top: rgba(54, 58, 77, 0.2);
-  --scene-band-bottom: rgba(20, 20, 24, 0.84);
+  --scene-top: rgba(134, 123, 177, 0.22);
+  --scene-mid: rgba(95, 120, 186, 0.2);
+  --scene-glow: rgba(242, 238, 214, 0.12);
+  --scene-glow-position: 78% 10%;
+  --scene-glow-size: 16%;
+  --scene-band-top: rgba(83, 89, 136, 0.18);
+  --scene-band-bottom: rgba(54, 72, 107, 0.26);
+  --scenery-orb: rgba(243, 244, 234, 0.84);
+  --scenery-orb-glow: rgba(242, 243, 236, 0.14);
+  --scenery-haze: rgba(186, 197, 232, 0.08);
+  --scenery-ridge-back: rgba(122, 139, 197, 0.2);
+  --scenery-ridge-mid: rgba(92, 113, 165, 0.24);
+  --scenery-ridge-front: rgba(67, 86, 128, 0.28);
+  --scenery-spire: rgba(58, 73, 112, 0.34);
+  --scenery-star: rgba(255, 248, 238, 0.84);
 }

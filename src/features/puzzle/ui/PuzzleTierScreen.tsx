@@ -4,7 +4,9 @@ import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
 import { BackSymbolButton } from "./BackSymbolButton";
 import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
 import { ScreenIntro } from "./ScreenIntro";
+import { ScreenScenery } from "./ScreenScenery";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
+import { UiGlyph } from "./UiGlyph";
 import type { LockedTileStyle } from "./lockedTileStyles";
 import { getTierScreenArtDirection } from "./screenArtDirection";
 
@@ -69,6 +71,8 @@ export function PuzzleTierScreen({
 
   return (
     <section className={["browser-screen", "screen-panel", artDirection.sectionClassName].join(" ")} data-testid="tier-screen">
+      <ScreenScenery variant={artDirection.sceneVariant} />
+
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
         lockedTileStyle={lockedTileStyle}
@@ -144,7 +148,7 @@ export function PuzzleTierScreen({
       </div>
 
       <p className="browser-meta browser-meta-spacious" data-testid="tier-best-score">
-        {activePuzzle?.bestCompletion ? `Best: ${activePuzzle.bestCompletion.moveCount}` : "\u00A0"}
+        {activePuzzle ? <UiGlyph name="start" className="browser-meta-icon" /> : "\u00A0"}
       </p>
 
       <div className="screen-footer-actions">

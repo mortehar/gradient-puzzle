@@ -48,6 +48,7 @@ Verification details live in `docs/testing-and-verification.md`.
   - `generated/`
 - `src/styles/`: global stylesheet partials.
 - `docs/architecture.md`: authoritative structure map.
+- `docs/alto-theme-review.md`: Alto-inspired review rubric, audit, and refinement brief.
 - `docs/testing-and-verification.md`: quality gates, coverage, and browser feedback workflow.
 - `docs/color-research.md`: offline generator and readability notes.
 

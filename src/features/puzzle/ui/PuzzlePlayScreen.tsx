@@ -4,6 +4,7 @@ import { PuzzleBoard, PuzzleDragPreview } from "./PuzzleBoard";
 import { HoldToAbortButton } from "./HoldToAbortButton";
 import { HoldToAidButton } from "./HoldToAidButton";
 import { ScreenIntro } from "./ScreenIntro";
+import { ScreenScenery } from "./ScreenScenery";
 import { usePuzzleSession } from "../hooks/usePuzzleSession";
 import type { LocalPuzzleCompletionRecord } from "../hooks/puzzleCompletionHistory";
 import type { Tile } from "../domain";
@@ -89,6 +90,8 @@ export function PuzzlePlayScreen({
         data-testid="puzzle-screen"
         data-game-status={session.game.status}
       >
+        <ScreenScenery variant={artDirection.sceneVariant} className="screen-scenery-subtle" />
+
         <ScreenIntro
           className="screen-heading play-screen-heading"
           titleClassName="screen-title screen-title-compact"

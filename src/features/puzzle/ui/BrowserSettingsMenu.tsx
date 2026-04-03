@@ -24,10 +24,8 @@ export function BrowserSettingsMenu({ lockedTileStyle, onLockedTileStyleChange }
     >
       <div className="browser-settings-header">
         <p className="screen-kicker">{SETTINGS_MENU_ART_DIRECTION.kicker}</p>
-        <p className="browser-label browser-label-large">{SETTINGS_MENU_ART_DIRECTION.title}</p>
-        <p className="browser-settings-copy">
-          {SETTINGS_MENU_ART_DIRECTION.copy}
-        </p>
+        <h2 className="browser-label browser-label-large">{SETTINGS_MENU_ART_DIRECTION.title}</h2>
+        {SETTINGS_MENU_ART_DIRECTION.copy ? <p className="browser-settings-copy">{SETTINGS_MENU_ART_DIRECTION.copy}</p> : null}
       </div>
 
       <div className="lock-style-grid" role="radiogroup" aria-label="Locked cell themes">
@@ -65,7 +63,7 @@ export function BrowserSettingsMenu({ lockedTileStyle, onLockedTileStyleChange }
               </div>
 
               <span className="lock-style-option-label">{option.label}</span>
-              <span className="lock-style-option-copy">{option.description}</span>
+              {option.description ? <span className="lock-style-option-copy">{option.description}</span> : null}
             </button>
           );
         })}

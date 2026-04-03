@@ -3,6 +3,7 @@ import { useSnapCarousel } from "../hooks/useSnapCarousel";
 import type { TierSummary } from "../hooks/usePublishedPuzzleBrowser";
 import { BrowserScreenTopRow } from "./BrowserScreenTopRow";
 import { ScreenIntro } from "./ScreenIntro";
+import { ScreenScenery } from "./ScreenScenery";
 import { StaticPuzzlePreview } from "./StaticPuzzlePreview";
 import type { LockedTileStyle } from "./lockedTileStyles";
 import { getHomeScreenArtDirection } from "./screenArtDirection";
@@ -69,6 +70,8 @@ export function PuzzleHomeScreen({
 
   return (
     <section className={["browser-screen", "screen-panel", artDirection.sectionClassName].join(" ")} data-testid="home-screen">
+      <ScreenScenery variant={artDirection.sceneVariant} />
+
       <BrowserScreenTopRow
         isSettingsOpen={isSettingsOpen}
         lockedTileStyle={lockedTileStyle}

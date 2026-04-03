@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent
+} from "react";
 
 type UseSnapCarouselOptions = {
   selectedIndex: number;
@@ -19,17 +27,57 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
   const suppressClickRef = useRef(false);
+  const programmaticScrollRef = useRef<{ index: number; timeoutId: number } | null>(null);
   const [isPointerDragging, setIsPointerDragging] = useState(false);
 
-  useEffect(() => {
+  const clearProgrammaticScroll = useCallback(() => {
+    if (programmaticScrollRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(programmaticScrollRef.current.timeoutId);
+    programmaticScrollRef.current = null;
+  }, []);
+
+  const beginProgrammaticScroll = useCallback(
+    (index: number, behavior: ScrollBehavior) => {
+      const carousel = carouselRef.current;
+
+      if (!carousel) {
+        return;
+      }
+
+      clearProgrammaticScroll();
+      scrollCarouselToIndex(carousel, index, behavior);
+      programmaticScrollRef.current = {
+        index,
+        timeoutId: window.setTimeout(() => {
+          programmaticScrollRef.current = null;
+        }, behavior === "smooth" ? 420 : 80)
+      };
+    },
+    [clearProgrammaticScroll]
+  );
+
+  useLayoutEffect(() => {
     const carousel = carouselRef.current;
 
     if (!carousel || dragStateRef.current) {
       return;
     }
 
-    scrollCarouselToIndex(carousel, selectedIndex, "auto");
-  }, [selectedIndex]);
+    if (programmaticScrollRef.current?.index === selectedIndex) {
+      return;
+    }
+
+    beginProgrammaticScroll(selectedIndex, "auto");
+  }, [beginProgrammaticScroll, selectedIndex]);
+
+  useEffect(() => {
+    return () => {
+      clearProgrammaticScroll();
+    };
+  }, [clearProgrammaticScroll]);
 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -74,7 +122,7 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
       const nextIndex = getClosestSlideIndex(carousel, itemCount);
 
       onSelectedIndexChange(nextIndex);
-      scrollCarouselToIndex(carousel, nextIndex, "smooth");
+      beginProgrammaticScroll(nextIndex, "smooth");
     };
 
     const handlePointerUp = (event: PointerEvent) => {
@@ -94,12 +142,12 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerCancel);
     };
-  }, [itemCount, onSelectedIndexChange]);
+  }, [beginProgrammaticScroll, itemCount, onSelectedIndexChange]);
 
   function handleScroll() {
     const carousel = carouselRef.current;
 
-    if (!carousel || dragStateRef.current?.hasDragged) {
+    if (!carousel || dragStateRef.current?.hasDragged || programmaticScrollRef.current !== null) {
       return;
     }
     const nextIndex = getClosestSlideIndex(carousel, itemCount);
@@ -110,16 +158,10 @@ export function useSnapCarousel({ selectedIndex, itemCount, onSelectedIndexChang
   }
 
   function snapToIndex(index: number) {
-    const carousel = carouselRef.current;
     const nextIndex = clampIndex(index, itemCount);
 
     onSelectedIndexChange(nextIndex);
-
-    if (!carousel) {
-      return;
-    }
-
-    scrollCarouselToIndex(carousel, nextIndex, "smooth");
+    beginProgrammaticScroll(nextIndex, "smooth");
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {

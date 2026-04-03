@@ -42,6 +42,9 @@ Playwright lives under `tests/feedback/`.
 - `npm run feedback:ci`
   - runs the smoke flow plus captures against a QA-enabled preview build
 
+Visual theme review for the Alto-like branch is documented in `docs/alto-theme-review.md`.
+Use that rubric when assessing feedback captures so atmosphere, hierarchy, and mobile durability are reviewed consistently.
+
 The smoke suite should cover real interaction risk:
 
 - browser settings flow
